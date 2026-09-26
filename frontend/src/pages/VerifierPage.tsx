@@ -50,8 +50,9 @@ export const VerifierPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
 
-  const initialProofId = searchParams.get('proof_id') || searchParams.get('did') || 'proof-loan-001';
-  const [proofId, setProofId] = useState(initialProofId);
+  const urlProofId = searchParams.get('proof_id') || searchParams.get('did') || '';
+  const [prevUrlProofId, setPrevUrlProofId] = useState(urlProofId);
+  const [proofId, setProofId] = useState(urlProofId || 'proof-loan-001');
   const [loading, setLoading] = useState(false);
   const [isTampering, setIsTampering] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerifyInspectionResult | null>(null);
@@ -59,6 +60,12 @@ export const VerifierPage = () => {
   const [rawProof, setRawProof] = useState<ProofShare | null>(null);
   const [deskPin] = useState('SBI-DESK-7492');
   const [showQrModal, setShowQrModal] = useState(false);
+
+  // Synchronize proofId when URL query parameters change without causing setState in effect
+  if (urlProofId && urlProofId !== prevUrlProofId) {
+    setPrevUrlProofId(urlProofId);
+    setProofId(urlProofId);
+  }
 
   const handleInspect = useCallback(async (idToInspect: string, simulateTamper = false) => {
     if (!idToInspect.trim()) return;
@@ -127,23 +134,17 @@ export const VerifierPage = () => {
 
   useEffect(() => {
     let active = true;
-    const urlProofId = searchParams.get('proof_id') || searchParams.get('did');
-    const targetId = urlProofId || proofId;
-
-    if (urlProofId && urlProofId !== proofId) {
-      setProofId(urlProofId);
-    }
 
     (async () => {
       if (active) {
-        await handleInspect(targetId, isTampering);
+        await handleInspect(proofId, isTampering);
       }
     })();
 
     return () => {
       active = false;
     };
-  }, [searchParams, isTampering, handleInspect]);
+  }, [proofId, isTampering, handleInspect]);
 
   const toggleTamper = () => {
     setIsTampering((prev) => !prev);
