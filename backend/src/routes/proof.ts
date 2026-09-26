@@ -6,9 +6,10 @@ import type {
   GenerateProofResponse,
   VerifyProofResponse,
   Credential,
+  AttributeRedactionManifest,
 } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
-import { verifyCredentialSignature } from '../utils/crypto.js';
+import { verifyCredentialSignature, createRedactedClaim } from '../utils/crypto.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
@@ -19,7 +20,7 @@ export const proofRouter = Router();
 
 /**
  * POST /proof/generate
- * Generate selective-disclosure proof share
+ * Generate selective-disclosure proof share (supports whole-credential and granular attribute-level redactions)
  */
 proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
   try {
@@ -31,6 +32,7 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       agent_action_id,
       expires_at,
       max_uses,
+      disclosed_attributes,
     } = req.body;
     const generated_by = req.body.generated_by || req.actor?.actorId;
 
@@ -56,6 +58,32 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
+    // Validate and build attribute redaction manifests if granular attributes specified
+    let redactionManifest: Record<string, AttributeRedactionManifest> | undefined = undefined;
+    if (disclosed_attributes && typeof disclosed_attributes === 'object') {
+      redactionManifest = {};
+      for (const [credId, allowedKeys] of Object.entries(disclosed_attributes)) {
+        if (!disclosed_credential_ids.includes(credId)) {
+          return sendError(res, 400, `Credential ${credId} in disclosed_attributes is not in disclosed_credential_ids`);
+        }
+        const cred = db.getCredentialById(credId);
+        if (!cred) {
+          return sendError(res, 404, `Disclosed credential ${credId} not found`);
+        }
+        if (!Array.isArray(allowedKeys)) {
+          return sendError(res, 400, `Allowed keys for credential ${credId} must be an array of attribute names`);
+        }
+        const claimObj = cred.claim as Record<string, unknown>;
+        for (const key of allowedKeys) {
+          if (!(key in claimObj)) {
+            return sendError(res, 400, `Attribute '${key}' does not exist on credential ${credId}`);
+          }
+        }
+        const { manifest } = createRedactedClaim(claimObj, allowedKeys);
+        redactionManifest[credId] = manifest;
+      }
+    }
+
     // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
     const proposalCheck = validateAgentProposal(agent_action_id);
     if (!proposalCheck.valid) {
@@ -78,6 +106,8 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       expires_at: expires_at || null,
       max_uses: max_uses !== undefined ? max_uses : null,
       use_count: 0,
+      disclosed_attributes: disclosed_attributes || undefined,
+      redaction_manifest: redactionManifest && Object.keys(redactionManifest).length > 0 ? redactionManifest : undefined,
     };
 
     db.setProofShare(newProof);
@@ -104,6 +134,7 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
           disclosed_count: disclosed_credential_ids.length,
           expires_at: newProof.expires_at,
           max_uses: newProof.max_uses,
+          granular_redactions_applied: !!newProof.redaction_manifest,
         },
       }
     );
@@ -152,12 +183,31 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
   for (const credId of proof.disclosed_credential_ids) {
     const cred = db.getCredentialById(credId);
     if (cred) {
-      const sigCheck = verifyCredentialSignature(cred);
-      if (!sigCheck.isValid) {
-        isAnyTampered = true;
-        tamperDetails.push(`Credential ${credId} (${cred.type}): ${sigCheck.reason}`);
+      const manifest = proof.redaction_manifest?.[credId];
+      if (manifest && manifest.redacted_fields.length > 0) {
+        // Redacted credential presentation
+        const { redactedClaim } = createRedactedClaim(cred.claim as Record<string, unknown>, manifest.disclosed_fields);
+        const presentationCred: Credential = {
+          ...cred,
+          claim: redactedClaim,
+          redacted_fields: manifest.redacted_fields,
+          attribute_hashes: manifest.attribute_hashes,
+        };
+        const sigCheck = verifyCredentialSignature(presentationCred, manifest);
+        if (!sigCheck.isValid) {
+          isAnyTampered = true;
+          tamperDetails.push(`Credential ${credId} (${cred.type}): ${sigCheck.reason}`);
+        }
+        resolvedCredentials.push(presentationCred);
+      } else {
+        // Full credential presentation
+        const sigCheck = verifyCredentialSignature(cred);
+        if (!sigCheck.isValid) {
+          isAnyTampered = true;
+          tamperDetails.push(`Credential ${credId} (${cred.type}): ${sigCheck.reason}`);
+        }
+        resolvedCredentials.push(cred);
       }
-      resolvedCredentials.push(cred);
     } else {
       isAnyTampered = true;
       tamperDetails.push(`Disclosed credential ${credId} is missing or has been deleted.`);
@@ -210,6 +260,17 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     summary = `Cryptographic verification failed. Evidence of payload alteration or missing credentials.`;
   }
 
+  // Compile redaction summary for Verifier UI
+  const redactionSummary: Record<string, { disclosed: string[]; redacted: string[] }> = {};
+  if (proof.redaction_manifest) {
+    for (const [cId, manifest] of Object.entries(proof.redaction_manifest)) {
+      redactionSummary[cId] = {
+        disclosed: manifest.disclosed_fields,
+        redacted: manifest.redacted_fields,
+      };
+    }
+  }
+
   const responsePayload: VerifyProofResponse = {
     success: true,
     proof: {
@@ -224,6 +285,7 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     use_count: proof.use_count,
     max_uses: proof.max_uses ?? null,
     expires_at: proof.expires_at ?? null,
+    redaction_summary: Object.keys(redactionSummary).length > 0 ? redactionSummary : undefined,
     tamper_details: tamperDetails.length > 0 ? tamperDetails : undefined,
     trust_analysis: {
       anomaly_flags: anomalyFlags,

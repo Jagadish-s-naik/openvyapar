@@ -412,6 +412,64 @@ async function runApiTests() {
 
     console.log('✅ 13. Proof Expiration & Single-Use Quota Enforcement PASSED');
 
+    // 14. Test Granular Attribute Redaction & Sub-Hash Verification (Phase 3 Task 2)
+    // 14a. Validation check: unknown attribute name should return 400
+    const bankCredId = newCredsJson.credentials.find((c: any) => c.type === 'income_bracket')?.credential_id || credIdsToDisclose[0];
+    const invalidAttrRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: [bankCredId],
+        shared_with: 'Fintech Underwriter',
+        generated_by: 'did:person:gupta001',
+        disclosed_attributes: {
+          [bankCredId]: ['non_existent_field'],
+        },
+      }),
+    });
+    console.assert(invalidAttrRes.status === 400, 'Unknown attribute in disclosed_attributes should fail with 400');
+
+    // 14b. Generate proof disclosing only turnover_bracket & relationship_tenure_months
+    const granularProofRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: [bankCredId],
+        shared_with: 'Fintech Underwriter',
+        generated_by: 'did:person:gupta001',
+        disclosed_attributes: {
+          [bankCredId]: ['turnover_bracket', 'relationship_tenure_months'],
+        },
+      }),
+    });
+    const granularProofJson = await granularProofRes.json();
+    console.assert(granularProofRes.status === 201, 'Granular proof generation failed');
+    console.assert(granularProofJson.proof.redaction_manifest?.[bankCredId], 'Redaction manifest missing on proof');
+    const granularProofId = granularProofJson.proof.proof_id;
+
+    // 14c. Verifier inspects granular proof
+    const granularVerifyRes = await fetch(`${baseUrl}/proof/verify/${granularProofId}`);
+    const granularVerifyJson = await granularVerifyRes.json();
+    console.assert(granularVerifyRes.status === 200, 'Granular verify fetch failed');
+    console.assert(granularVerifyJson.verification_status === 'valid', 'Granular proof verification should be valid');
+    console.assert(granularVerifyJson.verification_reason === 'VALID', 'Verification reason should be VALID');
+
+    const verifiedBankCred = granularVerifyJson.credentials.find((c: any) => c.credential_id === bankCredId);
+    console.assert(verifiedBankCred, 'Verified bank credential missing');
+    console.assert(verifiedBankCred.claim.turnover_bracket !== '[REDACTED]', 'turnover_bracket should be disclosed');
+    console.assert(verifiedBankCred.claim.relationship_tenure_months !== '[REDACTED]', 'relationship_tenure_months should be disclosed');
+    console.assert(verifiedBankCred.claim.account_category === '[REDACTED]', 'account_category should be redacted');
+    console.assert(verifiedBankCred.claim.average_monthly_balance_tier === '[REDACTED]', 'average_monthly_balance_tier should be redacted');
+    console.assert(granularVerifyJson.redaction_summary?.[bankCredId], 'Redaction summary missing for credential');
+    console.assert(granularVerifyJson.redaction_summary[bankCredId].disclosed.includes('turnover_bracket'), 'Redaction summary disclosed list mismatch');
+    console.assert(granularVerifyJson.redaction_summary[bankCredId].redacted.includes('account_category'), 'Redaction summary redacted list mismatch');
+
+    console.log('✅ 14. Granular Attribute Redaction & Sub-Hash Verification PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

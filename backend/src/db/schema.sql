@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS proof_shares (
   expires_at TEXT,
   max_uses INTEGER,
   use_count INTEGER NOT NULL DEFAULT 0,
+  disclosed_attributes_json TEXT,
+  redaction_manifest_json TEXT,
   FOREIGN KEY (business_id) REFERENCES businesses(business_id)
 );
 

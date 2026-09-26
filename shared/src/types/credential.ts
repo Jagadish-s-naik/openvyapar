@@ -69,4 +69,6 @@ export interface Credential {
   expires_at: string | null;
   signature: string; // HMAC or keypair signature
   status: CredentialStatus;
+  redacted_fields?: string[]; // Field names redacted during selective disclosure
+  attribute_hashes?: Record<string, string>; // Sub-hashes for attribute verification
 }

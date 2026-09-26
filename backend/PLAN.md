@@ -61,9 +61,10 @@ graph LR
    - When a verifier accesses an expired proof, return explicit verification reason `PROOF_EXPIRED`.
    - When a verifier exceeds maximum allowed inspections, return explicit verification reason `PROOF_MAX_USES_EXCEEDED`.
    - Atomically increment and persist `use_count` on each verification attempt.
-2. **Granular Attribute Redaction**:
+2. [x] **Granular Attribute Redaction**:
    - Allow claims to disclose partial fields (e.g., disclosing `turnover_bracket` while redacting exact account balance).
-   - Compute Merkle / HMAC sub-hashes for individual claim fields.
+   - Compute SHA-256 sub-hashes and root hash manifests for individual claim fields.
+   - Verify attribute authenticity against manifest sub-hashes during verifier inspection.
 3. **Interactive Tamper Testing API**:
    - Add utility route `POST /proof/simulate-tamper/:proof_id` for judges/demoers to corrupt signature bytes on the fly and witness real-time verifier alerts.
 

@@ -14,6 +14,13 @@ export type ProofPurpose =
 
 export type VerificationStatus = 'valid' | 'tampered' | 'expired' | 'max_uses_exceeded';
 
+export interface AttributeRedactionManifest {
+  disclosed_fields: string[];
+  redacted_fields: string[];
+  attribute_hashes: Record<string, string>; // field_name -> SHA-256 hash
+  root_hash: string;
+}
+
 export interface ProofShare {
   proof_id: string; // UUID
   business_id: string; // e.g. "did:biz:sharma001"
@@ -27,4 +34,6 @@ export interface ProofShare {
   expires_at?: string | null; // ISO 8601 timestamp or null
   max_uses?: number | null; // Max number of allowed verifications (e.g. 1 for single-use)
   use_count?: number; // Total number of times inspected/verified
+  disclosed_attributes?: Record<string, string[]>; // Optional per-credential disclosed field names
+  redaction_manifest?: Record<string, AttributeRedactionManifest>; // Optional per-credential sub-hashes
 }

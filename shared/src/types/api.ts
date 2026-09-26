@@ -117,6 +117,7 @@ export interface GenerateProofRequest {
   generated_by: string;
   expires_at?: string | null;
   max_uses?: number | null;
+  disclosed_attributes?: Record<string, string[]>; // Optional map of cred_id -> array of disclosed attribute names
   agent_action_id?: string; // If originated from consent explainer
 }
 
@@ -136,6 +137,7 @@ export interface VerifyProofResponse {
   use_count?: number;
   max_uses?: number | null;
   expires_at?: string | null;
+  redaction_summary?: Record<string, { disclosed: string[]; redacted: string[] }>;
   tamper_details?: string[];
   trust_analysis?: {
     anomaly_flags: string[];
