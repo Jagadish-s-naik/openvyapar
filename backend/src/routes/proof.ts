@@ -11,6 +11,7 @@ import { db } from '../db/connection.js';
 import { verifyCredentialSignature } from '../utils/crypto.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
+import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
 export const proofRouter = Router();
 
@@ -31,6 +32,12 @@ proofRouter.post('/generate', (req: Request<{}, {}, GenerateProofRequest>, res: 
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
+    // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
+    const proposalCheck = validateAgentProposal(agent_action_id);
+    if (!proposalCheck.valid) {
+      return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
+    }
+
     const proofId = `proof-${purpose.slice(0, 4)}-${crypto.randomUUID().slice(0, 8)}`;
     const generatedAt = new Date().toISOString();
     const verificationUrl = `https://openvyapar.in/verify/${proofId}`;
@@ -48,14 +55,8 @@ proofRouter.post('/generate', (req: Request<{}, {}, GenerateProofRequest>, res: 
 
     db.setProofShare(newProof);
 
-    if (agent_action_id) {
-      const agentAction = db.getAgentAction(agent_action_id);
-      if (agentAction) {
-        agentAction.human_decision = 'confirmed';
-        agentAction.decided_at = generatedAt;
-        agentAction.target_action_ref = proofId;
-        db.setAgentAction(agentAction);
-      }
+    if (proposalCheck.proposal) {
+      confirmAgentProposal(proposalCheck.proposal, proofId, generatedAt);
     }
 
     recordAuditLog(

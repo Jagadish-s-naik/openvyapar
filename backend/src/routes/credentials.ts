@@ -10,6 +10,7 @@ import { db } from '../db/connection.js';
 import { signCredential, verifyCredentialSignature } from '../utils/crypto.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
+import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
 export const credentialsRouter = Router();
 
@@ -28,6 +29,12 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
     const business = db.getBusiness(business_id);
     if (!business) {
       return sendError(res, 404, `Business with id ${business_id} not found`);
+    }
+
+    // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
+    const proposalCheck = validateAgentProposal(agent_action_id);
+    if (!proposalCheck.valid) {
+      return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
 
     const credentialId = `cred-${issuer.replace('_mock', '')}-${crypto.randomUUID().slice(0, 8)}`;
@@ -50,14 +57,8 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
     db.setCredential(newCredential);
 
     // Update agent action if originated from proposal
-    if (agent_action_id) {
-      const agentAction = db.getAgentAction(agent_action_id);
-      if (agentAction) {
-        agentAction.human_decision = 'confirmed';
-        agentAction.decided_at = issuedAt;
-        agentAction.target_action_ref = credentialId;
-        db.setAgentAction(agentAction);
-      }
+    if (proposalCheck.proposal) {
+      confirmAgentProposal(proposalCheck.proposal, credentialId, issuedAt);
     }
 
     recordAuditLog(

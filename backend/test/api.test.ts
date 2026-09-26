@@ -125,6 +125,125 @@ async function runApiTests() {
     console.assert(auditJson.audit_logs.length >= 4, 'Audit logs should contain all mutation actions');
     console.log(`✅ 9. Audit Trail PASSED (${auditJson.audit_logs.length} logged actions recorded)`);
 
+    // 10. Test Agent Proposal Lifecycle & Idempotency Protection (Phase 2 Guardrail)
+    // 10a. Record a pending proposal
+    const proposalRes = await fetch(`${baseUrl}/audit/agent-action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent_action_id: 'agent-act-test-scope-01',
+        business_id: newBizId,
+        agent_type: 'delegation_scoping',
+        input_summary: 'Suggest least-privilege tax filing scope',
+        proposed_action: { scopes: ['file_returns'], delegate: 'did:person:ca001' },
+      }),
+    });
+    const proposalJson = await proposalRes.json();
+    console.assert(proposalRes.status === 201 && proposalJson.agent_action.human_decision === 'pending', 'Proposal creation failed');
+
+    // 10b. Human confirms & executes the proposal
+    const confirmProposalRes = await fetch(`${baseUrl}/delegation/grant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        delegate_person_id: 'did:person:ca001',
+        scopes: ['file_returns'],
+        granted_by: 'did:person:gupta001',
+        agent_action_id: 'agent-act-test-scope-01',
+      }),
+    });
+    const confirmProposalJson = await confirmProposalRes.json();
+    console.assert(confirmProposalRes.status === 201, 'Confirmed proposal mutation failed');
+    const grantedTokenId = confirmProposalJson.token.token_id;
+
+    // Verify agent action record updated to confirmed atomically
+    const auditCheckRes = await fetch(`${baseUrl}/audit/${newBizId}`);
+    const auditCheckJson = await auditCheckRes.json();
+    const updatedAction = auditCheckJson.agent_proposals.find((a: any) => a.agent_action_id === 'agent-act-test-scope-01');
+    console.assert(
+      updatedAction &&
+      updatedAction.human_decision === 'confirmed' &&
+      updatedAction.target_action_ref === grantedTokenId,
+      'Agent action was not updated to confirmed with target ref'
+    );
+
+    // 10c. Idempotency test: Re-executing same confirmed proposal must be rejected with 409
+    const duplicateRes = await fetch(`${baseUrl}/delegation/grant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        delegate_person_id: 'did:person:ca001',
+        scopes: ['file_returns'],
+        granted_by: 'did:person:gupta001',
+        agent_action_id: 'agent-act-test-scope-01',
+      }),
+    });
+    const duplicateJson = await duplicateRes.json();
+    console.assert(duplicateRes.status === 409 && duplicateJson.success === false, 'Duplicate execution should fail with 409 Conflict');
+
+    // 10d. Auto-registration & subsequent idempotency protection
+    const freshProposalRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Test Bank',
+        generated_by: 'did:person:gupta001',
+        agent_action_id: 'agent-act-auto-reg-999',
+      }),
+    });
+    const freshProposalJson = await freshProposalRes.json();
+    console.assert(freshProposalRes.status === 201 && freshProposalJson.success === true, 'Fresh proposal auto-registration failed');
+
+    // Attempting to reuse agent-act-auto-reg-999 must now fail with 409
+    const reuseFreshRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Test Bank',
+        generated_by: 'did:person:gupta001',
+        agent_action_id: 'agent-act-auto-reg-999',
+      }),
+    });
+    console.assert(reuseFreshRes.status === 409, 'Reusing auto-registered proposal should fail with 409 Conflict');
+
+    // 10e. Rejected proposal check: Must return 400
+    await fetch(`${baseUrl}/audit/agent-action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent_action_id: 'agent-act-rejected-01',
+        business_id: newBizId,
+        agent_type: 'consent_explainer',
+        input_summary: 'Over-broad disclosure rejected by user',
+        proposed_action: {},
+        human_decision: 'rejected',
+      }),
+    });
+    const rejectedExecRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Test Bank',
+        generated_by: 'did:person:gupta001',
+        agent_action_id: 'agent-act-rejected-01',
+      }),
+    });
+    const rejectedExecJson = await rejectedExecRes.json();
+    console.assert(rejectedExecRes.status === 400 && rejectedExecJson.success === false, 'Rejected proposal should fail with 400');
+
+    console.log('✅ 10. Agent Proposal Lifecycle, Atomicity & Idempotency Guardrails PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

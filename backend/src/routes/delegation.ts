@@ -10,6 +10,7 @@ import type {
 import { db } from '../db/connection.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
+import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
 export const delegationRouter = Router();
 
@@ -30,6 +31,12 @@ delegationRouter.post('/grant', (req: Request<{}, {}, GrantDelegationRequest>, r
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
+    // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
+    const proposalCheck = validateAgentProposal(agent_action_id);
+    if (!proposalCheck.valid) {
+      return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
+    }
+
     const tokenId = `tok-${crypto.randomUUID().slice(0, 8)}`;
     const createdAt = new Date().toISOString();
 
@@ -47,14 +54,8 @@ delegationRouter.post('/grant', (req: Request<{}, {}, GrantDelegationRequest>, r
     db.setDelegationToken(newToken);
 
     // Update agent action if proposed by delegation scoping agent
-    if (agent_action_id) {
-      const agentAction = db.getAgentAction(agent_action_id);
-      if (agentAction) {
-        agentAction.human_decision = 'confirmed';
-        agentAction.decided_at = createdAt;
-        agentAction.target_action_ref = tokenId;
-        db.setAgentAction(agentAction);
-      }
+    if (proposalCheck.proposal) {
+      confirmAgentProposal(proposalCheck.proposal, tokenId, createdAt);
     }
 
     recordAuditLog(

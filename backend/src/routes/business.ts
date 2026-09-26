@@ -13,6 +13,7 @@ import type {
 import { db } from '../db/connection.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
+import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
 export const businessRouter = Router();
 
@@ -26,6 +27,12 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
 
     if (!name || !owner_person_id) {
       return sendError(res, 400, 'Missing required fields: name, owner_person_id');
+    }
+
+    // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
+    const proposalCheck = validateAgentProposal(agent_action_id);
+    if (!proposalCheck.valid) {
+      return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
 
     const businessId = `did:biz:${crypto.randomBytes(4).toString('hex')}`;
@@ -59,15 +66,9 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
 
     db.setBusinessRole(ownerRole);
 
-    // If originated from agent onboarding proposal, update agent_action status
-    if (agent_action_id) {
-      const agentAction = db.getAgentAction(agent_action_id);
-      if (agentAction) {
-        agentAction.human_decision = 'confirmed';
-        agentAction.decided_at = createdAt;
-        agentAction.target_action_ref = businessId;
-        db.setAgentAction(agentAction);
-      }
+    // If originated from agent onboarding proposal, update agent_action status atomically
+    if (proposalCheck.proposal) {
+      confirmAgentProposal(proposalCheck.proposal, businessId, businessId, createdAt);
     }
 
     // Record Immutable Audit Log
