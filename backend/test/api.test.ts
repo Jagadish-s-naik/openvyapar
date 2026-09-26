@@ -1,6 +1,7 @@
 import { createApp } from '../src/app.js';
 import { seedDatabase } from '../src/db/seed.js';
 import { verifyCredentialSignature } from '../src/utils/crypto.js';
+import { mockBusinesses, mockCredentials } from '@openvyapar/shared';
 import type { Server } from 'node:http';
 
 async function runApiTests() {
@@ -609,6 +610,85 @@ async function runApiTests() {
     console.assert(nonExistentBizRes.status === 404, 'Non-existent business should return 404');
 
     console.log('✅ 17. CSC Agent Field Witnessing, Geo-tagging & Photo Attestation PASSED');
+
+    // 18. Test Instant Snapshot, Restore & 1-Click Seed Reset (Phase 5 Task 1)
+    // 18a. Create a named snapshot of current state
+    const createSnapRes = await fetch(`${baseUrl}/admin/snapshot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'test-checkpoint-1',
+        description: 'Checkpoint before state mutation test',
+      }),
+    });
+    const createSnapJson = await createSnapRes.json();
+    console.assert(createSnapRes.status === 201 && createSnapJson.success === true, 'Snapshot creation failed');
+    console.assert(createSnapJson.snapshot.name === 'test-checkpoint-1', 'Snapshot name mismatch');
+    const snapshotId = createSnapJson.snapshot.snapshot_id;
+
+    // 18b. List snapshots
+    const listSnapRes = await fetch(`${baseUrl}/admin/snapshots`);
+    const listSnapJson = await listSnapRes.json();
+    console.assert(listSnapRes.status === 200 && listSnapJson.success === true, 'Snapshot listing failed');
+    console.assert(listSnapJson.snapshots.some((s: any) => s.snapshot_id === snapshotId), 'Created snapshot not found in list');
+
+    // 18c. Mutate state by adding a temporary business
+    const tempBizRes = await fetch(`${baseUrl}/business`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Temporary Snapshot Test Store',
+        owner_person_id: 'did:person:ramesh001',
+        primary_language: 'en',
+        metadata: {
+          sector: 'Retail',
+          location: 'Pune, Maharashtra',
+        },
+      }),
+    });
+    const tempBizJson = await tempBizRes.json();
+    console.assert(tempBizRes.status === 201 && tempBizJson.success === true, 'Temp business creation failed');
+    const tempBizId = tempBizJson.business.business_id;
+
+    // Verify temp business exists
+    const checkTempBizRes = await fetch(`${baseUrl}/business/${tempBizId}`);
+    console.assert(checkTempBizRes.status === 200, 'Temporary business should exist after creation');
+
+    // 18d. Restore from snapshot
+    const snapRestoreRes = await fetch(`${baseUrl}/admin/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ snapshot_id: snapshotId }),
+    });
+    const snapRestoreJson = await snapRestoreRes.json();
+    console.assert(snapRestoreRes.status === 200 && snapRestoreJson.success === true, 'Snapshot restore failed');
+
+    // Verify temp business no longer exists after restore
+    const checkRestoredBizRes = await fetch(`${baseUrl}/business/${tempBizId}`);
+    console.assert(checkRestoredBizRes.status === 404, 'Temporary business should NOT exist after snapshot restore');
+
+    // 18e. Delete snapshot
+    const deleteSnapRes = await fetch(`${baseUrl}/admin/snapshot/${snapshotId}`, {
+      method: 'DELETE',
+    });
+    const deleteSnapJson = await deleteSnapRes.json();
+    console.assert(deleteSnapRes.status === 200 && deleteSnapJson.success === true, 'Snapshot deletion failed');
+
+    // 18f. Test 1-click seed reset
+    const resetRes = await fetch(`${baseUrl}/admin/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const resetJson = await resetRes.json();
+    console.assert(resetRes.status === 200 && resetJson.success === true, 'Admin reset failed');
+    console.assert(resetJson.stats.businesses === mockBusinesses.length, `Baseline business count after reset should be ${mockBusinesses.length}`);
+    console.assert(resetJson.stats.credentials === mockCredentials.length, `Baseline credential count after reset should be ${mockCredentials.length}`);
+
+    // Verify baseline business is healthy and accessible
+    const baseBizRes = await fetch(`${baseUrl}/business/did:biz:sharma001`);
+    console.assert(baseBizRes.status === 200, 'Sharma General Store should exist after reset');
+
+    console.log('✅ 18. Instant Snapshot, Restore & 1-Click Seed Reset PASSED');
 
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {

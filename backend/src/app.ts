@@ -7,6 +7,7 @@ import { proofRouter } from './routes/proof.js';
 import { auditRouter } from './routes/audit.js';
 import { mocksRouter } from './routes/mocks.js';
 import { authRouter } from './routes/auth.js';
+import { adminRouter } from './routes/admin.js';
 import { authContextMiddleware } from './middleware/auth.js';
 
 export function createApp(): Application {
@@ -33,6 +34,7 @@ export function createApp(): Application {
 
   // API Routes matching PRD §8
   app.use('/auth', authRouter);
+  app.use('/admin', adminRouter);
   app.use('/business', businessRouter);
   app.use('/credentials', credentialsRouter);
   app.use('/delegation', delegationRouter);

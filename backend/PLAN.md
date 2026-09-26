@@ -93,8 +93,9 @@ graph LR
 **Goal:** Ensure 0s reset latency and zero-friction presentation during hackathon evaluations.
 
 #### Tasks:
-1. **Instant Snapshot & Restore**:
+1. [x] **Instant Snapshot & Restore**:
    - Add `POST /admin/reset` and `POST /admin/snapshot` endpoints for 1-click database resets from the frontend demo bar.
+   - Support `GET /admin/snapshots`, `POST /admin/restore`, and `DELETE /admin/snapshot/:id`.
 2. **CORS & Multi-Port Environment Hardening**:
    - Ensure permissive yet structured CORS handling for ports `5173` (Wallet), `5174` (Verifier), and `5175` (Onboarding).
 3. **End-to-End Health & Readiness Probes**:
@@ -107,6 +108,11 @@ graph LR
 | Method | Route | Description | Human Guardrail Required |
 |---|---|---|:---:|
 | `GET` | `/health` | Service health and subsystem status | No |
+| `POST` | `/admin/reset` | 1-click database reset to demo seed state | No |
+| `POST` | `/admin/snapshot` | Create named state snapshot checkpoint | No |
+| `GET` | `/admin/snapshots` | List all saved state snapshots | No |
+| `POST` | `/admin/restore` | Restore database state to a snapshot | No |
+| `DELETE` | `/admin/snapshot/:id` | Delete saved state snapshot | No |
 | `POST` | `/business` | Create new business DID & owner role | Yes (`agent_action_id`) |
 | `GET` | `/business` | List registered businesses | No |
 | `GET` | `/business/:id` | Get business profile and active roles | No |
@@ -134,7 +140,7 @@ graph LR
 - [x] Add unit tests for partial claim disclosure & redaction
 - [x] Add unit tests for idempotency on confirmed agent proposals
 - [x] Add tests for dynamic mock templates and CSC field witnessing
-- [ ] Add test for `POST /admin/reset` state reload
+- [x] Add test for `POST /admin/reset` state reload & snapshots
 
 ---
 
