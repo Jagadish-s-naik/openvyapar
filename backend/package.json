@@ -1,0 +1,33 @@
+{
+  "name": "@openvyapar/backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend API service and mock issuers for OpenVyapar",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc -w & node --watch dist/server.js",
+    "seed": "node dist/db/seed.js",
+    "test": "node dist/test/api.test.js"
+  },
+  "keywords": [
+    "openvyapar",
+    "backend",
+    "api"
+  ],
+  "author": "OpenVyapar Team",
+  "license": "MIT",
+  "dependencies": {
+    "@openvyapar/shared": "*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.9",
+    "typescript": "^5.8.2"
+  }
+}
