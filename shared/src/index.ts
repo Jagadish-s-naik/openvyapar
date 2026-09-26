@@ -10,6 +10,7 @@ export * from './types/credential.js';
 export * from './types/delegation.js';
 export * from './types/proof.js';
 export * from './types/audit.js';
+export * from './types/auth.js';
 export * from './types/api.js';
 
 // Constants & Metadata

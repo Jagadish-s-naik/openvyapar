@@ -230,3 +230,15 @@ export interface VerifierFlagResponse {
   overall_verdict: 'verified_clean' | 'attention_recommended' | 'high_risk';
   narrative_summary: string;
 }
+
+// -------------------------------------------------------------
+// 6. Audit & Timeline Endpoints (/audit/:business_id, /audit/:business_id/timeline)
+// -------------------------------------------------------------
+
+export interface GetAuditLogsResponse {
+  success: boolean;
+  business_id: string;
+  audit_logs: import('./audit.js').AuditLog[];
+  agent_proposals: import('./audit.js').AgentAction[];
+}
+

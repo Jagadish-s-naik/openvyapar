@@ -12,15 +12,18 @@ import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
+import { requireOwner, requireRole } from '../middleware/auth.js';
+
 export const delegationRouter = Router();
 
 /**
  * POST /delegation/grant
  * Issue a scoped delegation token to an authorized delegate (e.g. CA or manager)
  */
-delegationRouter.post('/grant', (req: Request<{}, {}, GrantDelegationRequest>, res: Response) => {
+delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (req: Request<{}, {}, GrantDelegationRequest>, res: Response) => {
   try {
-    const { business_id, delegate_person_id, scopes, granted_by, expires_at = null, agent_action_id } = req.body;
+    const { business_id, delegate_person_id, scopes, expires_at = null, agent_action_id } = req.body;
+    const granted_by = req.body.granted_by || req.actor?.actorId;
 
     if (!business_id || !delegate_person_id || !scopes || !Array.isArray(scopes) || !granted_by) {
       return sendError(res, 400, 'Missing required fields: business_id, delegate_person_id, scopes (array), granted_by');
@@ -64,7 +67,14 @@ delegationRouter.post('/grant', (req: Request<{}, {}, GrantDelegationRequest>, r
       granted_by,
       'grant_delegation',
       true,
-      { token_id: tokenId, delegate_person_id, scopes, agent_action_id }
+      {
+        req,
+        diff: {
+          delegation_status: { before: null, after: 'active' },
+          scopes: { before: [], after: scopes },
+        },
+        metadata: { token_id: tokenId, delegate_person_id, scopes, agent_action_id },
+      }
     );
 
     const responsePayload: DelegationActionResponse = {
@@ -82,9 +92,10 @@ delegationRouter.post('/grant', (req: Request<{}, {}, GrantDelegationRequest>, r
  * POST /delegation/revoke
  * Instantly revoke a delegation token
  */
-delegationRouter.post('/revoke', (req: Request<{}, {}, RevokeDelegationRequest>, res: Response) => {
+delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, RevokeDelegationRequest>, res: Response) => {
   try {
-    const { business_id, token_id, revoked_by } = req.body;
+    const { business_id, token_id } = req.body;
+    const revoked_by = req.body.revoked_by || req.actor?.actorId;
 
     if (!business_id || !token_id || !revoked_by) {
       return sendError(res, 400, 'Missing required fields: business_id, token_id, revoked_by');
@@ -95,6 +106,7 @@ delegationRouter.post('/revoke', (req: Request<{}, {}, RevokeDelegationRequest>,
       return sendError(res, 404, `Delegation token with id ${token_id} not found for business`);
     }
 
+    const previousStatus = token.status;
     token.status = 'revoked';
     db.setDelegationToken(token);
 
@@ -104,7 +116,13 @@ delegationRouter.post('/revoke', (req: Request<{}, {}, RevokeDelegationRequest>,
       revoked_by,
       'revoke_delegation',
       true,
-      { token_id, revoked_at: new Date().toISOString() }
+      {
+        req,
+        diff: {
+          status: { before: previousStatus, after: 'revoked' },
+        },
+        metadata: { token_id, revoked_at: new Date().toISOString() },
+      }
     );
 
     const responsePayload: DelegationActionResponse = {

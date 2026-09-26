@@ -1,8 +1,9 @@
 import { Router, type Request, type Response } from 'express';
 import crypto from 'node:crypto';
-import type { AgentAction, AgentType, HumanDecision } from '@openvyapar/shared';
+import type { AgentAction, AgentType, HumanDecision, GetBusinessTimelineResponse } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
 import { sendError } from '../utils/errors.js';
+import { buildBusinessTimeline } from '../utils/timeline.js';
 
 export const auditRouter = Router();
 
@@ -26,6 +27,34 @@ auditRouter.get('/:business_id', (req: Request<{ business_id: string }>, res: Re
     audit_logs: logs,
     agent_proposals: agentActions,
   });
+});
+
+/**
+ * GET /audit/:business_id/timeline
+ * Returns enriched chronological timeline of all human mutations and AI agent interactions
+ */
+auditRouter.get('/:business_id/timeline', (req: Request<{ business_id: string }, {}, {}, { sort?: 'asc' | 'desc'; category?: string }>, res: Response) => {
+  const businessId = req.params.business_id;
+  const business = db.getBusiness(businessId);
+  if (!business) {
+    return sendError(res, 404, `Business with id ${businessId} not found`);
+  }
+
+  const sortOrder = req.query.sort === 'asc' ? 'asc' : 'desc';
+  let timeline = buildBusinessTimeline(businessId, sortOrder);
+
+  if (req.query.category) {
+    timeline = timeline.filter((t) => t.category === req.query.category);
+  }
+
+  const responsePayload: GetBusinessTimelineResponse = {
+    success: true,
+    business_id: businessId,
+    count: timeline.length,
+    timeline,
+  };
+
+  res.json(responsePayload);
 });
 
 /**

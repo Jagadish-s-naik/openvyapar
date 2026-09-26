@@ -6,6 +6,8 @@ import { delegationRouter } from './routes/delegation.js';
 import { proofRouter } from './routes/proof.js';
 import { auditRouter } from './routes/audit.js';
 import { mocksRouter } from './routes/mocks.js';
+import { authRouter } from './routes/auth.js';
+import { authContextMiddleware } from './middleware/auth.js';
 
 export function createApp(): Application {
   const app = express();
@@ -14,9 +16,10 @@ export function createApp(): Application {
   app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-openvyapar-actor-id', 'x-openvyapar-actor-role'],
   }));
   app.use(express.json());
+  app.use(authContextMiddleware);
 
   // Health Check
   app.get('/health', (_req, res) => {
@@ -29,6 +32,7 @@ export function createApp(): Application {
   });
 
   // API Routes matching PRD §8
+  app.use('/auth', authRouter);
   app.use('/business', businessRouter);
   app.use('/credentials', credentialsRouter);
   app.use('/delegation', delegationRouter);

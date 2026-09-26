@@ -244,6 +244,84 @@ async function runApiTests() {
 
     console.log('✅ 10. Agent Proposal Lifecycle, Atomicity & Idempotency Guardrails PASSED');
 
+    // 11. Test Enriched Audit Trail & Unified Timeline API (Phase 2 Task 2)
+    const timelineRes = await fetch(`${baseUrl}/audit/${newBizId}/timeline`);
+    const timelineJson = await timelineRes.json();
+    console.assert(timelineRes.status === 200, 'Timeline fetch failed');
+    console.assert(timelineJson.success === true && timelineJson.timeline.length >= 8, 'Expected >= 8 timeline events');
+    
+    // Verify event structure
+    const sampleEvent = timelineJson.timeline[0];
+    console.assert(sampleEvent.event_id && sampleEvent.category && sampleEvent.title && sampleEvent.actor, 'Invalid timeline event structure');
+    
+    // Verify enriched audit fields
+    const auditLogEvent = timelineJson.timeline.find((t: any) => t.event_type === 'audit_log');
+    console.assert(auditLogEvent.ip_address && auditLogEvent.origin && auditLogEvent.actor.role, 'Missing enriched audit fields');
+
+    // Test category filter
+    const delegationTimelineRes = await fetch(`${baseUrl}/audit/${newBizId}/timeline?category=delegation`);
+    const delegationTimelineJson = await delegationTimelineRes.json();
+    console.assert(
+      delegationTimelineJson.timeline.every((t: any) => t.category === 'delegation'),
+      'Category filter failed'
+    );
+
+    // Test sort order
+    const ascTimelineRes = await fetch(`${baseUrl}/audit/${newBizId}/timeline?sort=asc`);
+    const ascTimelineJson = await ascTimelineRes.json();
+    const firstTime = new Date(ascTimelineJson.timeline[0].timestamp).getTime();
+    const lastTime = new Date(ascTimelineJson.timeline[ascTimelineJson.timeline.length - 1].timestamp).getTime();
+    console.assert(firstTime <= lastTime, 'Ascending sort order failed');
+
+    console.log(`✅ 11. Enriched Audit Trail & Timeline API PASSED (${timelineJson.count} timeline events delivered)`);
+
+    // 12. Test Multi-Persona Auth Context & Permission Guards (Phase 2 Task 3)
+    // 12a. Fetch available personas
+    const personasRes = await fetch(`${baseUrl}/auth/personas`);
+    const personasJson = await personasRes.json();
+    console.assert(personasRes.status === 200 && personasJson.personas.length >= 5, 'Persona list fetch failed');
+
+    // 12b. Inspect active persona session via header
+    const meRes = await fetch(`${baseUrl}/auth/me`, {
+      headers: { 'x-openvyapar-actor-id': 'did:person:ramesh001' },
+    });
+    const meJson = await meRes.json();
+    console.assert(meJson.authenticated === true && meJson.person.name === 'Ramesh Sharma', 'Auth session inspection failed');
+
+    // 12c. Test auto-population of actor ID in mutations
+    const autoPopRes = await fetch(`${baseUrl}/delegation/grant`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-openvyapar-actor-id': 'did:person:gupta001',
+      },
+      body: JSON.stringify({
+        business_id: newBizId,
+        delegate_person_id: 'did:person:ca001',
+        scopes: ['view_compliance'],
+      }),
+    });
+    const autoPopJson = await autoPopRes.json();
+    console.assert(autoPopRes.status === 201 && autoPopJson.token.granted_by === 'did:person:gupta001', 'Actor ID auto-population failed');
+
+    // 12d. Permission check: Unauthorized persona attempting owner action gets 403 Forbidden
+    const unauthRes = await fetch(`${baseUrl}/delegation/grant`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-openvyapar-actor-id': 'did:person:ca001', // CA is a delegate, not an owner
+      },
+      body: JSON.stringify({
+        business_id: newBizId,
+        delegate_person_id: 'did:person:priya001',
+        scopes: ['full_delegation'],
+      }),
+    });
+    const unauthJson = await unauthRes.json();
+    console.assert(unauthRes.status === 403 && unauthJson.success === false, 'Unauthorized role should fail with 403 Forbidden');
+
+    console.log('✅ 12. Multi-Persona Simulation, Actor Auto-population & 403 Guardrails PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

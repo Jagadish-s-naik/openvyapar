@@ -13,15 +13,18 @@ import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
 
+import { requireRole } from '../middleware/auth.js';
+
 export const proofRouter = Router();
 
 /**
  * POST /proof/generate
  * Generate selective-disclosure proof share
  */
-proofRouter.post('/generate', (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
+proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
   try {
-    const { business_id, purpose, disclosed_credential_ids, shared_with, generated_by, agent_action_id } = req.body;
+    const { business_id, purpose, disclosed_credential_ids, shared_with, agent_action_id } = req.body;
+    const generated_by = req.body.generated_by || req.actor?.actorId;
 
     if (!business_id || !purpose || !disclosed_credential_ids || !shared_with || !generated_by) {
       return sendError(res, 400, 'Missing required fields: business_id, purpose, disclosed_credential_ids, shared_with, generated_by');
@@ -65,7 +68,13 @@ proofRouter.post('/generate', (req: Request<{}, {}, GenerateProofRequest>, res: 
       generated_by,
       'generate_proof',
       true,
-      { proof_id: proofId, purpose, shared_with, disclosed_count: disclosed_credential_ids.length }
+      {
+        req,
+        diff: {
+          disclosed_credentials: { before: [], after: disclosed_credential_ids },
+        },
+        metadata: { proof_id: proofId, purpose, shared_with, disclosed_count: disclosed_credential_ids.length },
+      }
     );
 
     const responsePayload: GenerateProofResponse = {

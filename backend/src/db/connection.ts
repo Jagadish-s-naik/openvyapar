@@ -123,6 +123,12 @@ class DatabaseManager {
     );
   }
 
+  public getRolesForPerson(personId: string): BusinessRole[] {
+    return Object.values(this.state.business_roles).filter(
+      (r) => r.person_id === personId && r.status === 'active'
+    );
+  }
+
   public setBusinessRole(role: BusinessRole): BusinessRole {
     this.state.business_roles[role.role_id] = role;
     this.save();

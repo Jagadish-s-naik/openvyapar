@@ -44,10 +44,10 @@ graph LR
 1. [x] **Agent Proposal Lifecycle Enforcement**:
    - Validate that when `agent_action_id` is passed to mutation routes (`/business`, `/proof/generate`, `/delegation/grant`), the referenced `agent_action` is updated from `pending` $\rightarrow$ `confirmed` atomically.
    - Prevent executing the same proposal twice (idempotency protection).
-2. **Audit Trail Enrichment**:
+2. [x] **Audit Trail Enrichment**:
    - Include IP/origin, actor role, and diff metadata in audit records.
    - Expose endpoint `GET /audit/:business_id/timeline` to deliver formatted chronologies directly to the frontend audit visualizer.
-3. **Multi-persona Auth Context Support**:
+3. [x] **Multi-persona Auth Context Support**:
    - Provide lightweight header/query authentication simulation (e.g. `x-openvyapar-actor-id: did:person:ramesh001`) to auto-populate `actor_id` and role validations.
 
 ---

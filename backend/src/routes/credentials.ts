@@ -67,7 +67,13 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
       issuer,
       'issue_credential',
       true,
-      { credential_id: credentialId, type, issuer }
+      {
+        req,
+        diff: {
+          credential_status: { before: null, after: 'valid' },
+        },
+        metadata: { credential_id: credentialId, type, issuer },
+      }
     );
 
     const responsePayload: IssueCredentialResponse = {

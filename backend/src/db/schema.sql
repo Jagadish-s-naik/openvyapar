@@ -70,11 +70,15 @@ CREATE TABLE IF NOT EXISTS proof_shares (
 CREATE TABLE IF NOT EXISTS audit_logs (
   log_id TEXT PRIMARY KEY,
   business_id TEXT NOT NULL,
-  actor_type TEXT NOT NULL CHECK (actor_type IN ('owner', 'delegate', 'agent_suggestion', 'issuer')),
+  actor_type TEXT NOT NULL CHECK (actor_type IN ('owner', 'delegate', 'agent_suggestion', 'issuer', 'admin')),
   actor_id TEXT NOT NULL,
   action TEXT NOT NULL,
   confirmed_by_human INTEGER NOT NULL CHECK (confirmed_by_human IN (0, 1)),
   timestamp TEXT NOT NULL,
+  ip_address TEXT,
+  origin TEXT,
+  actor_role TEXT,
+  diff_json TEXT,
   metadata_json TEXT,
   FOREIGN KEY (business_id) REFERENCES businesses(business_id)
 );
