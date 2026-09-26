@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Bell, CheckCircle2, Globe, Shield, Menu, Zap, RefreshCw, Smartphone, Monitor } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { Language } from '../../types';
@@ -10,6 +10,11 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
+  const location = useLocation();
+  const isOnboarding = location.pathname === '/onboarding';
+  const isVerifier = location.pathname === '/verifier';
+  const isWallet = !isOnboarding && !isVerifier;
+
   const {
     businessName,
     delegations,
@@ -83,10 +88,16 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
       <div className="hidden lg:flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 text-xs font-semibold shrink-0 whitespace-nowrap">
         <Link
           to="/onboarding"
-          className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1.5 whitespace-nowrap"
+          className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            isOnboarding
+              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+          }`}
           title="Step 1: Rural Assisted Voice Onboarding in CSC Center"
         >
-          <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">1</span>
+          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
+            isOnboarding ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
+          }`}>1</span>
           <span>CSC Kiosk</span>
         </Link>
 
@@ -94,10 +105,16 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
 
         <Link
           to="/"
-          className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 shadow-xs font-bold flex items-center gap-1.5 whitespace-nowrap"
+          className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            isWallet
+              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+          }`}
           title="Step 2: Business Owner Credential Wallet"
         >
-          <span className="w-4 h-4 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center text-[10px] font-bold font-mono">2</span>
+          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
+            isWallet ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
+          }`}>2</span>
           <span>Owner Wallet</span>
         </Link>
 
@@ -105,10 +122,16 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
 
         <Link
           to="/verifier"
-          className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1.5 whitespace-nowrap"
+          className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            isVerifier
+              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+          }`}
           title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"
         >
-          <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">3</span>
+          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
+            isVerifier ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
+          }`}>3</span>
           <span>Bank Desk</span>
         </Link>
       </div>
