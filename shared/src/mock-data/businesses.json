@@ -1,5 +1,21 @@
 [
   {
+    "business_id": "OV-4471",
+    "name": "Sri Lakshmi Textiles & Apparels",
+    "status": "active",
+    "created_at": "2023-05-14T08:30:00.000Z",
+    "primary_language": "en",
+    "metadata": {
+      "sector": "Proprietorship / Micro Enterprise",
+      "trade_name": "Sri Lakshmi Textiles",
+      "location": "Commercial Street, Bangalore, Karnataka 560001",
+      "gstin": "29AABCU9603R1ZM",
+      "pan": "AABCU9603R",
+      "udyam_reg_no": "UDYAM-KR-03-0094812",
+      "onboarding_source": "self"
+    }
+  },
+  {
     "business_id": "did:biz:sharma001",
     "name": "Sharma General Store",
     "status": "active",
@@ -23,7 +39,7 @@
     "primary_language": "hi",
     "metadata": {
       "sector": "Handloom & Textiles",
-      "location": " बुनकर कॉलोनी, Chowk, Varanasi, UP 221002",
+      "location": "बुनकर कॉलोनी, Chowk, Varanasi, UP 221002",
       "onboarding_source": "csc_agent",
       "csc_agent_id": "did:person:csc001"
     }

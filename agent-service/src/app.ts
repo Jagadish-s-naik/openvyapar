@@ -4,6 +4,7 @@ import { onboardingRouter } from './routes/onboarding.js';
 import { consentRouter } from './routes/consent.js';
 import { scopingRouter } from './routes/scoping.js';
 import { verifierRouter } from './routes/verifier.js';
+import { assistantRouter } from './routes/assistant.js';
 
 export function createAgentApp(): Application {
   const app = express();
@@ -29,6 +30,7 @@ export function createAgentApp(): Application {
   app.use('/agent', consentRouter);
   app.use('/agent', scopingRouter);
   app.use('/agent', verifierRouter);
+  app.use('/agent', assistantRouter);
 
   return app;
 }
