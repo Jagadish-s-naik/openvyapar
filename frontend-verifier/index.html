@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenVyapar — Verifier & Underwriting Portal</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Portal Navigation -->
+  <nav class="top-portal-bar">
+    <div class="portal-links">
+      <span style="font-weight: 800; color: #fff; font-family: var(--font-display);">🇮🇳 OpenVyapar DPI</span>
+      <a href="http://localhost:5173" class="portal-link">💼 Owner Wallet</a>
+      <a href="http://localhost:5174" class="portal-link active">🔍 Verifier Portal</a>
+      <a href="http://localhost:5175" class="portal-link">✍️ CSC Onboarding</a>
+    </div>
+  </nav>
+
+  <main class="app-container">
+
+    <!-- Search / Inspect Hero -->
+    <header class="verifier-hero">
+      <h1 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 6px;">
+        🔍 Verifier Portal (Lender / Platform Underwriting)
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Inspect selective-disclosure proofs, verify cryptographic HMAC signatures, and check AI anomaly flags.
+      </p>
+
+      <div class="search-proof-box">
+        <input type="text" id="txtProofIdInput" class="input-text" placeholder="Enter Proof Share ID (e.g. proof-loan-001)" value="proof-loan-001">
+        <button id="btnInspectProof" class="btn btn-primary">Inspect Proof</button>
+        <button id="btnSimulateTamper" class="btn btn-danger" title="Modify a claim figure in memory to demonstrate live cryptographic signature failure">
+          ⚠️ Simulate Tampering
+        </button>
+      </div>
+    </header>
+
+    <!-- Verification Status Banner -->
+    <div id="statusBanner" class="verification-status-banner banner-valid">
+      <div>
+        <h3 id="txtStatusTitle" style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 4px;">
+          ✅ Cryptographically Valid Proof
+        </h3>
+        <p id="txtStatusSubtitle" style="font-size: 0.85rem; color: #cbd5e1;">
+          All disclosed credential HMAC-SHA256 signatures are authentic and unmodified.
+        </p>
+      </div>
+      <span id="badgeStatusChip" class="status-chip chip-valid">VALID</span>
+    </div>
+
+    <!-- AI Trust & Anomaly Analysis Panel -->
+    <div class="panel" style="border-left: 4px solid #8b5cf6;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #c084fc;">
+        🤖 AI Verifier Trust & Risk Assessment
+      </h3>
+      <p id="txtTrustSummary" style="font-size: 0.88rem; color: #e2e8f0; margin-bottom: 12px;">
+        Analyzing proof history...
+      </p>
+      <div id="trustFlagsContainer" style="display: flex; flex-direction: column; gap: 6px;">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- Disclosed Credentials Grid -->
+    <section>
+      <h2 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 16px;">
+        📋 Disclosed Credentials
+      </h2>
+      <div class="cards-grid" id="disclosedCardsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

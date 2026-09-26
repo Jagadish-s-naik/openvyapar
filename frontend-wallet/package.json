@@ -1,0 +1,12 @@
+{
+  "name": "@openvyapar/frontend-wallet",
+  "version": "1.0.0",
+  "description": "Owner Credential Wallet and Delegation Dashboard for OpenVyapar",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

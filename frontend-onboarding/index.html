@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenVyapar — Zero-Footprint Business Onboarding (CSC Flow)</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <nav class="top-portal-bar">
+    <div class="portal-links">
+      <span style="font-weight: 800; color: #fff; font-family: var(--font-display);">🇮🇳 OpenVyapar DPI</span>
+      <a href="http://localhost:5173" class="portal-link">💼 Owner Wallet</a>
+      <a href="http://localhost:5174" class="portal-link">🔍 Verifier Portal</a>
+      <a href="http://localhost:5175" class="portal-link active">✍️ CSC Onboarding</a>
+    </div>
+  </nav>
+
+  <main class="app-container">
+
+    <header style="margin-bottom: 24px;">
+      <h1 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 700; margin-bottom: 6px;">
+        ✍️ Zero-Footprint Business Onboarding (CSC Assisted)
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Onboard micro/informal enterprises with zero initial digital trail using conversational AI extraction and agent-witnessed starter credentials.
+      </p>
+    </header>
+
+    <div class="onboard-grid">
+      
+      <!-- Left Column: Conversational Input -->
+      <div class="panel">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🎙️</span> Conversational Voice / Text Input
+        </h3>
+
+        <div style="margin-bottom: 12px;">
+          <span style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Click a sample demo transcript:</span>
+          <button class="sample-chip" data-sample="hi-kirana">🇮🇳 हिन्दी: किराना दुकान (वाराणसी)</button>
+          <button class="sample-chip" data-sample="hi-chai">🇮🇳 हिन्दी: चाय स्टॉल (अस्सी घाट)</button>
+          <button class="sample-chip" data-sample="en-handloom">🌐 English: Banaras Silk Weaver</button>
+        </div>
+
+        <textarea id="txtConversationalTranscript" class="input-textarea" rows="6" placeholder="Enter owner transcript in Hindi, Kannada, or English..."></textarea>
+
+        <button id="btnExtractOnboarding" class="btn btn-primary" style="width: 100%;">
+          <span>🤖</span> Extract Structured Business & Starter Credential
+        </button>
+      </div>
+
+      <!-- Right Column: AI Extraction Preview & Human Confirmation -->
+      <div class="panel">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>📋</span> AI Proposal (Requires Human Confirmation)
+        </h3>
+
+        <div id="extractionPlaceholder" style="color: var(--text-dim); font-size: 0.88rem; padding: 40px 0; text-align: center;">
+          Enter or select a transcript on the left and click Extract to generate the structured onboarding proposal.
+        </div>
+
+        <div id="proposalResultBox" style="display: none;">
+          <div style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #c084fc; text-transform: uppercase; margin-bottom: 6px;">
+              Proposed Business Identity
+            </div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #fff;" id="lblBizName">Sharma General Store</div>
+            <div style="font-size: 0.85rem; color: #cbd5e1;" id="lblBizMeta">Sector: Retail • Location: Varanasi, UP</div>
+            <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 4px;" id="lblOwnerMeta">Proprietor: Ramesh Sharma • Phone: 9876543210</div>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 6px;">
+              Starter Credential (Self-Attested + CSC Witnessed)
+            </div>
+            <div id="lblCredClaim" style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;"></div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button id="btnConfirmOnboard" class="btn btn-success" style="flex: 1;">
+              ✅ Owner & Agent Confirm → Register Business
+            </button>
+          </div>
+
+          <div id="onboardSuccessMsg" style="display: none; margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: var(--radius-sm); font-size: 0.85rem; color: #34d399;">
+            🎉 Business successfully registered with persistent DID! <a href="http://localhost:5173" style="color: #60a5fa; font-weight: 700; text-decoration: underline;">Open in Owner Wallet →</a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

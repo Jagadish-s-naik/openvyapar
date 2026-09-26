@@ -1,0 +1,12 @@
+{
+  "name": "@openvyapar/frontend-onboarding",
+  "version": "1.0.0",
+  "description": "Zero-Footprint Conversational Onboarding Portal for OpenVyapar",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

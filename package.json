@@ -12,12 +12,14 @@
     "frontend-onboarding"
   ],
   "scripts": {
-    "build:shared": "npm --workspace=shared run build",
-    "dev:backend": "npm --workspace=backend run dev",
-    "dev:agent": "npm --workspace=agent-service run dev",
-    "dev:wallet": "npm --workspace=frontend-wallet run dev",
-    "dev:verifier": "npm --workspace=frontend-verifier run dev",
-    "dev:onboarding": "npm --workspace=frontend-onboarding run dev"
+    "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=agent-service run build",
+    "test": "node shared/test-shared.mjs && npm --workspace=backend run test && npm --workspace=agent-service run test",
+    "seed": "node demo/seed-demo.js",
+    "start:backend": "npm --workspace=backend start",
+    "start:agent": "npm --workspace=agent-service start",
+    "start:wallet": "npm --workspace=frontend-wallet start",
+    "start:verifier": "npm --workspace=frontend-verifier start",
+    "start:onboarding": "npm --workspace=frontend-onboarding start"
   },
   "keywords": [
     "dpi",

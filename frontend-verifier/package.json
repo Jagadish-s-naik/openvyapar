@@ -1,0 +1,12 @@
+{
+  "name": "@openvyapar/frontend-verifier",
+  "version": "1.0.0",
+  "description": "Verifier Portal & Trust Inspection for OpenVyapar",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

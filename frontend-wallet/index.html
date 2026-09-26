@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenVyapar — Business Identity & Credential Wallet</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar & Persona Switcher -->
+  <nav class="top-portal-bar">
+    <div class="portal-links">
+      <span style="font-weight: 800; color: #fff; font-family: var(--font-display); letter-spacing: -0.02em;">🇮🇳 OpenVyapar DPI</span>
+      <a href="http://localhost:5173" class="portal-link active">💼 Owner Wallet</a>
+      <a href="http://localhost:5174" class="portal-link">🔍 Verifier Portal</a>
+      <a href="http://localhost:5175" class="portal-link">✍️ CSC Onboarding</a>
+    </div>
+    <div class="lang-selector">
+      <button class="lang-btn" data-lang="hi">हिन्दी</button>
+      <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+      <button class="lang-btn active" data-lang="en">EN</button>
+    </div>
+  </nav>
+
+  <main class="app-container">
+
+    <!-- Identity Hero Banner -->
+    <header class="identity-hero">
+      <div class="biz-info">
+        <h1 id="bizName">Sharma General Store <span class="did-tag" id="bizId">did:biz:sharma001</span></h1>
+        <div class="biz-meta">
+          <span id="bizSector">🛒 Retail Grocery & Daily Essentials</span>
+          <span>📍 <span id="bizLoc">Varanasi, Uttar Pradesh</span></span>
+          <span id="bizStatus" style="color: #34d399; font-weight: 700;">● Active</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button id="btnGenerateProofModal" class="btn btn-primary">
+          <span>✨</span> <span id="txtGenProofBtn">Generate Selective Proof</span>
+        </button>
+        <button id="btnSimulateTimeSkip" class="btn btn-secondary" title="Beat 2 Demo: Trigger GST, Bank, and Marketplace issuers">
+          <span>⏩</span> <span id="txtTimeSkipBtn">Time-Skip (Issue Batch)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="grid-2">
+      
+      <!-- Left Column: Credential Wallet -->
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">
+            <span>🛡️</span> <span id="txtCredentialsTitle">Verifiable Credentials</span>
+          </h2>
+          <span id="credCountBadge" style="font-size: 0.85rem; color: var(--text-dim);">4 issued</span>
+        </div>
+
+        <div class="credentials-grid" id="credentialsContainer">
+          <!-- Rendered dynamically -->
+          <div style="color: var(--text-muted); padding: 20px;">Loading credentials...</div>
+        </div>
+      </section>
+
+      <!-- Right Column: Delegation & Audit Trail -->
+      <aside>
+        
+        <!-- Scoped Delegation Panel -->
+        <div class="panel">
+          <h3 class="panel-title">
+            <span>🔑</span> <span id="txtDelegationTitle">Scoped Delegation</span>
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;" id="txtDelegationDesc">
+            Grant minimal, revocable access to your CA or manager using natural language.
+          </p>
+
+          <div class="input-group">
+            <textarea id="txtDelegationPrompt" class="input-textarea" rows="2" placeholder="e.g. 'I want my CA Vikas Mehta to file my taxes and check returns'"></textarea>
+          </div>
+
+          <button id="btnAskScopeAgent" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;">
+            <span>🤖</span> <span id="txtProposeScopeBtn">AI: Propose Minimal Scopes</span>
+          </button>
+
+          <!-- Agent Scoping Proposal Box (Hidden until proposed) -->
+          <div id="scopingProposalBox" class="agent-proposal-box" style="display: none;">
+            <span class="agent-badge">Proposed by AI (Pending Confirmation)</span>
+            <div id="proposalScopes" class="scope-pills"></div>
+            <p id="proposalExplanation" style="font-size: 0.82rem; color: #e2e8f0; margin-bottom: 6px;"></p>
+            <p id="proposalWithheld" style="font-size: 0.78rem; color: #a5b4fc; margin-bottom: 12px;"></p>
+            <div style="display: flex; gap: 8px;">
+              <button id="btnConfirmDelegation" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 14px;">Confirm & Grant</button>
+              <button id="btnDismissScoping" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">Dismiss</button>
+            </div>
+          </div>
+
+          <!-- Active Delegations List -->
+          <div id="activeDelegationsList" style="margin-top: 16px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Immutable Audit Trail -->
+        <div class="panel">
+          <h3 class="panel-title">
+            <span>📜</span> <span id="txtAuditTitle">Audit Log (Immutable Trail)</span>
+          </h3>
+          <div style="max-height: 280px; overflow-y: auto;">
+            <ul class="timeline" id="auditTimeline">
+              <!-- Rendered dynamically -->
+            </ul>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- Selective-Disclosure Proof Generator Modal -->
+  <div class="modal-backdrop" id="proofModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-family: var(--font-display); font-size: 1.3rem;">✨ Generate Selective-Disclosure Proof</h3>
+        <button class="modal-close" id="btnCloseProofModal">&times;</button>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Purpose of Verification</label>
+        <select id="proofPurposeSelect" class="input-select">
+          <option value="loan_application">MSME Working Capital Loan Application</option>
+          <option value="platform_onboarding">E-Commerce / ONDC Seller Onboarding</option>
+          <option value="vendor_qualification">Corporate Supply Chain Qualification</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Recipient / Verifier</label>
+        <input type="text" id="proofRecipientInput" class="input-text" value="Viksit Capital MSME Lending">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Select Credentials to Disclose (Selective Disclosure)</label>
+        <div id="selectiveCredCheckboxes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <!-- Dynamically filled -->
+        </div>
+      </div>
+
+      <!-- Consent Explainer Agent Output -->
+      <button id="btnExplainConsent" class="btn btn-secondary" style="width: 100%; margin: 10px 0;">
+        <span>🤖</span> Explain Consent in Plain Language
+      </button>
+
+      <div id="consentExplanationBox" class="agent-proposal-box" style="display: none;">
+        <span class="agent-badge">Consent Explainer AI</span>
+        <p id="consentPlainSummary" style="font-size: 0.85rem; color: #fff; margin-bottom: 10px; font-weight: 500;"></p>
+        
+        <div style="font-size: 0.8rem; margin-bottom: 8px;">
+          <strong style="color: #34d399;">✅ Data Shared with Verifier:</strong>
+          <ul id="consentSharedList" style="margin-left: 18px; color: #cbd5e1;"></ul>
+        </div>
+
+        <div style="font-size: 0.8rem; margin-bottom: 8px;">
+          <strong style="color: #f87171;">🔒 Data Kept Private (Withheld):</strong>
+          <ul id="consentWithheldList" style="margin-left: 18px; color: #cbd5e1;"></ul>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary" id="btnCancelProof">Cancel</button>
+        <button class="btn btn-primary" id="btnConfirmGenerateProof">Confirm & Generate QR Proof</button>
+      </div>
+
+      <!-- Generated Proof Share Link Box -->
+      <div id="generatedProofResult" style="display: none; margin-top: 20px; padding: 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm);">
+        <div style="color: #34d399; font-weight: 700; margin-bottom: 6px;">🎉 Proof Share Created!</div>
+        <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 8px;">
+          Verification Link: <a id="proofShareLink" href="#" target="_blank" style="color: #60a5fa; word-break: break-all;"></a>
+        </div>
+        <a id="btnOpenInVerifier" href="#" target="_blank" class="btn btn-success" style="font-size: 0.82rem;">Open in Verifier Portal →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
