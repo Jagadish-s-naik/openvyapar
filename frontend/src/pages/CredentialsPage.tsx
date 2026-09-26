@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Share2,
   ShieldCheck,
-  Zap,
   Sparkles,
   ExternalLink,
   Check,
@@ -29,7 +28,6 @@ export const CredentialsPage = () => {
     uploadAndIssueCredential,
     createSelectiveProof,
     businessId,
-    isSyncing,
   } = useAppStore();
   const { t, language } = useTranslation();
 
@@ -165,6 +163,45 @@ export const CredentialsPage = () => {
     }
   };
 
+  const formatClaimValue = (_key: string, value: any): string => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'object') {
+      if (value.latitude !== undefined && value.longitude !== undefined) {
+        return `${Number(value.latitude).toFixed(4)}° N, ${Number(value.longitude).toFixed(4)}° E`;
+      }
+      if (value.lat !== undefined && value.lng !== undefined) {
+        return `${Number(value.lat).toFixed(4)}° N, ${Number(value.lng).toFixed(4)}° E`;
+      }
+      if (Array.isArray(value)) {
+        return value.map(v => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ');
+      }
+      return Object.entries(value)
+        .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
+        .join(', ');
+    }
+    if (typeof value === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) {
+        try {
+          const d = new Date(value);
+          if (!isNaN(d.getTime())) {
+            return d.toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return value;
+    }
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    return String(value);
+  };
+
   const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
@@ -287,16 +324,6 @@ export const CredentialsPage = () => {
           </button>
 
           <button
-            onClick={() => issueBatchCredentials()}
-            disabled={isSyncing}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
-            title="Fast-Forward time & issue authentic credentials from GSTN, Bank, ONDC"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-600" />
-            <span>Time-Skip (Issue Batch)</span>
-          </button>
-
-          <button
             onClick={handleOpenProofModal}
             className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs"
           >
@@ -313,7 +340,7 @@ export const CredentialsPage = () => {
             <Award className="w-10 h-10 text-slate-400 mx-auto" />
             <h3 className="font-bold text-slate-900 text-base">No Verifiable Credentials Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Click &quot;Time-Skip (Issue Batch)&quot; to simulate accumulation of authentic GSTN, Bank, and ONDC credentials.
+              Click &quot;Time-Skip (Issue Batch)&quot; in top bar to simulate accumulation of authentic GSTN, Bank, and ONDC credentials.
             </p>
             <button
               onClick={() => issueBatchCredentials()}
@@ -352,12 +379,12 @@ export const CredentialsPage = () => {
                 {/* Structured Claim Values */}
                 <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs border border-slate-100">
                   {Object.entries(cred.claim).map(([k, v]) => (
-                    <div key={k} className="flex justify-between items-baseline gap-2">
-                      <span className="text-slate-500 uppercase text-[10px] font-mono tracking-wider">
+                    <div key={k} className="flex justify-between items-start gap-3">
+                      <span className="text-slate-500 uppercase text-[10px] font-mono tracking-wider shrink-0 min-w-[120px]">
                         {k.replace(/_/g, ' ')}:
                       </span>
-                      <span className="font-semibold text-slate-900 font-mono truncate max-w-[220px]">
-                        {String(v)}
+                      <span className="font-semibold text-slate-900 font-mono text-right break-words max-w-[70%]" title={typeof v === 'object' ? JSON.stringify(v) : String(v)}>
+                        {formatClaimValue(k, v)}
                       </span>
                     </div>
                   ))}

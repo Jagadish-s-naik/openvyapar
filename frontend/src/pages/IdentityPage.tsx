@@ -5,12 +5,14 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  Download,
   ShieldCheck,
   Sparkles,
   Users,
+  Printer,
+  Shield,
 } from 'lucide-react';
 import { BusinessQRCode } from '../components/ui/BusinessQRCode';
+import { SovereignPassModal } from '../components/identity/SovereignPassModal';
 
 export const IdentityPage = () => {
   const {
@@ -24,7 +26,7 @@ export const IdentityPage = () => {
   const { t } = useTranslation();
 
   const [copied, setCopied] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
 
   // Beat 5 Succession Transfer State
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -37,11 +39,6 @@ export const IdentityPage = () => {
     navigator.clipboard.writeText(businessId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownload = () => {
-    setDownloaded(true);
-    setTimeout(() => setDownloaded(false), 2000);
   };
 
   const handleTransferSuccession = async () => {
@@ -77,16 +74,27 @@ export const IdentityPage = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setSuccessionSuccess(null);
-            setIsTransferModalOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto"
-        >
-          <Users className="w-4 h-4" />
-          <span>Ownership Succession (Beat 5)</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={() => setIsPassModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer"
+            title="Open printable MSME Sovereign Pass & Counter Stand"
+          >
+            <Printer className="w-4 h-4" />
+            <span>🖨️ Print Sovereign Vyapar Pass</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSuccessionSuccess(null);
+              setIsTransferModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200/90 rounded-xl transition-all shadow-xs cursor-pointer"
+          >
+            <Users className="w-4 h-4 text-slate-600" />
+            <span>Ownership Succession (Beat 5)</span>
+          </button>
+        </div>
       </div>
 
       {/* Succession Banner if completed */}
@@ -142,11 +150,20 @@ export const IdentityPage = () => {
               </div>
 
               <button
-                onClick={handleDownload}
+                onClick={() => setIsPassModalOpen(true)}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer w-full sm:w-auto"
+                title="Print official laminated counter pass & PVC ID"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>🖨️ Print Sovereign Pass</span>
+              </button>
+
+              <button
+                onClick={() => setIsPassModalOpen(true)}
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer w-full sm:w-auto"
               >
-                <Download className="w-3.5 h-3.5 text-slate-600" />
-                {downloaded ? t.identity.passDownloaded : t.identity.downloadPass}
+                <Shield className="w-3.5 h-3.5 text-slate-600" />
+                <span>View Official Certificate</span>
               </button>
 
               {copied && <span className="text-xs text-emerald-600 font-medium w-full sm:w-auto text-center sm:text-left">{t.identity.copied}</span>}
@@ -303,6 +320,12 @@ export const IdentityPage = () => {
           </div>
         </div>
       )}
+
+      {/* Sovereign Vyapar Pass Modal */}
+      <SovereignPassModal
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+      />
     </div>
   );
 };

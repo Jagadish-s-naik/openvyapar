@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, CheckCircle2, Globe, Shield, Menu, Zap, RefreshCw } from 'lucide-react';
+import { Bell, CheckCircle2, Globe, Shield, Menu, Zap, RefreshCw, Smartphone, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -11,18 +11,18 @@ interface TopBarProps {
 
 export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
   const {
-    businessId,
     businessName,
     delegations,
     issueBatchCredentials,
     loadAllData,
     isSyncing,
+    isMobileSimulator,
+    toggleMobileSimulator,
   } = useAppStore();
-  const { t, language, setLanguage } = useTranslation();
+  const { language, setLanguage } = useTranslation();
   const [isIssuingBatch, setIsIssuingBatch] = useState(false);
   const [batchSuccess, setBatchSuccess] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isPitchGuideOpen, setIsPitchGuideOpen] = useState(false);
 
   const activeCount = delegations.filter((d) => d.status === 'active').length;
 
@@ -47,119 +47,136 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-20 shadow-xs">
-      {/* Left: Mobile Menu Button + Business ID Badge */}
-      <div className="flex items-center gap-3">
+    <header className="h-16 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none">
+      {/* LEFT: Mobile Menu + Enterprise Identity Pill + Live Node */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {onToggleMobileMenu && (
           <button
             onClick={onToggleMobileMenu}
-            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 md:hidden cursor-pointer"
+            className="p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 md:hidden cursor-pointer transition-colors shrink-0"
             aria-label="Toggle navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
 
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 text-white px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-800 shadow-xs">
-          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
-          <span className="font-mono text-xs font-bold text-amber-400 tracking-wider">
-            {businessId}
-          </span>
-          <span className="text-slate-500 text-xs hidden sm:inline">|</span>
-          <span className="text-xs font-medium text-slate-200 truncate hidden sm:inline max-w-[140px] md:max-w-xs">
+        {/* Enterprise Identity Badge */}
+        <div className="flex items-center gap-2 bg-slate-900 text-white px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs shrink-0">
+          <Shield className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span className="text-xs font-bold text-slate-100 truncate max-w-[160px] md:max-w-[220px] whitespace-nowrap">
             {businessName}
           </span>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 ml-0.5 shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
         </div>
 
-        {/* 3-Step Demo Navigator Bar */}
-        <div className="hidden xl:flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-[11px] font-semibold">
-          <Link
-            to="/onboarding"
-            className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1"
-            title="Step 1: Assisted Voice Onboarding in Rural CSC Center"
-          >
-            <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">1</span>
-            <span>CSC Onboarding</span>
-          </Link>
-          <span className="text-slate-400 font-mono">→</span>
-          <Link
-            to="/"
-            className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1 font-bold"
-            title="Step 2: Business Owner Credential Wallet"
-          >
-            <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">2</span>
-            <span>Owner Wallet</span>
-          </Link>
-          <span className="text-slate-400 font-mono">→</span>
-          <Link
-            to="/verifier"
-            className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1"
-            title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"
-          >
-            <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">3</span>
-            <span>Bank Verifier</span>
-          </Link>
+        {/* Live Node Badge */}
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg shrink-0 whitespace-nowrap">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>DPI Live Node</span>
         </div>
-
-        <span className="hidden lg:inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {t.topbar.liveNode}
-        </span>
       </div>
 
-      {/* Right Controls: Fast Forward Button, Refresh, Language & Notification */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Beat 2 Fast-Forward / Issue Batch Quick Action */}
+      {/* CENTER: Unified 3-Step Demo Pipeline */}
+      <div className="hidden lg:flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 text-xs font-semibold shrink-0 whitespace-nowrap">
+        <Link
+          to="/onboarding"
+          className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1.5 whitespace-nowrap"
+          title="Step 1: Rural Assisted Voice Onboarding in CSC Center"
+        >
+          <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">1</span>
+          <span>CSC Kiosk</span>
+        </Link>
+
+        <span className="text-slate-300 font-mono px-1">→</span>
+
+        <Link
+          to="/"
+          className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 shadow-xs font-bold flex items-center gap-1.5 whitespace-nowrap"
+          title="Step 2: Business Owner Credential Wallet"
+        >
+          <span className="w-4 h-4 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center text-[10px] font-bold font-mono">2</span>
+          <span>Owner Wallet</span>
+        </Link>
+
+        <span className="text-slate-300 font-mono px-1">→</span>
+
+        <Link
+          to="/verifier"
+          className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1.5 whitespace-nowrap"
+          title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"
+        >
+          <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">3</span>
+          <span>Bank Desk</span>
+        </Link>
+      </div>
+
+      {/* RIGHT: Quick Actions & Controls */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Time-Skip Button */}
         <button
           onClick={handleTimeSkip}
           disabled={isIssuingBatch}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs border ${
+          className={`h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs border whitespace-nowrap shrink-0 ${
             batchSuccess
-              ? 'bg-emerald-500 text-white border-emerald-600'
+              ? 'bg-emerald-600 text-white border-emerald-700'
               : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500/50'
           } disabled:opacity-50`}
-          title="Beat 2: Issue Institutional Credentials (GSTN, Bank, ONDC)"
+          title="Simulate 1 year of verified GST, Bank & ONDC credentials"
         >
           <Zap className={`w-3.5 h-3.5 ${isIssuingBatch ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">
-            {batchSuccess ? '✓ Credentials Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip (Issue Batch)'}
+          <span>
+            {batchSuccess ? '✓ Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip (Issue Batch)'}
           </span>
-          <span className="sm:hidden">⚡ Time-Skip</span>
         </button>
 
-        {/* Pitch Guide / Presentation Mode Button */}
-        <button
-          onClick={() => setIsPitchGuideOpen(true)}
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-amber-300 hover:bg-slate-800 border border-amber-400/30 transition-all cursor-pointer shadow-xs"
-          title="Open 2-Minute Judge Pitch Cheat Sheet"
-        >
-          <span>🎙️</span>
-          <span>Pitch Guide</span>
-        </button>
-
-        {/* Refresh / Sync Button */}
+        {/* Sync / Refresh */}
         <button
           onClick={() => loadAllData()}
           disabled={isSyncing}
-          className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          className="h-9 w-9 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 shrink-0"
           title="Refresh Data from Backend"
           aria-label="Refresh Data from Backend"
         >
           <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
         </button>
 
+        {/* Mobile Device Simulator Toggle */}
+        <button
+          onClick={toggleMobileSimulator}
+          className={`h-9 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
+            isMobileSimulator
+              ? 'bg-slate-900 text-amber-400 border-slate-800 shadow-xs'
+              : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80'
+          }`}
+          title={isMobileSimulator ? 'Switch to Desktop Full View' : 'Simulate ₹7,000 Android Phone View'}
+        >
+          {isMobileSimulator ? (
+            <>
+              <Monitor className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Desktop</span>
+            </>
+          ) : (
+            <>
+              <Smartphone className="w-3.5 h-3.5 text-slate-600" />
+              <span className="hidden sm:inline">Phone Frame</span>
+            </>
+          )}
+        </button>
+
         {/* Language Selector */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200/80">
-          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1 mr-0.5" />
+        <div className="h-9 flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200 shrink-0">
+          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1.5 mr-0.5" />
           <div className="flex gap-0.5">
             {languages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setLanguage(lang.code)}
-                className={`px-1.5 sm:px-2 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                className={`px-2 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
                   language === lang.code
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-white text-slate-950 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
                 title={lang.label}
@@ -170,16 +187,16 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           </div>
         </div>
 
-        {/* Notification Bell with Inbound Dispatch Drawer */}
-        <div className="relative">
+        {/* Notification Bell */}
+        <div className="relative shrink-0">
           <button
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-            className="relative p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors border border-transparent hover:border-slate-200 cursor-pointer"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors border border-slate-200/80 cursor-pointer relative"
             title="Notifications & Inbound Owner Dispatches"
             aria-label="Toggle notifications"
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 bg-amber-500 text-slate-950 font-bold text-[10px] rounded-full flex items-center justify-center font-mono ring-2 ring-white animate-pulse">
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-amber-500 text-slate-950 font-bold text-[9px] rounded-full flex items-center justify-center font-mono ring-2 ring-white">
               {activeCount || 2}
             </span>
           </button>
@@ -285,6 +302,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           )}
         </div>
       </div>
+<<<<<<< HEAD:frontend/src/components/layout/TopBar.tsx
 
       {/* 🎙️ 2-Minute Judge Pitch Cheat Sheet Modal */}
       {isPitchGuideOpen && (
@@ -375,6 +393,8 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           </div>
         </div>
       )}
+=======
+>>>>>>> 5b5ad97 (feat: add printable sovereign vyapar pass and mobile device simulator):frontend-wallet/src/components/layout/TopBar.tsx
     </header>
   );
 };
