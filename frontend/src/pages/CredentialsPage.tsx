@@ -413,6 +413,8 @@ export const CredentialsPage = () => {
               </button>
             </div>
 
+            {!generatedProofResult ? (
+              <div className="space-y-6">
                 {/* Friendly Privacy Explanation Banner */}
                 <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-1">
                   <div className="font-bold flex items-center gap-1.5 text-amber-900">

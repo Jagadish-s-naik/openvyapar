@@ -7,6 +7,8 @@ import { ConsentPage } from './pages/ConsentPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { ConnectedServicesPage } from './pages/ConnectedServicesPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { VerifierPage } from './pages/VerifierPage';
+import { OnboardingPage } from './pages/OnboardingPage';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
           <Route path="consents" element={<ConsentPage />} />
           <Route path="audit" element={<AuditLogPage />} />
           <Route path="services" element={<ConnectedServicesPage />} />
+          <Route path="verifier" element={<VerifierPage />} />
+          <Route path="onboarding" element={<OnboardingPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n/useTranslation';
-import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, Zap, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
 
 export const DashboardPage = () => {
   const {
@@ -12,8 +12,6 @@ export const DashboardPage = () => {
     credentials,
     delegations,
     timeline,
-    issueBatchCredentials,
-    isSyncing,
   } = useAppStore();
   const { t } = useTranslation();
 

@@ -74,28 +74,32 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
 
         {/* 3-Step Demo Navigator Bar */}
         <div className="hidden xl:flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-[11px] font-semibold">
-          <a
-            href="http://localhost:5175"
+          <Link
+            to="/onboarding"
             className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1"
             title="Step 1: Assisted Voice Onboarding in Rural CSC Center"
           >
             <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">1</span>
             <span>CSC Onboarding</span>
-          </a>
+          </Link>
           <span className="text-slate-400 font-mono">→</span>
-          <span className="px-2 py-0.5 rounded bg-amber-400/20 text-amber-900 border border-amber-400/40 flex items-center gap-1 shadow-xs font-bold">
+          <Link
+            to="/"
+            className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1 font-bold"
+            title="Step 2: Business Owner Credential Wallet"
+          >
             <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">2</span>
             <span>Owner Wallet</span>
-          </span>
+          </Link>
           <span className="text-slate-400 font-mono">→</span>
-          <a
-            href="http://localhost:5174"
+          <Link
+            to="/verifier"
             className="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-1"
             title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"
           >
             <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">3</span>
             <span>Bank Verifier</span>
-          </a>
+          </Link>
         </div>
 
         <span className="hidden lg:inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full font-medium">
@@ -308,7 +312,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-mono text-[10px]">1</span>
-                    <span>Beat 1: Informal to Verifiable (CSC Field Onboard · Port 5175)</span>
+                    <span>Beat 1: Informal to Verifiable (CSC Field Onboard · /onboarding)</span>
                   </span>
                   <span className="font-mono text-slate-400 text-[10px]">0:00 – 0:30</span>
                 </div>
@@ -322,7 +326,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-mono text-[10px]">2</span>
-                    <span>Beat 2: Verifiable Track Record & Time-Skip (Port 5173)</span>
+                    <span>Beat 2: Verifiable Track Record & Time-Skip (Owner Wallet · /)</span>
                   </span>
                   <span className="font-mono text-slate-400 text-[10px]">0:30 – 0:50</span>
                 </div>
@@ -336,7 +340,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-mono text-[10px]">3</span>
-                    <span>Beat 3 & 4: Zero-Knowledge Desk Handoff & Sanction (Port 5174)</span>
+                    <span>Beat 3 & 4: Zero-Knowledge Desk Handoff & Sanction (/verifier)</span>
                   </span>
                   <span className="font-mono text-amber-800 font-bold text-[10px]">0:50 – 1:30</span>
                 </div>

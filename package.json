@@ -7,20 +7,19 @@
   "workspaces": [
     "shared",
     "backend",
-    "frontend-wallet",
-    "frontend-verifier",
-    "frontend-onboarding"
+    "frontend"
   ],
   "scripts": {
     "dev": "node scripts/dev-all.mjs",
-    "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=frontend-wallet run build",
+    "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=frontend run build",
     "test": "node shared/test-shared.mjs && npm --workspace=backend run test",
     "test:demo": "node demo/run-demo-flow.mjs",
     "seed": "node demo/seed-demo.js",
     "start:backend": "npm --workspace=backend start",
-    "start:wallet": "npm --workspace=frontend-wallet start",
-    "start:verifier": "npm --workspace=frontend-verifier start",
-    "start:onboarding": "npm --workspace=frontend-onboarding start"
+    "start:frontend": "npm --workspace=frontend dev",
+    "start:wallet": "npm --workspace=frontend dev",
+    "start:verifier": "npm --workspace=frontend dev",
+    "start:onboarding": "npm --workspace=frontend dev"
   },
   "keywords": [
     "dpi",

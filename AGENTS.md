@@ -12,9 +12,7 @@
 |---|---|---|---|
 | `@openvyapar/shared` | [`shared/`](file:///home/shamblonaut/dev/openvyapar/shared/) | — | **Single Source of Truth**: TypeScript schemas, DTOs, constants, and demo fixtures. |
 | `@openvyapar/backend` | [`backend/`](file:///home/shamblonaut/dev/openvyapar/backend/) | `3001` | Express API, SQLite persistence, HMAC crypto signing, Mock Issuers (GSTN, Bank, ONDC), and AI Agents (`/agent/*`). |
-| `@openvyapar/frontend-wallet` | [`frontend-wallet/`](file:///home/shamblonaut/dev/openvyapar/frontend-wallet/) | `5173` | Owner dashboard: Credential wallet, selective proof generator with Consent AI, and delegation panel. |
-| `@openvyapar/frontend-verifier` | [`frontend-verifier/`](file:///home/shamblonaut/dev/openvyapar/frontend-verifier/) | `5174` | Verifier portal: Selective-disclosure proof inspection, HMAC cryptographic verification, and tamper simulation. |
-| `@openvyapar/frontend-onboarding` | [`frontend-onboarding/`](file:///home/shamblonaut/dev/openvyapar/frontend-onboarding/) | `5175` | Zero-footprint conversational onboarding flow with CSC Agent assistance. |
+| `@openvyapar/frontend` | [`frontend/`](file:///home/shamblonaut/dev/openvyapar/frontend/) | `5173` | Unified React SPA: Owner Wallet (`/`), Verifier Portal (`/verifier`), and CSC AI Onboarding (`/onboarding`). |
 | `demo` | [`demo/`](file:///home/shamblonaut/dev/openvyapar/demo/) | — | 5-Beat demo rehearsal script, state seeders, and automated narrative CLI runner. |
 
 ---
@@ -49,24 +47,24 @@
   - Enforce least-privilege scoping in Scoping Agent (`/agent/scope-suggest`) so that tax requests never leak banking or loan permissions.
 - **Verification**: Run `npm --workspace=backend run test`.
 
-### 🎨 Workstream C: Frontend & Full UI Experience Lead (`/frontend-wallet`, `/frontend-verifier`, `/frontend-onboarding`)
+### 🎨 Workstream C: Frontend & Full UI Experience Lead (`/frontend`)
 - **Key Responsibilities**:
-  - **Owner Wallet Dashboard (`/frontend-wallet` - Port 5173)**:
+  - **Owner Wallet Dashboard (`/frontend` - Port 5173 - `/`)**:
     - Credential viewer with issuer badges and HMAC verification status for `did:biz:sharma001`.
     - Selective-disclosure modal connecting to `/agent/consent-explain` and `/proof/generate`.
     - Delegation panel connecting to `/agent/scope-suggest` and `/delegation/grant` / `/delegation/revoke`.
     - Ownership succession panel for Beat 5 (Ramesh $\rightarrow$ Priya Sharma).
     - Multilingual language toggle (Hindi `hi`, Kannada `kn`, English `en`).
-  - **Verifier & Underwriting Portal (`/frontend-verifier` - Port 5174)**:
+  - **Verifier & Underwriting Portal (`/frontend` - Port 5173 - `/verifier`)**:
     - Proof resolver by URL param (`?proof_id=...`).
     - Cryptographic HMAC status banner (`VALID` vs `TAMPERED`).
     - Interactive "Simulate Tampering" toggle to demonstrate live signature failure for judges.
     - AI trust & anomaly flags panel connected to `/agent/verifier-flag`.
-  - **Zero-Footprint Onboarding UI (`/frontend-onboarding` - Port 5175)**:
+  - **Zero-Footprint Onboarding UI (`/frontend` - Port 5173 - `/onboarding`)**:
     - Conversational chat/voice interface with sample transcript chips (Hindi Kirana, Hindi Chai Stall, English Handloom).
     - Side-by-side structured business metadata preview & starter `self_attested` credential.
     - Explicit human confirmation guardrail before `/business` record creation.
-  - **Unified Navigation**: Maintain top portal bar for 1-click switching across all 3 user views during demos.
+  - **Unified Navigation**: Top portal bar for 1-click switching across all 3 views.
 
 ### 🎬 Workstream D: Demo & Integration Lead (`/demo`)
 - **Key Responsibilities**:
@@ -92,14 +90,12 @@ npm run test:demo
 # 4. Reset & Seed Database State
 npm run seed
 
-# 5. Start Micro-Services Concurrently
+# 5. Start 2-Tier Stack Concurrently
 npm run dev
 
-# 6. Start Individual Micro-Services
+# 6. Start Individual Tiers
 npm run start:backend      # Port 3001 (Backend API + AI Agents)
-npm run start:wallet       # Port 5173 (Owner Wallet)
-npm run start:verifier     # Port 5174 (Verifier Portal)
-npm run start:onboarding   # Port 5175 (CSC Onboarding)
+npm run start:frontend     # Port 5173 (Unified React Frontend)
 ```
 
 ---

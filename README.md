@@ -28,18 +28,16 @@ npm run test
 | Service | Port | Command | Purpose |
 |---|---|---|---|
 | **Backend API & AI Agents** | `3001` | `npm run start:backend` | Core state, SQLite DB, HMAC signing, Mock issuers, and AI Agents (`/agent/*`) |
-| **Owner Wallet UI** | `5173` | `npm run start:wallet` | Owner credential dashboard, selective proof generator, delegation panel |
-| **Verifier Portal UI** | `5174` | `npm run start:verifier` | Lender/verifier proof inspection, cryptographic verification, tamper simulator |
-| **CSC Onboarding UI**| `5175` | `npm run start:onboarding`| Zero-footprint conversational onboarding flow |
+| **Unified Frontend App** | `5173` | `npm run start:frontend` | Owner Wallet (`/`), Verifier Portal (`/verifier`), and CSC Onboarding (`/onboarding`) |
 
 ---
 
 ## 🎬 5-Beat Demo Walkthrough
 See [`demo/script.md`](file:///home/shamblonaut/dev/openvyapar/demo/script.md) for the complete presentation narrative.
 
-1. **Beat 1 (Zero-Footprint Onboarding)**: Open `http://localhost:5175` → Extract informal shop conversation into structured identity and self-attested starter credential.
-2. **Beat 2 (Institutional Credential History)**: Open `http://localhost:5173` → Click *Time-Skip* to trigger Mock GSTN, State Bank of India, and BharatMart ONDC issuers.
-3. **Beat 3 (Selective Disclosure Loan Proof)**: Generate selective proof with Consent Explainer AI → Inspect in Verifier Portal (`http://localhost:5174`) with live HMAC tamper detection.
+1. **Beat 1 (Zero-Footprint Onboarding)**: Open `http://localhost:5173/onboarding` → Extract informal shop conversation into structured identity and self-attested starter credential.
+2. **Beat 2 (Institutional Credential History)**: Open `http://localhost:5173/` → Click *Time-Skip* to trigger Mock GSTN, State Bank of India, and BharatMart ONDC issuers.
+3. **Beat 3 (Selective Disclosure Loan Proof)**: Generate selective proof with Consent Explainer AI → Inspect in Verifier Portal (`http://localhost:5173/verifier`) with live HMAC tamper detection.
 4. **Beat 4 (Scoped CA Delegation)**: Request delegation in natural language → AI proposes minimal `file_returns` scope → Confirm & review immutable audit trail.
 5. **Beat 5 (Multilingual & Succession)**: Toggle between **हिन्दी**, **ಕನ್ನಡ**, and **English** with seamless ownership continuity.
 
@@ -50,9 +48,7 @@ See [`demo/script.md`](file:///home/shamblonaut/dev/openvyapar/demo/script.md) f
 openvyapar/
 ├── shared/            # Single source of truth TypeScript types, constants & mock fixtures
 ├── backend/           # Express API, SQLite persistence, HMAC crypto engine, Mock Issuers & AI Agents (Port 3001)
-├── frontend-wallet/   # Owner identity wallet & delegation management (Port 5173)
-├── frontend-verifier/ # Verifier & underwriting portal (Port 5174)
-├── frontend-onboarding/# Zero-footprint conversational onboarding UI (Port 5175)
+├── frontend/          # Unified React SPA: Wallet, Verifier & Onboarding (Port 5173)
 ├── demo/              # 5-Beat demo rehearsal script & database seeders
 └── PRD.md             # Core product requirements & schema specification
 ```

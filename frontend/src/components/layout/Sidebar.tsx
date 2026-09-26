@@ -99,6 +99,50 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
               </NavLink>
             );
           })}
+
+          <div className="pt-4 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            DPI Portals
+          </div>
+
+          <NavLink
+            to="/verifier"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center justify-between px-3.5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-slate-100'
+              }`
+            }
+          >
+            <div className="flex items-center gap-3">
+              <Award className="w-4 h-4 text-amber-400" />
+              <span>Verifier Portal</span>
+            </div>
+            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300">
+              Lender
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/onboarding"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center justify-between px-3.5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-slate-100'
+              }`
+            }
+          >
+            <div className="flex items-center gap-3">
+              <Fingerprint className="w-4 h-4 text-emerald-400" />
+              <span>CSC Onboarding</span>
+            </div>
+            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300">
+              Agent
+            </span>
+          </NavLink>
         </nav>
 
         {/* Bottom Infrastructure Stamp */}
