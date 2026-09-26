@@ -96,8 +96,9 @@ graph LR
 1. [x] **Instant Snapshot & Restore**:
    - Add `POST /admin/reset` and `POST /admin/snapshot` endpoints for 1-click database resets from the frontend demo bar.
    - Support `GET /admin/snapshots`, `POST /admin/restore`, and `DELETE /admin/snapshot/:id`.
-2. **CORS & Multi-Port Environment Hardening**:
+2. [x] **CORS & Multi-Port Environment Hardening**:
    - Ensure permissive yet structured CORS handling for ports `5173` (Wallet), `5174` (Verifier), and `5175` (Onboarding).
+   - Support dynamic local origins regex, preflight cache, security headers, and request tracing.
 3. **End-to-End Health & Readiness Probes**:
    - Enhance `GET /health` to report DB record counts, memory usage, and mock issuer status.
 
@@ -141,6 +142,7 @@ graph LR
 - [x] Add unit tests for idempotency on confirmed agent proposals
 - [x] Add tests for dynamic mock templates and CSC field witnessing
 - [x] Add test for `POST /admin/reset` state reload & snapshots
+- [x] Add tests for CORS preflights across multi-port frontend environments
 
 ---
 

@@ -9,16 +9,14 @@ import { mocksRouter } from './routes/mocks.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { authContextMiddleware } from './middleware/auth.js';
+import { corsMiddleware, securityHeadersMiddleware } from './middleware/cors.js';
 
 export function createApp(): Application {
   const app = express();
 
   // Global Middleware
-  app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-openvyapar-actor-id', 'x-openvyapar-actor-role'],
-  }));
+  app.use(corsMiddleware);
+  app.use(securityHeadersMiddleware);
   app.use(express.json());
   app.use(authContextMiddleware);
 

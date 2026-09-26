@@ -690,6 +690,53 @@ async function runApiTests() {
 
     console.log('✅ 18. Instant Snapshot, Restore & 1-Click Seed Reset PASSED');
 
+    // 19. Test CORS & Multi-Port Environment Hardening (Phase 5 Task 2)
+    // 19a. Test Wallet preflight on port 5173
+    const walletCorsRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type, x-openvyapar-actor-id',
+      },
+    });
+    console.assert(walletCorsRes.status === 204, 'Wallet CORS preflight should return 204');
+    console.assert(walletCorsRes.headers.get('access-control-allow-origin') === 'http://localhost:5173', 'Allow-Origin mismatch for Wallet');
+    console.assert(walletCorsRes.headers.get('access-control-allow-methods')?.includes('POST'), 'POST not in allowed methods');
+
+    // 19b. Test Verifier preflight on port 5174
+    const verifierCorsRes = await fetch(`${baseUrl}/proof/verify/proof-demo-001`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:5174',
+        'Access-Control-Request-Method': 'GET',
+      },
+    });
+    console.assert(verifierCorsRes.status === 204, 'Verifier CORS preflight should return 204');
+    console.assert(verifierCorsRes.headers.get('access-control-allow-origin') === 'http://localhost:5174', 'Allow-Origin mismatch for Verifier');
+
+    // 19c. Test Onboarding preflight on port 5175
+    const onboardingCorsRes = await fetch(`${baseUrl}/business`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:5175',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type, x-openvyapar-actor-id',
+      },
+    });
+    console.assert(onboardingCorsRes.status === 204, 'Onboarding CORS preflight should return 204');
+    console.assert(onboardingCorsRes.headers.get('access-control-allow-origin') === 'http://localhost:5175', 'Allow-Origin mismatch for Onboarding');
+
+    // 19d. Test Security Headers & Request ID Tracing
+    const secHeadersRes = await fetch(`${baseUrl}/health`, {
+      headers: { 'Origin': 'http://localhost:5173', 'x-request-id': 'test-trace-999' },
+    });
+    console.assert(secHeadersRes.headers.get('x-content-type-options') === 'nosniff', 'Missing X-Content-Type-Options: nosniff');
+    console.assert(secHeadersRes.headers.get('x-frame-options') === 'SAMEORIGIN', 'Missing X-Frame-Options: SAMEORIGIN');
+    console.assert(secHeadersRes.headers.get('x-request-id') === 'test-trace-999', 'x-request-id tracing header missing or mismatched');
+
+    console.log('✅ 19. CORS & Multi-Port Environment Hardening PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();
