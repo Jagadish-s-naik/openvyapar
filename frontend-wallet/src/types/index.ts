@@ -6,9 +6,6 @@ export type Credential = {
   expiresOn: string;
   status: 'active' | 'revoked' | 'expired';
   docNumber?: string;
-  claim?: Record<string, unknown>;
-  signature?: string;
-  rawType?: string;
 };
 
 export type Consent = {
@@ -19,8 +16,6 @@ export type Consent = {
   status: 'pending' | 'approved' | 'denied' | 'revoked';
   grantedAt?: string;
   expiresAt?: string;
-  scope?: string[];
-  delegatePersonId?: string;
 };
 
 export type AuditEvent = {
@@ -49,8 +44,6 @@ export type AppState = {
   tradeName?: string;
   legalEntity?: string;
   language: Language;
-  isSyncing: boolean;
-  lastSyncTime?: string;
   setLanguage: (lang: Language) => void;
   credentials: Credential[];
   consents: Consent[];
@@ -60,6 +53,4 @@ export type AppState = {
   denyConsent: (id: string) => void;
   revokeConsent: (id: string) => void;
   connectService: (service: { name: string; category?: string; accessScope: string[]; accentColor?: string }) => void;
-  syncLiveBackend: () => Promise<void>;
-  triggerTimeSkip: () => Promise<{ success: boolean; message: string }>;
 };

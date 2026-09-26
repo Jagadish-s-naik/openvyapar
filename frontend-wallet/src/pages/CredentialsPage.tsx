@@ -48,38 +48,14 @@ export const CredentialsPage = () => {
 
   return (
     <div className="space-y-10">
-      {/* Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            {t.credentials.title}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {t.credentials.subtitle}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <button
-            onClick={() => useAppStore.getState().syncLiveBackend()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors cursor-pointer shadow-xs"
-            title="Fetch latest cryptographic credentials from DPI node"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Sync Node</span>
-          </button>
-
-          <button
-            onClick={async () => {
-              const res = await useAppStore.getState().triggerTimeSkip();
-              alert(res.message);
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs"
-            title="Simulate issuance of next batch of GST and banking credentials"
-          >
-            <span>⚡ Time-Skip (Batch Issue)</span>
-          </button>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          {t.credentials.title}
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          {t.credentials.subtitle}
+        </p>
       </div>
 
       {/* Primary: Credential Cards Grid (2 columns max on desktop for legibility) */}

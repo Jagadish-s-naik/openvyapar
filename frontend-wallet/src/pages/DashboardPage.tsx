@@ -1,17 +1,11 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n/useTranslation';
 import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight } from 'lucide-react';
 
 export const DashboardPage = () => {
-  const { businessId, businessName, consents, auditLog, syncLiveBackend } = useAppStore();
+  const { businessId, businessName, consents, auditLog } = useAppStore();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    syncLiveBackend();
-  }, [syncLiveBackend]);
-
   const activeConsents = consents.filter((c) => c.status === 'approved');
   const pendingConsents = consents.filter((c) => c.status === 'pending');
   const recentEvents = auditLog.slice(0, 2);
