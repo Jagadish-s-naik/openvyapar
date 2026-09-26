@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsc -w & node --watch dist/server.js",
-    "test": "node dist/test/agent.test.js"
+    "test": "node dist/test/scoping-validation.test.js && node dist/test/agent.test.js"
   },
   "keywords": [
     "openvyapar",

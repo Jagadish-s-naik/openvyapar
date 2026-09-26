@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import type { OnboardExtractRequest } from '@openvyapar/shared';
 import { extractOnboardingData } from '../engine/onboarding.js';
+import { sendAgentError } from '../lib/errors.js';
 
 export const onboardingRouter = Router();
 
@@ -11,11 +12,11 @@ export const onboardingRouter = Router();
  *
  * GUARDRAIL: Does NOT write to business table. Proposes only.
  */
-onboardingRouter.post('/onboard-extract', (req: Request<{}, {}, OnboardExtractRequest>, res: Response) => {
+onboardingRouter.post('/onboard-extract', async (req: Request<{}, {}, OnboardExtractRequest>, res: Response) => {
   try {
-    const result = extractOnboardingData(req.body);
+    const result = await extractOnboardingData(req.body);
     res.status(200).json(result);
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message || 'Onboarding extraction failed' });
+    sendAgentError(res, 500, 'ONBOARD_EXTRACT_FAILED', err.message || 'Onboarding extraction failed', err);
   }
 });

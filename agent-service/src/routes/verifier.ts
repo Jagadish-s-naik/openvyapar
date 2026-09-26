@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import type { VerifierFlagRequest } from '@openvyapar/shared';
 import { analyzeVerifierTrust } from '../engine/verifier.js';
+import { sendAgentError } from '../lib/errors.js';
 
 export const verifierRouter = Router();
 
@@ -10,11 +11,11 @@ export const verifierRouter = Router();
  *
  * GUARDRAIL: Read-only advisory analysis.
  */
-verifierRouter.post('/verifier-flag', (req: Request<{}, {}, VerifierFlagRequest>, res: Response) => {
+verifierRouter.post('/verifier-flag', async (req: Request<{}, {}, VerifierFlagRequest>, res: Response) => {
   try {
-    const result = analyzeVerifierTrust(req.body);
+    const result = await analyzeVerifierTrust(req.body);
     res.status(200).json(result);
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message || 'Verifier flag analysis failed' });
+    sendAgentError(res, 500, 'VERIFIER_FLAG_FAILED', err.message || 'Verifier flag analysis failed', err);
   }
 });

@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import type { ConsentExplainRequest } from '@openvyapar/shared';
 import { explainConsent } from '../engine/consent.js';
+import { sendAgentError } from '../lib/errors.js';
 
 export const consentRouter = Router();
 
@@ -10,11 +11,11 @@ export const consentRouter = Router();
  *
  * GUARDRAIL: Informational / proposal only.
  */
-consentRouter.post('/consent-explain', (req: Request<{}, {}, ConsentExplainRequest>, res: Response) => {
+consentRouter.post('/consent-explain', async (req: Request<{}, {}, ConsentExplainRequest>, res: Response) => {
   try {
-    const result = explainConsent(req.body);
+    const result = await explainConsent(req.body);
     res.status(200).json(result);
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message || 'Consent explanation failed' });
+    sendAgentError(res, 500, 'CONSENT_EXPLAIN_FAILED', err.message || 'Consent explanation failed', err);
   }
 });
