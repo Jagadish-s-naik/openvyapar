@@ -1,39 +1,45 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, X, ArrowRight, CornerDownLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Sparkles, X, ArrowRight, CornerDownLeft, CheckCircle2, Bot } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { useAppStore } from '../../store/useAppStore';
+import * as api from '../../api/client';
 
 export const AIAssistantModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [handoffTarget, setHandoffTarget] = useState<string | null>(null);
+  const [isAsking, setIsAsking] = useState(false);
+  const [assistantReply, setAssistantReply] = useState<string | null>(null);
+
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { businessId, credentials, delegations } = useAppStore();
 
   const suggestedPrompts = [
     {
-      label: t.ai.prompt1Label,
+      label: 'Grant Scoped CA Access (Beat 4)',
       targetPath: '/consents',
-      targetName: t.nav.consent,
-      description: t.ai.prompt1Desc,
+      targetName: 'Delegation Builder',
+      description: 'Propose minimal scopes for CA Vikas Mehta without banking access',
     },
     {
-      label: t.ai.prompt2Label,
-      targetPath: '/audit',
-      targetName: t.nav.audit,
-      description: t.ai.prompt2Desc,
-    },
-    {
-      label: t.ai.prompt3Label,
+      label: 'Generate Selective Loan Proof (Beat 3)',
       targetPath: '/credentials',
-      targetName: t.nav.credentials,
-      description: t.ai.prompt3Desc,
+      targetName: 'Verifiable Credentials',
+      description: 'Disclose GST & ONDC track record while withholding bank statements',
     },
     {
-      label: t.ai.prompt4Label,
+      label: 'Inspect Generational Succession (Beat 5)',
       targetPath: '/identity',
-      targetName: t.nav.identity,
-      description: t.ai.prompt4Desc,
+      targetName: 'Business Identity & QR',
+      description: 'Transfer ownership to Priya Sharma with unbroken DID continuity',
+    },
+    {
+      label: 'View Immutable Audit Timeline',
+      targetPath: '/audit',
+      targetName: 'Audit Trail',
+      description: 'Cryptographic ledger of all verified actions and agent proposals',
     },
   ];
 
@@ -43,64 +49,50 @@ export const AIAssistantModal = () => {
       setHandoffTarget(null);
       setIsOpen(false);
       navigate(path);
-    }, 450);
+    }, 400);
   };
 
-  const handleCustomSubmit = (e: React.FormEvent) => {
+  const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const query = inputValue.toLowerCase().trim();
+    const query = inputValue.trim();
     if (!query) return;
 
-    if (
-      query.includes('consent') ||
-      query.includes('सहमति') ||
-      query.includes('ಸಮ್ಮತಿ') ||
-      query.includes('approve') ||
-      query.includes('ondc') ||
-      query.includes('deny') ||
-      query.includes('revoke') ||
-      query.includes('pending')
-    ) {
-      executeHandoff('/consents', t.nav.consent);
-    } else if (
-      query.includes('audit') ||
-      query.includes('ऑडिट') ||
-      query.includes('ಆಡಿಟ್') ||
-      query.includes('access') ||
-      query.includes('log') ||
-      query.includes('history')
-    ) {
-      executeHandoff('/audit', t.nav.audit);
-    } else if (
-      query.includes('credential') ||
-      query.includes('प्रमाण') ||
-      query.includes('ಪ್ರಮಾಣಪತ್ರ') ||
-      query.includes('udyam') ||
-      query.includes('gst') ||
-      query.includes('share') ||
-      query.includes('proof')
-    ) {
-      executeHandoff('/credentials', t.nav.credentials);
-    } else if (
-      query.includes('id') ||
-      query.includes('qr') ||
-      query.includes('identity') ||
-      query.includes('पहचान') ||
-      query.includes('ಗುರುತು')
-    ) {
-      executeHandoff('/identity', t.nav.identity);
-    } else if (
-      query.includes('service') ||
-      query.includes('सेवा') ||
-      query.includes('ಸೇವೆ') ||
-      query.includes('bank') ||
-      query.includes('connect')
-    ) {
-      executeHandoff('/services', t.nav.connected);
-    } else {
-      executeHandoff('/', t.nav.dashboard);
+    setIsAsking(true);
+    setAssistantReply(null);
+
+    try {
+      const res = await api.askAssistant({
+        message: query,
+        language: language.toLowerCase(),
+        context: {
+          business_id: businessId,
+          active_credentials: credentials.length,
+          active_delegations: delegations.filter((d) => d.status === 'active').length,
+        },
+      });
+
+      if (res.success) {
+        setAssistantReply(res.answer);
+        if (res.suggested_action?.route) {
+          executeHandoff(res.suggested_action.route, res.suggested_action.label || 'Destination');
+        }
+      }
+    } catch {
+      // Fallback to keyword matching if agent is unreachable
+      const lower = query.toLowerCase();
+      if (lower.includes('consent') || lower.includes('delegat') || lower.includes('ca')) {
+        executeHandoff('/consents', 'Delegations');
+      } else if (lower.includes('proof') || lower.includes('loan') || lower.includes('cred')) {
+        executeHandoff('/credentials', 'Credentials');
+      } else if (lower.includes('succession') || lower.includes('owner') || lower.includes('priya')) {
+        executeHandoff('/identity', 'Identity');
+      } else {
+        executeHandoff('/audit', 'Audit Log');
+      }
+    } finally {
+      setIsAsking(false);
+      setInputValue('');
     }
-    setInputValue('');
   };
 
   return (
@@ -117,7 +109,7 @@ export const AIAssistantModal = () => {
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <span className="text-xs font-semibold tracking-wide text-slate-100 hidden sm:inline">
-            {t.ai.buttonLabel}
+            OpenVyapar AI Assistant
           </span>
         </button>
       </div>
@@ -130,11 +122,11 @@ export const AIAssistantModal = () => {
             <div className="p-4 bg-[#0a1424] text-white flex items-center justify-between border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
-                  <ShieldCheck className="w-4 h-4" />
+                  <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-100">{t.ai.panelTitle}</h2>
-                  <p className="text-[11px] text-slate-400">{t.ai.panelSubtitle}</p>
+                  <h2 className="text-sm font-semibold text-slate-100">OpenVyapar AI Assistant</h2>
+                  <p className="text-[11px] text-slate-400">DPI Navigation & Plain Language Explanations</p>
                 </div>
               </div>
               <button
@@ -150,9 +142,7 @@ export const AIAssistantModal = () => {
             {handoffTarget && (
               <div className="bg-amber-50 border-b border-amber-200 p-3 flex items-center gap-2 text-xs font-medium text-amber-900 animate-in fade-in shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-amber-700 animate-spin shrink-0" />
-                <span>
-                  {t.ai.handingOff} {handoffTarget}...
-                </span>
+                <span>Navigating to {handoffTarget}...</span>
               </div>
             )}
 
@@ -161,7 +151,7 @@ export const AIAssistantModal = () => {
               <form onSubmit={handleCustomSubmit} className="relative">
                 <input
                   type="text"
-                  placeholder={t.ai.placeholder}
+                  placeholder="Ask anything (e.g. How do I delegate tax filing?)..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   className="w-full pl-3.5 pr-10 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 placeholder:text-slate-400 transition-colors"
@@ -169,17 +159,27 @@ export const AIAssistantModal = () => {
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-2 p-1 text-slate-500 hover:text-slate-900 cursor-pointer"
+                  disabled={isAsking}
+                  className="absolute right-2 top-2 p-1 text-slate-500 hover:text-slate-900 cursor-pointer disabled:opacity-50"
                   aria-label="Submit query"
                 >
                   <CornerDownLeft className="w-4 h-4" />
                 </button>
               </form>
 
+              {assistantReply && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                    <Sparkles className="w-3.5 h-3.5" /> AI Response:
+                  </div>
+                  <p className="leading-relaxed">{assistantReply}</p>
+                </div>
+              )}
+
               {/* Suggested Handoff Prompts */}
               <div className="space-y-2">
                 <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {t.ai.suggestedPaths}
+                  Quick Demo Flows
                 </div>
                 <div className="space-y-1.5">
                   {suggestedPrompts.map((p, idx) => (
@@ -203,10 +203,8 @@ export const AIAssistantModal = () => {
 
             {/* Architectural Discipline Note Footer */}
             <div className="px-5 py-3 bg-slate-50 border-t border-slate-200/80 text-[11px] text-slate-500 flex items-center justify-between">
-              <span>{t.ai.thinAgentFooter}</span>
-              <span className="font-mono text-slate-600 font-semibold">
-                {t.ai.zeroCustodyBadge}
-              </span>
+              <span>Guardrail 1: Propose only; human confirms</span>
+              <span className="font-mono text-slate-600 font-semibold">Zero Custody</span>
             </div>
           </div>
         </div>

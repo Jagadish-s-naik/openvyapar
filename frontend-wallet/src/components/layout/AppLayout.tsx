@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { AIAssistantModal } from '../ai/AIAssistantModal';
+import { useAppStore } from '../../store/useAppStore';
 
 export const AppLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const loadAllData = useAppStore((state) => state.loadAllData);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900">

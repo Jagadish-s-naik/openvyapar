@@ -1,11 +1,22 @@
-export type Credential = {
+import type {
+  Business,
+  Credential,
+  DelegationToken,
+  TimelineEvent,
+  Person,
+  ProofShare,
+} from '@openvyapar/shared';
+
+export type Language = 'EN' | 'HI' | 'KN';
+
+export type ConnectedService = {
   id: string;
-  type: string;
-  issuer: string;
-  issuedOn: string;
-  expiresOn: string;
-  status: 'active' | 'revoked' | 'expired';
-  docNumber?: string;
+  name: string;
+  category?: string;
+  accentColor: string;
+  connectedSince?: string;
+  accessScope: string[];
+  status?: 'active' | 'disconnected';
 };
 
 export type Consent = {
@@ -18,39 +29,62 @@ export type Consent = {
   expiresAt?: string;
 };
 
-export type AuditEvent = {
-  id: string;
-  actor: string;
-  action: string;
-  consentId: string;
-  timestamp: string;
-};
-
-export type ConnectedService = {
-  id: string;
-  name: string;
-  category?: string;
-  accentColor: string;
-  connectedSince?: string;
-  accessScope: string[];
-  status?: 'active' | 'disconnected';
-};
-
-export type Language = 'EN' | 'HI' | 'KN';
-
 export type AppState = {
+  // Business Context
   businessId: string;
+  business: Business | null;
   businessName: string;
   tradeName?: string;
   legalEntity?: string;
-  language: Language;
-  setLanguage: (lang: Language) => void;
+  ownerPersonId?: string;
+
+  // Active Personas & Current Session
+  personas: Person[];
+  currentPersona: Person | null;
+
+  // Core Data Collections
   credentials: Credential[];
-  consents: Consent[];
-  auditLog: AuditEvent[];
+  delegations: DelegationToken[];
+  timeline: TimelineEvent[];
   connectedServices: ConnectedService[];
-  approveConsent: (id: string) => void;
-  denyConsent: (id: string) => void;
-  revokeConsent: (id: string) => void;
+  activeProofShares: ProofShare[];
+
+  // App UI State
+  language: Language;
+  isLoading: boolean;
+  isSyncing: boolean;
+  error: string | null;
+
+  // Actions
+  setLanguage: (lang: Language) => void;
+  setBusinessId: (id: string) => Promise<void>;
+  loadAllData: (businessId?: string) => Promise<void>;
+  
+  // Beat 2: Fast-forward time / Issue Batch
+  issueBatchCredentials: (templateProfile?: string) => Promise<Credential[]>;
+
+  // Beat 3: Selective Disclosure & Proof Generation
+  createSelectiveProof: (params: {
+    purpose: string;
+    disclosedCredentialIds: string[];
+    sharedWith: string;
+    agentActionId?: string;
+  }) => Promise<{ proof: ProofShare; verificationUrl: string }>;
+
+  // Beat 4: Scoped CA Delegation
+  grantScopedDelegation: (params: {
+    delegatePersonId: string;
+    scopes: string[];
+    agentActionId?: string;
+  }) => Promise<DelegationToken>;
+  revokeDelegationToken: (tokenId: string) => Promise<DelegationToken>;
+
+  // Beat 5: Succession Role Transfer
+  transferRole: (params: {
+    personId: string;
+    roleType: 'owner' | 'manager' | 'ca_accountant' | 'csc_agent' | 'staff';
+  }) => Promise<any>;
+
+  // External Connected Services UI simulation
   connectService: (service: { name: string; category?: string; accessScope: string[]; accentColor?: string }) => void;
 };

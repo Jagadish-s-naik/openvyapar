@@ -1,195 +1,211 @@
 import { create } from 'zustand';
-import type { AppState, AuditEvent, Consent, Credential, ConnectedService, Language } from '../types';
-
-const INITIAL_CREDENTIALS: Credential[] = [
-  {
-    id: 'cred-udyam-01',
-    type: 'Udyam MSME Registration',
-    issuer: 'Ministry of MSME, Govt of India',
-    issuedOn: '14 May 2023',
-    expiresOn: 'Perpetual',
-    status: 'active',
-    docNumber: 'UDYAM-KR-03-0094812',
-  },
-  {
-    id: 'cred-gstin-02',
-    type: 'GST Compliance Certificate',
-    issuer: 'Goods and Services Tax Network (GSTN)',
-    issuedOn: '01 Jan 2024',
-    expiresOn: '31 Dec 2025',
-    status: 'active',
-    docNumber: '29AABCU9603R1ZM',
-  },
-];
-
-const INITIAL_CONSENTS: Consent[] = [
-  {
-    id: 'cst-sbi-991',
-    requestedBy: 'State Bank of India — MSME Sahay',
-    purpose: 'Underwriting Working Capital Credit Line (₹15L)',
-    dataItems: ['GST Compliance (24 months)', 'Udyam Certificate', 'Bank Statements Summary'],
-    status: 'approved',
-    grantedAt: '2024-09-18 10:30 AM',
-    expiresAt: '2024-12-18 11:59 PM',
-  },
-  {
-    id: 'cst-ondc-104',
-    requestedBy: 'ONDC Seller Node (Mystore)',
-    purpose: 'Merchant Onboarding & GST Verified Badge',
-    dataItems: ['GST Compliance Certificate', 'Trade Name & Registered Address'],
-    status: 'pending',
-    grantedAt: undefined,
-    expiresAt: '30 days after grant',
-  },
-];
-
-const INITIAL_AUDIT_LOG: AuditEvent[] = [
-  {
-    id: 'aud-8801',
-    actor: 'State Bank of India — MSME Sahay',
-    action: 'Accessed GST Compliance Certificate (Hash: #a98f...e10)',
-    consentId: 'cst-sbi-991',
-    timestamp: '2024-09-22 14:15:02',
-  },
-  {
-    id: 'aud-8802',
-    actor: 'Sri Lakshmi Textiles (Self)',
-    action: 'Granted consent for MSME Working Capital Underwriting',
-    consentId: 'cst-sbi-991',
-    timestamp: '2024-09-18 10:30:44',
-  },
-  {
-    id: 'aud-8803',
-    actor: 'ONDC Seller Node (Mystore)',
-    action: 'Initiated Consent Request for Merchant Onboarding',
-    consentId: 'cst-ondc-104',
-    timestamp: '2024-09-23 08:12:11',
-  },
-  {
-    id: 'aud-8804',
-    actor: 'GSTN Gateway Protocol',
-    action: 'Cryptographic Credential Attestation Refreshed',
-    consentId: 'system-attest',
-    timestamp: '2024-09-01 00:00:00',
-  },
-];
+import type { AppState, ConnectedService, Language } from '../types';
+import * as api from '../api/client';
+import type { Business, Credential, DelegationToken, TimelineEvent, Person } from '@openvyapar/shared';
 
 const INITIAL_SERVICES: ConnectedService[] = [
   {
     id: 'srv-sbi',
-    name: 'SBI MSME Sahay (Loan App)',
+    name: 'State Bank of India — MSME Sahay',
     category: 'Institutional Credit',
-    accentColor: '#1d4ed8', // Royal Rail Blue
-    connectedSince: 'Sep 18, 2024',
-    accessScope: ['GST Compliance Credential', 'Udyam Registration Certificate'],
+    accentColor: '#1d4ed8',
+    connectedSince: 'Active Session',
+    accessScope: ['GST Compliance Credential', 'Turnover Bracket Credential'],
     status: 'active',
   },
   {
     id: 'srv-ondc',
-    name: 'ONDC Open Marketplace',
+    name: 'ONDC Open Marketplace (BharatMart)',
     category: 'Digital Commerce Network',
-    accentColor: '#059669', // Emerald Network Green
-    connectedSince: 'Aug 10, 2024',
-    accessScope: ['Verified Business ID & QR', 'GST Registered Trade Name'],
+    accentColor: '#059669',
+    connectedSince: 'Active Session',
+    accessScope: ['Verified Business ID & QR', 'Order History & Fulfilment Score'],
     status: 'active',
   },
   {
-    id: 'srv-gem',
-    name: 'GeM Public Procurement Portal',
-    category: 'Government Vendor Scheme',
-    accentColor: '#b45309', // Amber / Govt Seal Ochre
-    connectedSince: 'Jul 28, 2024',
-    accessScope: ['Udyam MSME Category', 'Taxpayer Entity Attestation'],
+    id: 'srv-gstn',
+    name: 'Goods and Services Tax Network (GSTN)',
+    category: 'Sovereign Tax Authority',
+    accentColor: '#b45309',
+    connectedSince: 'Active Session',
+    accessScope: ['Tax Compliance Attestation', 'Filing Records'],
     status: 'active',
   },
 ];
 
 export const useAppStore = create<AppState>((set, get) => ({
-  businessId: 'OV-4471',
-  businessName: 'Sri Lakshmi Textiles & Apparels',
-  tradeName: 'Sri Lakshmi Textiles',
+  businessId: 'did:biz:sharma001',
+  business: null,
+  businessName: 'Sharma General Store',
+  tradeName: 'Sharma General Store',
   legalEntity: 'Proprietorship / Micro Enterprise',
-  language: 'EN',
-  setLanguage: (lang: Language) => set({ language: lang }),
-  credentials: INITIAL_CREDENTIALS,
-  consents: INITIAL_CONSENTS,
-  auditLog: INITIAL_AUDIT_LOG,
+  ownerPersonId: 'did:person:ramesh001',
+
+  personas: [],
+  currentPersona: null,
+
+  credentials: [],
+  delegations: [],
+  timeline: [],
   connectedServices: INITIAL_SERVICES,
+  activeProofShares: [],
 
-  approveConsent: (id: string) => {
-    const consent = get().consents.find((c) => c.id === id);
-    if (!consent) return;
+  language: 'EN',
+  isLoading: false,
+  isSyncing: false,
+  error: null,
 
-    const now = new Date();
-    const formattedDate = `${now.toISOString().split('T')[0]} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+  setLanguage: (lang: Language) => set({ language: lang }),
 
-    const newAudit: AuditEvent = {
-      id: `aud-${Date.now().toString().slice(-4)}`,
-      actor: 'Business Owner (Authorized via OTP)',
-      action: `Approved consent request for ${consent.requestedBy}`,
-      consentId: id,
-      timestamp: formattedDate,
-    };
-
-    set((state) => ({
-      consents: state.consents.map((c) =>
-        c.id === id ? { ...c, status: 'approved', grantedAt: formattedDate } : c
-      ),
-      auditLog: [newAudit, ...state.auditLog],
-    }));
+  setBusinessId: async (id: string) => {
+    set({ businessId: id });
+    await get().loadAllData(id);
   },
 
-  denyConsent: (id: string) => {
-    const consent = get().consents.find((c) => c.id === id);
-    if (!consent) return;
+  loadAllData: async (targetBizId?: string) => {
+    const bizId = targetBizId || get().businessId || 'did:biz:sharma001';
+    set({ isSyncing: true, error: null });
 
-    const now = new Date();
-    const formattedDate = `${now.toISOString().split('T')[0]} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    try {
+      const [bizRes, credsRes, delegRes, timeRes, personasRes] = await Promise.allSettled([
+        api.getBusiness(bizId),
+        api.getCredentials(bizId),
+        api.getDelegations(bizId),
+        api.getAuditTimeline(bizId),
+        api.getPersonas(),
+      ]);
 
-    const newAudit: AuditEvent = {
-      id: `aud-${Date.now().toString().slice(-4)}`,
-      actor: 'Business Owner',
-      action: `Explicitly denied consent request from ${consent.requestedBy}`,
-      consentId: id,
-      timestamp: formattedDate,
-    };
+      let businessData: Business | null = null;
+      let credentialsData: Credential[] = [];
+      let delegationsData: DelegationToken[] = [];
+      let timelineData: TimelineEvent[] = [];
+      let personasData: Person[] = [];
 
-    set((state) => ({
-      consents: state.consents.map((c) =>
-        c.id === id ? { ...c, status: 'denied' } : c
-      ),
-      auditLog: [newAudit, ...state.auditLog],
-    }));
+      if (bizRes.status === 'fulfilled' && bizRes.value.success) {
+        businessData = bizRes.value.business;
+      }
+      if (credsRes.status === 'fulfilled' && credsRes.value.success) {
+        credentialsData = credsRes.value.credentials;
+      }
+      if (delegRes.status === 'fulfilled' && delegRes.value.success) {
+        delegationsData = delegRes.value.tokens;
+      }
+      if (timeRes.status === 'fulfilled' && timeRes.value.success) {
+        timelineData = timeRes.value.timeline;
+      }
+      if (personasRes.status === 'fulfilled' && personasRes.value.success) {
+        personasData = personasRes.value.personas;
+      }
+
+      const currentPersona = personasData.find((p) => p.person_id === 'did:person:ramesh001') || personasData[0] || null;
+
+      set({
+        business: businessData,
+        businessName: businessData?.name || 'Sharma General Store',
+        tradeName: businessData?.name || 'Sharma General Store',
+        legalEntity: (businessData?.metadata?.sector as string) || 'Retail Grocery & Essentials',
+        ownerPersonId: 'did:person:ramesh001',
+        credentials: credentialsData,
+        delegations: delegationsData,
+        timeline: timelineData,
+        personas: personasData,
+        currentPersona,
+        isSyncing: false,
+      });
+    } catch (err: any) {
+      set({
+        error: err?.message || 'Failed to sync with OpenVyapar backend on port 3001',
+        isSyncing: false,
+      });
+    }
   },
 
-  revokeConsent: (id: string) => {
-    const consent = get().consents.find((c) => c.id === id);
-    if (!consent) return;
+  issueBatchCredentials: async (templateProfile?: string) => {
+    const bizId = get().businessId;
+    set({ isSyncing: true });
+    try {
+      const res = await api.triggerBatchIssuance(bizId, templateProfile);
+      if (res.success) {
+        await get().loadAllData(bizId);
+        return res.credentials;
+      }
+      return [];
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
 
-    const now = new Date();
-    const formattedDate = `${now.toISOString().split('T')[0]} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+  createSelectiveProof: async (params) => {
+    const bizId = get().businessId;
+    const res = await api.generateProof({
+      business_id: bizId,
+      purpose: params.purpose,
+      disclosed_credential_ids: params.disclosedCredentialIds,
+      shared_with: params.sharedWith,
+      agent_action_id: params.agentActionId,
+      generated_by: get().ownerPersonId || 'did:person:ramesh001',
+    });
 
-    const newAudit: AuditEvent = {
-      id: `aud-${Date.now().toString().slice(-4)}`,
-      actor: 'Business Owner (Revocation Triggered)',
-      action: `Revoked access token and invalidated keys for ${consent.requestedBy}`,
-      consentId: id,
-      timestamp: formattedDate,
-    };
+    if (res.success) {
+      await get().loadAllData(bizId);
+      set((state) => ({
+        activeProofShares: [res.proof, ...state.activeProofShares],
+      }));
+      return { proof: res.proof, verificationUrl: res.verification_url };
+    }
+    throw new Error('Failed to generate selective disclosure proof');
+  },
 
-    set((state) => ({
-      consents: state.consents.map((c) =>
-        c.id === id ? { ...c, status: 'revoked' } : c
-      ),
-      auditLog: [newAudit, ...state.auditLog],
-    }));
+  grantScopedDelegation: async (params) => {
+    const bizId = get().businessId;
+    const res = await api.grantDelegation({
+      business_id: bizId,
+      delegate_person_id: params.delegatePersonId,
+      scopes: params.scopes,
+      agent_action_id: params.agentActionId,
+      granted_by: get().ownerPersonId || 'did:person:ramesh001',
+    });
+
+    if (res.success) {
+      await get().loadAllData(bizId);
+      return res.token;
+    }
+    throw new Error('Failed to grant scoped delegation');
+  },
+
+  revokeDelegationToken: async (tokenId: string) => {
+    const bizId = get().businessId;
+    const res = await api.revokeDelegation({
+      business_id: bizId,
+      token_id: tokenId,
+      revoked_by: get().ownerPersonId || 'did:person:ramesh001',
+    });
+
+    if (res.success) {
+      await get().loadAllData(bizId);
+      return res.token;
+    }
+    throw new Error('Failed to revoke delegation token');
+  },
+
+  transferRole: async (params) => {
+    const bizId = get().businessId;
+    const res = await api.transferOwnership({
+      business_id: bizId,
+      person_id: params.personId,
+      role_type: params.roleType,
+      granted_by: get().ownerPersonId || 'did:person:ramesh001',
+    });
+
+    if (res.success) {
+      await get().loadAllData(bizId);
+      return res.role;
+    }
+    throw new Error('Failed to transfer business ownership role');
   },
 
   connectService: ({ name, category = 'DPI Network Participant', accessScope, accentColor = '#4f46e5' }) => {
     const id = `srv-${Date.now().toString().slice(-4)}`;
-    const now = new Date();
-    const formattedDate = `${now.toISOString().split('T')[0]} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-
     const newService: ConnectedService = {
       id,
       name,
@@ -200,17 +216,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       status: 'active',
     };
 
-    const newAudit: AuditEvent = {
-      id: `aud-${Date.now().toString().slice(-4)}`,
-      actor: name,
-      action: `Established new protocol connection: [Scope: ${accessScope.join(', ')}]`,
-      consentId: id,
-      timestamp: formattedDate,
-    };
-
     set((state) => ({
       connectedServices: [newService, ...state.connectedServices],
-      auditLog: [newAudit, ...state.auditLog],
     }));
   },
 }));

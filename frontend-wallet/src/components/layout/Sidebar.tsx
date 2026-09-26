@@ -19,8 +19,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
-  const consents = useAppStore((state) => state.consents);
-  const pendingCount = consents.filter((c) => c.status === 'pending').length;
+  const delegations = useAppStore((state) => state.delegations);
+  const activeCount = delegations.filter((d) => d.status === 'active').length;
   const { t } = useTranslation();
 
   const navItems = [
@@ -71,7 +71,7 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const showBadge = item.badgeKey === 'consents' && pendingCount > 0;
+            const showBadge = item.badgeKey === 'consents' && activeCount > 0;
 
             return (
               <NavLink
@@ -93,7 +93,7 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
                 </div>
                 {showBadge && (
                   <span className="px-2 py-0.5 text-xs font-semibold bg-amber-500 text-slate-950 rounded-full font-mono">
-                    {pendingCount}
+                    {activeCount}
                   </span>
                 )}
               </NavLink>

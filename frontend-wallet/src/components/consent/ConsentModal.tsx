@@ -83,7 +83,7 @@ export const ConsentModal = ({
               {t.consent.modalScopeHeader}
             </span>
             <div className="space-y-1.5">
-              {consent.dataItems.map((item, idx) => (
+              {consent.dataItems.map((item: string, idx: number) => (
                 <div
                   key={idx}
                   className="flex items-center gap-2.5 p-2.5 bg-slate-50 rounded-lg border border-slate-200/70"
