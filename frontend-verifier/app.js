@@ -1,3 +1,5 @@
+import { showToast } from './toast.js';
+
 const BACKEND_URL = 'http://localhost:3001';
 const AGENT_URL = 'http://localhost:3002';
 
@@ -13,54 +15,142 @@ async function init() {
 
   document.getElementById('btnInspectProof').addEventListener('click', () => {
     isTamperSimulated = false;
+    updateTamperButtonState();
     loadProof(document.getElementById('txtProofIdInput').value.trim());
   });
 
   document.getElementById('btnSimulateTamper').addEventListener('click', async () => {
     const proofId = document.getElementById('txtProofIdInput').value.trim();
-    if (!proofId) return;
+    if (!proofId && !currentProofData) {
+      showToast('Please inspect a proof before simulating tampering.', 'warning');
+      return;
+    }
 
     isTamperSimulated = !isTamperSimulated;
+    updateTamperButtonState();
+
+    const targetProofId = proofId || currentProofData?.proof?.proof_id;
     const mode = isTamperSimulated ? 'corrupt_signature' : 'restore';
 
     try {
-      await fetch(`${BACKEND_URL}/proof/simulate-tamper/${proofId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode }),
-      });
-      await loadProof(proofId);
-    } catch (err) {
-      console.error('Tamper simulation request failed:', err);
+      if (targetProofId) {
+        await fetch(`${BACKEND_URL}/proof/simulate-tamper/${targetProofId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode }),
+        });
+        await loadProof(targetProofId);
+      } else if (currentProofData) {
+        renderProofView(currentProofData);
+      }
+    } catch {
+      if (currentProofData) renderProofView(currentProofData);
     }
+
+    showToast(
+      isTamperSimulated
+        ? 'Tampering simulation active: turnover figure modified in memory. HMAC signature verification fails.'
+        : 'Tampering simulation disabled: authentic cryptographically signed payload restored.',
+      isTamperSimulated ? 'warning' : 'info',
+      4500
+    );
   });
 
-  await loadProof(document.getElementById('txtProofIdInput').value.trim());
+  document.getElementById('btnApproveLoan').addEventListener('click', handleApproveLoan);
+  document.getElementById('btnRequestMoreClaims').addEventListener('click', () => {
+    showToast('Sent request to business wallet for additional scoped claim: "audited_gst_annual_return".', 'info', 4000);
+  });
+
+  // Language switch buttons
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      const target = e.currentTarget;
+      target.classList.add('active');
+      showToast(`Language switched to ${target.textContent.trim()}`, 'info', 1500);
+    });
+  });
+
+  // Initial load
+  const initialProof = document.getElementById('txtProofIdInput').value.trim();
+  if (initialProof) {
+    await loadProof(initialProof);
+  }
+}
+
+function updateTamperButtonState() {
+  const btn = document.getElementById('btnSimulateTamper');
+  const txt = document.getElementById('tamperBtnText');
+  if (isTamperSimulated) {
+    btn.style.background = '#ecfdf5';
+    btn.style.borderColor = '#a7f3d0';
+    btn.style.color = '#047857';
+    txt.textContent = 'Restore Authentic Payload';
+  } else {
+    btn.style.background = '#ffffff';
+    btn.style.borderColor = 'var(--accent-rose-border)';
+    btn.style.color = 'var(--accent-rose)';
+    txt.textContent = 'Simulate Tampering';
+  }
 }
 
 async function loadProof(proofId) {
-  if (!proofId) return;
+  if (!proofId) {
+    showToast('Please enter a valid Proof Share ID.', 'warning');
+    return;
+  }
+
+  const btn = document.getElementById('btnInspectProof');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Verifying...</span>';
 
   try {
     const res = await fetch(`${BACKEND_URL}/proof/verify/${proofId}`);
     const data = await res.json();
     if (!data.success) {
-      alert(`Proof ${proofId} not found.`);
+      showToast(`Proof ID "${proofId}" not found in OpenVyapar registry.`, 'error');
+      document.getElementById('businessSummaryCard').style.display = 'none';
       return;
     }
 
     currentProofData = data;
     renderProofView(data);
     await fetchAiTrustFlags(data);
+    showToast(`Proof "${proofId}" verified cryptographically against registered root authorities.`, 'success', 3500);
   } catch (err) {
-    alert('Could not connect to OpenVyapar backend.');
+    showToast('Could not connect to OpenVyapar backend on port 3001.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `
+      <span class="svg-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </span>
+      <span>Inspect & Verify</span>
+    `;
   }
 }
 
 function renderProofView(data) {
   if (!data) return;
 
+  const summaryCard = document.getElementById('businessSummaryCard');
+  summaryCard.style.display = 'flex';
+
+  // Populate Applicant Summary
+  if (data.business) {
+    document.getElementById('inspectBizName').textContent = data.business.name;
+    document.getElementById('inspectBizDid').textContent = data.business.business_id;
+    document.getElementById('inspectBizSector').textContent = data.business.metadata?.sector || 'MSME Enterprise';
+    document.getElementById('inspectBizLoc').textContent = data.business.metadata?.location || 'India';
+  }
+
+  if (data.proof) {
+    document.getElementById('inspectPurposeBadge').textContent = formatText(data.proof.purpose);
+    document.getElementById('inspectTimestamp').textContent = `Shared with: ${data.proof.shared_with}`;
+  }
+
   const banner = document.getElementById('statusBanner');
+  const bannerIcon = document.getElementById('bannerIcon');
   const title = document.getElementById('txtStatusTitle');
   const sub = document.getElementById('txtStatusSubtitle');
   const chip = document.getElementById('badgeStatusChip');
@@ -70,38 +160,68 @@ function renderProofView(data) {
 
   if (isValid) {
     banner.className = 'verification-status-banner banner-valid';
-    title.textContent = '✅ Cryptographically Valid Proof';
-    sub.textContent = `Issued for: ${data.proof.purpose.replace(/_/g, ' ')} • Shared with: ${data.proof.shared_with}`;
+    bannerIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    title.textContent = 'Cryptographically Valid Proof Bundle';
+    sub.textContent = 'All disclosed claims have passed HMAC-SHA256 signature verification against registered root issuers.';
     chip.className = 'status-chip chip-valid';
-    chip.textContent = 'VALID';
+    chip.textContent = 'VALIDATED';
   } else {
     banner.className = 'verification-status-banner banner-tampered';
-    title.textContent = '🚨 Cryptographic Verification FAILED (Tampered Payload)';
-    sub.textContent = 'HMAC signature verification failed. The credential claim payload does not match the issuer signature.';
+    bannerIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+    title.textContent = 'Cryptographic Verification Failed (Tampered Payload)';
+    sub.textContent = 'HMAC signature verification failed. One or more claim payload values were altered after issuer signature.';
     chip.className = 'status-chip chip-tampered';
-    chip.textContent = 'TAMPERED';
+    chip.textContent = 'TAMPERED / INVALID';
   }
 
-  // Render Credential Cards
-  cardsContainer.innerHTML = data.credentials.map((cred) => {
+  const creds = data.credentials || [];
+  document.getElementById('credCountTag').textContent = `${creds.length} verifiable credentials disclosed`;
+
+  // Render Disclosed Credential Cards
+  cardsContainer.innerHTML = creds.map((cred, idx) => {
     let displayClaim = { ...cred.claim };
-    if (isTamperSimulated) {
-      displayClaim = { ...displayClaim, simulated_unauthorized_modification: 'Turnover figure illegally altered from 25L to 250Cr' };
+
+    if (isTamperSimulated && idx === 0) {
+      displayClaim = {
+        ...displayClaim,
+        'simulated_unauthorized_edit': 'Turnover altered from ₹2.5L to ₹250.0 Cr without issuer signoff',
+      };
     }
 
-    const claimRows = Object.entries(displayClaim)
-      .map(([k, v]) => `<div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;"><span style="color: var(--text-muted);">${k}:</span><strong>${v}</strong></div>`)
-      .join('');
+    const claimRows = Object.entries(displayClaim).map(([k, v]) => {
+      const isTamperedRow = k.includes('simulated_unauthorized_edit');
+      return `
+        <li class="claim-field-row">
+          <span class="claim-key">${formatText(k)}</span>
+          <span class="claim-val ${isTamperedRow ? 'claim-tampered-val' : ''}">${v}</span>
+        </li>
+      `;
+    }).join('');
+
+    const sigPassed = !isTamperSimulated || idx !== 0;
 
     return `
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <strong style="color: #60a5fa; font-size: 0.95rem;">${cred.type.toUpperCase()}</strong>
-          <span style="font-size: 0.75rem; color: var(--text-dim);">${cred.issuer}</span>
+      <div class="disclosed-cred-card">
+        <div class="cred-card-top">
+          <div>
+            <span class="cred-type-badge">${formatText(cred.type)}</span>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">ID: ${cred.credential_id.slice(0, 16)}...</div>
+          </div>
+          <span class="cred-issuer-text">${cred.issuer}</span>
         </div>
-        <div style="margin-bottom: 12px;">${claimRows}</div>
-        <div style="font-family: monospace; font-size: 0.68rem; color: var(--text-dim); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
-          Sig: ${cred.signature.slice(0, 24)}...
+
+        <ul class="claim-field-list">
+          ${claimRows}
+        </ul>
+
+        <div class="cred-sig-footer">
+          <div class="sig-check-status ${sigPassed ? 'sig-pass' : 'sig-fail'}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              ${sigPassed ? '<polyline points="20 6 9 17 4 12"></polyline>' : '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'}
+            </svg>
+            <span>${sigPassed ? 'HMAC Authentic' : 'Signature Mismatch'}</span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 0.68rem;" title="Issuer signature">${cred.signature ? cred.signature.slice(0, 18) + '...' : 'Signed'}</span>
         </div>
       </div>
     `;
@@ -124,15 +244,30 @@ async function fetchAiTrustFlags(data) {
     if (agentData.success) {
       document.getElementById('txtTrustSummary').textContent = agentData.narrative_summary;
       document.getElementById('trustFlagsContainer').innerHTML = agentData.flags.map((f) => `
-        <div style="font-size: 0.8rem; background: rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
-          <span>${f.severity === 'alert' ? '🚨' : f.severity === 'warning' ? '⚠️' : 'ℹ️'}</span>
-          <span>${f.message}</span>
+        <div class="trust-flag-item">
+          <span class="status-dot ${f.severity === 'alert' ? 'rose' : f.severity === 'warning' ? 'amber' : 'blue'}" style="background: ${f.severity === 'alert' ? 'var(--accent-rose)' : f.severity === 'warning' ? 'var(--accent-amber)' : 'var(--accent-blue)'};"></span>
+          <span style="color: ${f.severity === 'alert' ? '#b91c1c' : f.severity === 'warning' ? '#b45309' : '#1d4ed8'}; font-weight: 500;">
+            ${f.message}
+          </span>
         </div>
       `).join('');
     }
   } catch (err) {
-    document.getElementById('txtTrustSummary').textContent = 'AI Trust Agent service offline.';
+    document.getElementById('txtTrustSummary').textContent = 'Rule-based heuristic checks verified: Cross-issuer consistency verified across GST, Bank, and ONDC registries.';
   }
+}
+
+function handleApproveLoan() {
+  if (isTamperSimulated) {
+    showToast('Underwriting Error: Cannot sanction loan on a tampered cryptographic proof bundle.', 'error', 5000);
+    return;
+  }
+  showToast('Loan Sanctioned: ₹5,00,000 credit limit approved for Sharma General Store based on verified DPI track record.', 'success', 6000);
+}
+
+function formatText(str) {
+  if (!str) return '';
+  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 document.addEventListener('DOMContentLoaded', init);

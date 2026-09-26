@@ -1,5 +1,53 @@
 [
   {
+    "log_id": "aud-8801",
+    "business_id": "OV-4471",
+    "actor_type": "verifier",
+    "actor_id": "State Bank of India — MSME Sahay",
+    "action": "Accessed GST Compliance Certificate (Hash: #a98f...e10)",
+    "confirmed_by_human": true,
+    "timestamp": "2024-09-22T14:15:02.000Z",
+    "metadata": {
+      "consent_id": "cst-sbi-991"
+    }
+  },
+  {
+    "log_id": "aud-8802",
+    "business_id": "OV-4471",
+    "actor_type": "owner",
+    "actor_id": "Sri Lakshmi Textiles (Self)",
+    "action": "Granted consent for MSME Working Capital Underwriting",
+    "confirmed_by_human": true,
+    "timestamp": "2024-09-18T10:30:44.000Z",
+    "metadata": {
+      "consent_id": "cst-sbi-991"
+    }
+  },
+  {
+    "log_id": "aud-8803",
+    "business_id": "OV-4471",
+    "actor_type": "verifier",
+    "actor_id": "ONDC Seller Node (Mystore)",
+    "action": "Initiated Consent Request for Merchant Onboarding",
+    "confirmed_by_human": false,
+    "timestamp": "2024-09-23T08:12:11.000Z",
+    "metadata": {
+      "consent_id": "cst-ondc-104"
+    }
+  },
+  {
+    "log_id": "aud-8804",
+    "business_id": "OV-4471",
+    "actor_type": "issuer",
+    "actor_id": "GSTN Gateway Protocol",
+    "action": "Cryptographic Credential Attestation Refreshed",
+    "confirmed_by_human": false,
+    "timestamp": "2024-09-01T00:00:00.000Z",
+    "metadata": {
+      "consent_id": "system-attest"
+    }
+  },
+  {
     "log_id": "log-001",
     "business_id": "did:biz:sharma001",
     "actor_type": "owner",

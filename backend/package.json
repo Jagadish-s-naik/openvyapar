@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Backend API service and mock issuers for OpenVyapar",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "tsc -w & node --watch dist/server.js",
-    "seed": "node dist/db/seed.js",
+    "start": "node dist/src/server.js",
+    "dev": "tsc -w & node --watch dist/src/server.js",
+    "seed": "node dist/src/db/seed.js",
     "test": "tsc && node dist/test/api.test.js"
   },
   "keywords": [

@@ -4,6 +4,7 @@ import { onboardingRouter } from './routes/onboarding.js';
 import { consentRouter } from './routes/consent.js';
 import { scopingRouter } from './routes/scoping.js';
 import { verifierRouter } from './routes/verifier.js';
+import { assistantRouter } from './routes/assistant.js';
 import { sendAgentError } from './lib/errors.js';
 
 export function createAgentApp(): Application {
@@ -30,6 +31,7 @@ export function createAgentApp(): Application {
   app.use('/agent', consentRouter);
   app.use('/agent', scopingRouter);
   app.use('/agent', verifierRouter);
+  app.use('/agent', assistantRouter);
 
   // Global standardized error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

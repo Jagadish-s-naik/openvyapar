@@ -8,8 +8,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5173;
 
-app.use(express.static(__dirname));
+const distPath = path.join(__dirname, 'dist');
+app.use(express.static(distPath));
+
+// SPA fallback for all React Router paths
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
 
 app.listen(PORT, () => {
-  console.log(`💼 OpenVyapar Owner Wallet UI running at http://localhost:${PORT}`);
+  console.log(`💼 OpenVyapar Unified Dashboard running at http://localhost:${PORT}`);
 });

@@ -3,214 +3,233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenVyapar — Zero-Footprint Business Onboarding (CSC Flow)</title>
+  <title>OpenVyapar — Zero-Footprint Business Onboarding</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-  <!-- Top Navigation -->
-  <nav class="top-portal-bar">
-    <div class="portal-links">
-      <span style="font-weight: 800; color: #fff; font-family: var(--font-display);">🇮🇳 OpenVyapar DPI</span>
-      <a href="http://localhost:5173" class="portal-link">💼 Owner Wallet</a>
-      <a href="http://localhost:5174" class="portal-link">🔍 Verifier Portal</a>
-      <a href="http://localhost:5175" class="portal-link active">✍️ CSC Onboarding</a>
-    </div>
-  </nav>
-
-  <main class="app-container">
-
-    <header style="margin-bottom: 24px;">
-      <h1 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 700; margin-bottom: 6px;">
-        ✍️ Zero-Footprint Business Onboarding (CSC Assisted)
-      </h1>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">
-        Onboard micro and informal enterprises with zero initial paper trail using conversational AI extraction and agent-witnessed starter credentials.
-      </p>
-    </header>
-
-    <div class="onboard-grid">
-      
-      <!-- Left Column: Conversational Input & Raw Reference -->
-      <div class="panel">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-          <span>🎙️</span> Conversational Voice / Text Input
-        </h3>
-
-        <div style="margin-bottom: 12px;">
-          <span style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Click a sample demo transcript:</span>
-          <button class="sample-chip" data-sample="hi-kirana">🇮🇳 हिन्दी: किराना दुकान (वाराणसी)</button>
-          <button class="sample-chip" data-sample="hi-chai">🇮🇳 हिन्दी: चाय स्टॉल (अस्सी घाट)</button>
-          <button class="sample-chip" data-sample="en-handloom">🌐 English: Banaras Silk Weaver</button>
-        </div>
-
-        <textarea id="txtConversationalTranscript" class="input-textarea" rows="6" placeholder="Enter or paste unstructured voice transcript in Hindi, Kannada, or English..."></textarea>
-
-        <button id="btnExtractOnboarding" class="btn btn-primary" style="width: 100%;">
-          <span>🤖</span> Extract Structured Business & Starter Credential
-        </button>
-
-        <!-- Extraction Error Box -->
-        <div id="extractionErrorBox" class="alert-box alert-error" style="display: none; margin-top: 14px;"></div>
-
-        <!-- Raw Transcript Reference Card (Visible after extraction) -->
-        <div id="transcriptReferenceCard" style="display: none; margin-top: 20px; padding: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);">
-          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
-            Raw Input Reference (Audited)
+  <!-- Top Navigation Bar (Exact OpenVyapar Brand System) -->
+  <header class="top-nav-bar">
+    <div class="top-nav-inner">
+      <div class="brand-section">
+        <a href="http://localhost:5173" class="brand-link">
+          <!-- OpenVyapar Official Geometric Logo -->
+          <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-mark">
+            <defs>
+              <linearGradient id="ov-gold" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#fbbf24" />
+                <stop offset="100%" stop-color="#d97706" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="#0a1424" stroke="url(#ov-gold)" stroke-width="2" />
+            <path d="M11 13H16.8L20 23.5L23.2 13H29L22.5 28.5H17.5L11 13Z" fill="url(#ov-gold)" />
+          </svg>
+          <div class="brand-text-col">
+            <div class="brand-title">Open<span class="gold-text">Vyapar</span></div>
+            <div class="brand-sub">Public Infrastructure</div>
           </div>
-          <p id="lblRawTranscript" style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; font-style: italic;"></p>
-        </div>
+        </a>
       </div>
 
-      <!-- Right Column: Structured Preview & Human Confirmation Guardrail -->
-      <div class="panel">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-          <span style="display: flex; align-items: center; gap: 8px;"><span>📋</span> Structured Preview & Confirmation</span>
-          <span class="badge badge-confidence" id="badgeConfidence" style="display: none;">🤖 AI Proposed</span>
-        </h3>
+      <nav class="portal-nav-links">
+        <a href="http://localhost:5173" class="nav-tab">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Owner Wallet</span>
+        </a>
+        <a href="http://localhost:5174" class="nav-tab">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Verifier Portal</span>
+        </a>
+        <a href="http://localhost:5175" class="nav-tab active">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          <span>CSC Onboarding</span>
+        </a>
+      </nav>
 
-        <!-- Initial Placeholder State -->
-        <div id="extractionPlaceholder" style="color: var(--text-dim); font-size: 0.88rem; padding: 60px 0; text-align: center;">
-          <div style="font-size: 2rem; margin-bottom: 8px;">🎙️ ➔ 📋</div>
-          Enter or select a transcript on the left and click <strong>Extract Structured Business</strong> to generate the verifiable proposal.
+      <div class="top-right-tools">
+        <div class="lang-switch-group">
+          <button class="lang-btn" data-lang="hi">हिन्दी</button>
+          <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+          <button class="lang-btn active" data-lang="en">EN</button>
+        </div>
+        <div class="agent-badge">
+          <span class="pulse-dot"></span>
+          <span>Field Agent: Rajesh Kumar (CSC-UP-0842)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- Onboarding Hero Card (Exact Midnight Navy Style) -->
+    <section class="identity-hero-card">
+      <div class="hero-top-row">
+        <div class="hero-content">
+          <div class="hero-tag-row">
+            <span class="badge-pill emerald">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>CSC VLE Assisted Flow</span>
+            </span>
+            <span class="node-code font-mono">Zero-Footprint Protocol</span>
+          </div>
+          <h1 class="hero-title">Zero-Footprint Business Onboarding</h1>
+          <p class="hero-subtitle">
+            Onboard informal micro-enterprises with zero prior digital footprint using conversational speech and community-witnessed starter credentials.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2-Column Onboarding Grid -->
+    <div class="onboard-grid">
+      
+      <!-- Left Column: Conversational Voice & Text Input -->
+      <div class="panel">
+        <h3 class="panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+          <span>Conversational Voice / Text Input</span>
+        </h3>
+        <p class="panel-desc">
+          Capture spoken declarations in local languages. The AI agent extracts structured entity fields and drafts verifiable starter claims.
+        </p>
+
+        <!-- Sample Chips -->
+        <div class="field-group">
+          <span class="sub-label">QUICK LOCAL LANGUAGE SAMPLES</span>
+          <div class="sample-chips-grid">
+            <button class="sample-chip active" data-sample="hi-kirana">
+              हिन्दी: किराना दुकान (वाराणसी)
+            </button>
+            <button class="sample-chip" data-sample="hi-vegetable">
+              हिन्दी: सब्ज़ी स्टॉल (अस्सी घाट)
+            </button>
+            <button class="sample-chip" data-sample="kn-tea">
+              ಕನ್ನಡ: ಚಹಾ ಅಂಗಡಿ (ಬೆಂಗಳೂರು)
+            </button>
+            <button class="sample-chip" data-sample="en-handloom">
+              English: Silk Handloom Weaver
+            </button>
+          </div>
         </div>
 
-        <!-- Proposal Result Box -->
-        <div id="proposalResultBox" style="display: none;">
-          
-          <!-- Confidence & AI Notes Banner -->
-          <div id="confidenceBanner" class="alert-box alert-warning" style="margin-bottom: 16px; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.35); color: #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <strong style="color: #c084fc; font-size: 0.82rem; text-transform: uppercase;">AI Extraction Assessment</strong>
-              <span class="badge badge-confidence" id="lblConfidenceScore">94% Confidence</span>
-            </div>
-            <div id="lblConfidenceNotes" style="font-size: 0.82rem; color: #cbd5e1;"></div>
+        <!-- Transcript Textarea -->
+        <div class="field-group">
+          <label class="sub-label">SPOKEN TRANSCRIPT</label>
+          <textarea id="txtConversationalTranscript" class="input-textarea" rows="4" placeholder="Enter owner spoken words..."></textarea>
+        </div>
+
+        <!-- Verification Method Selection -->
+        <div class="field-group">
+          <span class="sub-label">IDENTITY ANCHORING METHOD</span>
+          <div class="radio-cards-grid">
+            <label class="radio-card active">
+              <input type="radio" name="authMethod" value="community_vouching" checked>
+              <div class="radio-text">
+                <div class="radio-title">Community Vouching (No Aadhaar OTP)</div>
+                <div class="radio-desc">Witnessed by 2 peer merchants + CSC Agent GPS signature</div>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="authMethod" value="aadhaar_otp">
+              <div class="radio-text">
+                <div class="radio-title">Aadhaar e-KYC (Simulated SMS OTP)</div>
+                <div class="radio-desc">One-time passcode sent to registered mobile</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button id="btnExtractOnboarding" class="btn btn-gold w-full">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span id="btnExtractText">Extract Structured Details</span>
+        </button>
+      </div>
+
+      <!-- Right Column: Extracted Review & Minted DID Certificate -->
+      <div>
+        
+        <!-- Placeholder when idle -->
+        <div id="extractionPlaceholder" class="panel placeholder-panel">
+          <div class="placeholder-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <h4 class="placeholder-title">Awaiting Transcript Extraction</h4>
+          <p class="placeholder-desc">
+            Select a sample language chip on the left or enter conversational audio transcript, then click "Extract Structured Details".
+          </p>
+        </div>
+
+        <!-- Extracted Proposal Review Box -->
+        <div id="proposalResultBox" class="panel" style="display: none;">
+          <h3 class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Extracted Enterprise Profile</span>
+          </h3>
+
+          <div class="extracted-card-section">
+            <span class="sub-label">PROPOSED ENTERPRISE IDENTITY</span>
+            <h3 id="lblBizName" class="extracted-biz-name">Sharma General Store</h3>
+            <p id="lblBizMeta" class="extracted-meta-text">Sector: Retail Grocery • Location: Varanasi, UP</p>
+            <p id="lblOwnerMeta" class="extracted-meta-text">Proprietor: Ramesh Sharma</p>
           </div>
 
-          <!-- Missing Fields Highlight Alert -->
-          <div id="missingFieldsAlert" class="alert-box alert-warning" style="display: none; margin-bottom: 16px;">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-              <span>⚠️</span> <span>Action Needed: Missing or Uncertain Fields</span>
-            </div>
-            <div id="missingFieldsList" style="font-size: 0.8rem;"></div>
+          <div class="extracted-card-section" style="margin-bottom: 16px;">
+            <span class="sub-label">STARTER CREDENTIAL (CSC FIELD WITNESSED)</span>
+            <div id="lblCredClaim" class="extracted-claims-grid"></div>
           </div>
 
-          <!-- Structured Form (Editable before confirmation) -->
-          <div style="margin-bottom: 16px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #c084fc; text-transform: uppercase; margin-bottom: 10px;">
-              Business Profile (Editable)
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group full-width">
-                <label class="form-label" for="txtBizName">
-                  <span>Business Legal / Trade Name</span>
-                  <span id="badgeMissingName" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtBizName" class="form-input" placeholder="e.g. Sharma General Store">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="txtBizSector">
-                  <span>Sector / Industry</span>
-                  <span id="badgeMissingSector" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtBizSector" class="form-input" placeholder="e.g. Retail Grocery & Essentials">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="txtBizLocation">
-                  <span>Location</span>
-                  <span id="badgeMissingLocation" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtBizLocation" class="form-input" placeholder="e.g. Godowlia, Varanasi, UP">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="txtRevenueBracket">
-                  <span>Est. Monthly Revenue</span>
-                  <span id="badgeMissingRevenue" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtRevenueBracket" class="form-input" placeholder="e.g. INR 1.5 Lakh - 2.5 Lakh / month">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="selPrimaryLanguage">
-                  <span>Primary Language</span>
-                </label>
-                <select id="selPrimaryLanguage" class="form-select">
-                  <option value="hi">Hindi (हिन्दी)</option>
-                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
-                  <option value="en">English</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="txtOwnerName">
-                  <span>Proprietor / Owner Name</span>
-                  <span id="badgeMissingOwner" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtOwnerName" class="form-input" placeholder="e.g. Ramesh Sharma">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="txtContactPhone">
-                  <span>Contact Phone</span>
-                  <span id="badgeMissingPhone" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="text" id="txtContactPhone" class="form-input" placeholder="e.g. 9876543210">
-              </div>
-
-              <div class="form-group full-width">
-                <label class="form-label" for="txtEstablishedYear">
-                  <span>Established Year</span>
-                  <span id="badgeMissingYear" class="badge badge-missing" style="display: none;">Missing</span>
-                </label>
-                <input type="number" id="txtEstablishedYear" class="form-input" placeholder="e.g. 2018" style="max-width: 200px;">
-              </div>
-            </div>
-          </div>
-
-          <!-- Starter Credential Card Preview -->
-          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <div style="font-size: 0.78rem; font-weight: 700; color: #34d399; text-transform: uppercase;">
-                Starter Credential Preview (Self-Attested + CSC Witnessed)
-              </div>
-              <span style="font-size: 0.72rem; color: #34d399; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); padding: 2px 6px; border-radius: 4px;">HMAC Signed on Issuance</span>
-            </div>
-            <div id="lblCredClaim" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.5;"></div>
-          </div>
-
-          <!-- Guardrail 1 Notice -->
-          <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-            <span>🛡️</span> <span><strong>Guardrail 1:</strong> AI only proposes. No database records are written until human confirmation below.</span>
-          </div>
-
-          <!-- Confirm Action -->
-          <button id="btnConfirmOnboard" class="btn btn-success" style="width: 100%;">
-            <span>✅</span> Confirm & Create Business Identity
+          <button id="btnConfirmOnboard" class="btn btn-gold w-full">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Confirm & Issue Business DID</span>
           </button>
+        </div>
 
-          <!-- Confirmation Error Box -->
-          <div id="confirmErrorBox" class="alert-box alert-error" style="display: none; margin-top: 14px;"></div>
+        <!-- Success Screen: Certificate & SMS notification -->
+        <div id="onboardSuccessScreen" style="display: none;">
+          
+          <!-- Minted Certificate Card -->
+          <div class="cert-card">
+            <div class="cert-header">
+              <span class="sub-label">SOVEREIGN BUSINESS ID CERTIFICATE</span>
+              <span class="badge-pill emerald font-mono">ACTIVE ROOT</span>
+            </div>
+            
+            <h3 id="succBizName" class="cert-biz-title">Sharma General Store</h3>
+            <div id="succDidTag" class="did-pill">did:biz:sharma001</div>
 
-          <!-- Success State Banner -->
-          <div id="onboardSuccessMsg" class="alert-box alert-success" style="display: none; margin-top: 16px;">
-            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">
-              🎉 Business Identity Successfully Registered!
+            <div class="cert-footer-grid">
+              <div>
+                <span class="sub-label">PROPRIETOR</span>
+                <strong id="succOwnerName" class="cert-val">Ramesh Sharma</strong>
+              </div>
+              <div>
+                <span class="sub-label">ISSUANCE DATE</span>
+                <span id="succDateIssued" class="cert-val font-mono">Today</span>
+              </div>
             </div>
-            <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 8px;">
-              Persistent DID: <strong id="lblCreatedBizId" style="color: #6ee7b7; font-family: monospace;"></strong>
+          </div>
+
+          <!-- Feature Phone SMS Card -->
+          <div class="sms-card">
+            <div class="sms-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>SMS NOTIFICATION (FEATURE PHONE)</span>
             </div>
-            <div style="font-size: 0.82rem; color: #cbd5e1;">
-              Initial starter credential witnessed by CSC Agent has been HMAC-signed and saved to wallet.
-            </div>
-            <div style="margin-top: 10px;">
-              <a href="http://localhost:5173" target="_blank" class="btn btn-primary" style="font-size: 0.82rem; padding: 6px 14px; text-decoration: none; display: inline-flex;">
-                Open in Owner Wallet (Port 5173) →
-              </a>
-            </div>
+            <p class="sms-body">
+              "OpenVyapar: Aapki dukan ka Digital Business DID <strong id="smsDidText">did:biz:sharma001</strong> safaltapoorvak ban gaya hai. CSC Agent ne witness credential sign kar diya hai."
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="success-actions">
+            <a href="http://localhost:5173" class="btn btn-gold flex-1">
+              <span>Open in Owner Wallet →</span>
+            </a>
+            <button id="btnRegisterAnother" class="btn btn-secondary">
+              <span>Onboard Another</span>
+            </button>
           </div>
 
         </div>
