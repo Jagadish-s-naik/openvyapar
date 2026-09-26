@@ -16,7 +16,127 @@ import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails
 
 import { requireRole } from '../middleware/auth.js';
 
+export interface DeskSession {
+  session_code: string;
+  bank_name: string;
+  officer_name: string;
+  officer_did: string;
+  created_at: string;
+  expires_at: string;
+  proof_id?: string;
+  last_dispatched_at?: string;
+}
+
+const deskSessions = new Map<string, DeskSession>([
+  ['SBI-DESK-7492', {
+    session_code: 'SBI-DESK-7492',
+    bank_name: 'State Bank of India — MSME Sahay',
+    officer_name: 'Priya Sharma (Chief Underwriting Manager)',
+    officer_did: 'did:person:sbi-officer-01',
+    created_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    proof_id: 'proof-loan-001',
+  }],
+  ['ONDC-NODE-104', {
+    session_code: 'ONDC-NODE-104',
+    bank_name: 'ONDC Merchant Onboarding Node (Mystore)',
+    officer_name: 'Verification Protocol Gateway',
+    officer_did: 'did:node:ondc-gateway-01',
+    created_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    proof_id: 'proof-loan-001',
+  }]
+]);
+
 export const proofRouter = Router();
+
+/**
+ * GET /proof/session/active
+ * Returns list of active verifier/bank desk sessions
+ */
+proofRouter.get('/session/active', (_req: Request, res: Response) => {
+  const sessions = Array.from(deskSessions.values());
+  res.json({ success: true, sessions });
+});
+
+/**
+ * POST /proof/session/create
+ * Creates a dynamic 6-digit / desk session for a bank officer
+ */
+proofRouter.post('/session/create', (req: Request<{}, {}, { bank_name?: string; officer_name?: string }>, res: Response) => {
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const sessionCode = `SBI-DESK-${randomSuffix}`;
+  const session: DeskSession = {
+    session_code: sessionCode,
+    bank_name: req.body.bank_name || 'State Bank of India — MSME Sahay',
+    officer_name: req.body.officer_name || 'Priya Sharma (Underwriter)',
+    officer_did: `did:person:sbi-${randomSuffix}`,
+    created_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+  };
+  deskSessions.set(sessionCode, session);
+  res.status(201).json({ success: true, session });
+});
+
+/**
+ * POST /proof/session/dispatch
+ * Wallet transmits an encrypted proof bundle directly to a bank desk session
+ */
+proofRouter.post('/session/dispatch', (req: Request<{}, {}, { session_code: string; proof_id: string; business_id?: string }>, res: Response) => {
+  const { session_code, proof_id } = req.body;
+  const session = deskSessions.get(session_code);
+  if (!session) {
+    return sendError(res, 404, `Bank Desk Session ${session_code} not found or expired.`);
+  }
+
+  const proof = db.getProofShare(proof_id);
+  if (!proof) {
+    return sendError(res, 404, `Proof with ID ${proof_id} not found.`);
+  }
+
+  session.proof_id = proof_id;
+  session.last_dispatched_at = new Date().toISOString();
+  deskSessions.set(session_code, session);
+
+  // Record audit log
+  if (proof.business_id) {
+    recordAuditLog(
+      proof.business_id,
+      'owner',
+      req.actor?.actorId || 'did:person:owner',
+      'dispatch_proof_to_desk',
+      true,
+      {
+        req,
+        metadata: {
+          session_code,
+          proof_id,
+          recipient_bank: session.bank_name,
+          officer_did: session.officer_did,
+        },
+      }
+    );
+  }
+
+  res.json({
+    success: true,
+    message: `Cryptographic proof ${proof_id} securely bound and transmitted to ${session.bank_name} (${session.session_code})`,
+    session,
+  });
+});
+
+/**
+ * GET /proof/session/:code
+ * Returns current status and assigned proof for a desk session
+ */
+proofRouter.get('/session/:code', (req: Request<{ code: string }>, res: Response) => {
+  const code = req.params.code;
+  const session = deskSessions.get(code);
+  if (!session) {
+    return sendError(res, 404, `Session ${code} not found.`);
+  }
+  res.json({ success: true, session });
+});
 
 /**
  * POST /proof/generate
@@ -156,11 +276,16 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
  * Verifier Portal: Inspects selective-disclosure credentials and computes cryptographic verification
  */
 proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: Response) => {
-  const proofId = req.params.proof_id;
+  const inputId = req.params.proof_id;
+  const session = deskSessions.get(inputId);
+  const proofId = session?.proof_id || inputId;
   const proof = db.getProofShare(proofId);
 
   if (!proof) {
-    return sendError(res, 404, `Proof with id ${proofId} not found`);
+    if (session) {
+      return sendError(res, 404, `Desk Session ${inputId} is active, but no proof has been transmitted yet. Please dispatch from Owner Wallet.`);
+    }
+    return sendError(res, 404, `Proof with id ${inputId} not found`);
   }
 
   const business = db.getBusiness(proof.business_id);

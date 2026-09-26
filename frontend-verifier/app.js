@@ -56,6 +56,47 @@ async function init() {
     );
   });
 
+  let activeSessionCode = 'SBI-DESK-7492';
+
+  document.getElementById('btnNewDeskSession').addEventListener('click', async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/proof/session/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bank_name: 'State Bank of India — MSME Sahay', officer_name: 'Priya Sharma (Underwriter)' }),
+      });
+      const data = await res.json();
+      if (data.success && data.session) {
+        activeSessionCode = data.session.session_code;
+        document.getElementById('txtDeskSessionCode').textContent = activeSessionCode;
+        document.getElementById('txtProofIdInput').value = activeSessionCode;
+        showToast(`New Bank Officer Desk PIN generated: ${activeSessionCode}`, 'success', 3500);
+      }
+    } catch {
+      showToast('Could not generate session code.', 'error');
+    }
+  });
+
+  document.getElementById('btnCheckDeskHandoff').addEventListener('click', async () => {
+    await checkDeskHandoff();
+  });
+
+  async function checkDeskHandoff() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/proof/session/${activeSessionCode}`);
+      const data = await res.json();
+      if (data.success && data.session?.proof_id) {
+        document.getElementById('txtProofIdInput').value = data.session.proof_id;
+        await loadProof(data.session.proof_id);
+        showToast(`Inbound Proof received from merchant wallet: "${data.session.proof_id}"`, 'success', 4000);
+      } else {
+        showToast(`Desk ${activeSessionCode} is active and listening. Transmit proof from Owner Wallet.`, 'info', 3000);
+      }
+    } catch {
+      showToast('Error querying desk session.', 'error');
+    }
+  }
+
   document.getElementById('btnApproveLoan').addEventListener('click', handleApproveLoan);
   document.getElementById('btnRequestMoreClaims').addEventListener('click', () => {
     showToast('Sent request to business wallet for additional scoped claim: "audited_gst_annual_return".', 'info', 4000);

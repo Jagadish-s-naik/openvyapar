@@ -135,6 +135,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  uploadAndIssueCredential: async (params: {
+    issuer: string;
+    type: string;
+    claim: Record<string, any>;
+  }) => {
+    const bizId = get().businessId;
+    set({ isSyncing: true });
+    try {
+      const res = await api.issueCredential({
+        business_id: bizId,
+        issuer: params.issuer,
+        type: params.type,
+        claim: params.claim,
+      });
+      if (res.success) {
+        await get().loadAllData(bizId);
+        return res.credential;
+      }
+      throw new Error('Failed to issue credential from document');
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
+
   createSelectiveProof: async (params) => {
     const bizId = get().businessId;
     const res = await api.generateProof({

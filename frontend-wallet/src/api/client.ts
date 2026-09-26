@@ -80,6 +80,18 @@ export async function triggerBatchIssuance(
   });
 }
 
+export async function issueCredential(params: {
+  business_id: string;
+  issuer: string;
+  type: string;
+  claim: Record<string, any>;
+}): Promise<{ success: boolean; credential: Credential }> {
+  return request(`${BACKEND_URL}/credentials/issue`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
 export async function generateProof(params: {
   business_id: string;
   purpose: any;

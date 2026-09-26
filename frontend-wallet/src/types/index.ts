@@ -60,8 +60,13 @@ export type AppState = {
   setBusinessId: (id: string) => Promise<void>;
   loadAllData: (businessId?: string) => Promise<void>;
   
-  // Beat 2: Fast-forward time / Issue Batch
+  // Beat 2: Fast-forward time / Issue Batch & Upload
   issueBatchCredentials: (templateProfile?: string) => Promise<Credential[]>;
+  uploadAndIssueCredential: (params: {
+    issuer: string;
+    type: string;
+    claim: Record<string, any>;
+  }) => Promise<Credential>;
 
   // Beat 3: Selective Disclosure & Proof Generation
   createSelectiveProof: (params: {
