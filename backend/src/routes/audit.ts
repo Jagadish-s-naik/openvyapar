@@ -102,3 +102,62 @@ auditRouter.post('/agent-action', (req: Request<{}, {}, {
     sendError(res, 500, err.message || 'Internal server error');
   }
 });
+
+/**
+ * POST /audit/agent-action/:id/decision
+ * Record human decision on an agent proposal (e.g. reject, edit, or manual confirm)
+ */
+auditRouter.post('/agent-action/:id/decision', (req: Request<{ id: string }, {}, {
+  human_decision: HumanDecision;
+  decided_by?: string;
+  notes?: string;
+  edited_payload?: Record<string, unknown>;
+}>, res: Response) => {
+  try {
+    const actionId = req.params.id;
+    const { human_decision, notes, edited_payload } = req.body;
+    const decided_by = req.body.decided_by || req.actor?.actorId || 'did:person:owner';
+
+    const agentAction = db.getAgentAction(actionId);
+    if (!agentAction) {
+      return sendError(res, 404, `Agent action with id ${actionId} not found`);
+    }
+
+    const previousDecision = agentAction.human_decision;
+    agentAction.human_decision = human_decision;
+    agentAction.decided_at = new Date().toISOString();
+
+    if (edited_payload) {
+      agentAction.proposed_action = { ...agentAction.proposed_action, ...edited_payload };
+    }
+
+    db.setAgentAction(agentAction);
+
+    // Record in audit log if rejected or edited
+    if (agentAction.business_id && agentAction.business_id !== 'pending_onboarding' && agentAction.business_id !== 'pending_proposal') {
+      import('../utils/audit.js').then(({ recordAuditLog }) => {
+        recordAuditLog(
+          agentAction.business_id,
+          'owner',
+          decided_by,
+          `agent_proposal_${human_decision}`,
+          true,
+          {
+            req,
+            diff: {
+              human_decision: { before: previousDecision, after: human_decision },
+            },
+            metadata: { agent_action_id: actionId, notes },
+          }
+        );
+      });
+    }
+
+    res.json({
+      success: true,
+      agent_action: agentAction,
+    });
+  } catch (err: any) {
+    sendError(res, 500, err.message || 'Internal server error');
+  }
+});

@@ -29,7 +29,7 @@ The core data persistence, HMAC cryptography, and baseline REST endpoints are fu
 
 ```mermaid
 graph LR
-    Phase1[Phase 1: Core API & Crypto ✅] --> Phase2[Phase 2: Agent Handshake & Guardrails]
+    Phase1[Phase 1: Core API & Crypto ✅] --> Phase2[Phase 2: Agent Handshake & Guardrails ✅]
     Phase2 --> Phase3[Phase 3: Proof Engine & Verification]
     Phase3 --> Phase4[Phase 4: Mock Issuers & Anomaly Sim]
     Phase4 --> Phase5[Phase 5: Demo Hardening & Snapshots]
