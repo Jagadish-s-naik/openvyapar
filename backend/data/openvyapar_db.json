@@ -212,7 +212,10 @@
       "shared_with": "Viksit Capital MSME Lending",
       "generated_at": "2024-09-20T15:00:00.000Z",
       "link_or_qr": "https://openvyapar.in/verify/proof-loan-001",
-      "verification_status": "valid"
+      "verification_status": "valid",
+      "expires_at": null,
+      "max_uses": null,
+      "use_count": 0
     }
   },
   "audit_logs": {
