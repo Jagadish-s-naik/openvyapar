@@ -5,7 +5,7 @@
 
 import type { Business, BusinessMetadata, BusinessStatus, Person } from './business.js';
 import type { BusinessRole, RoleStatus, RoleType } from './role.js';
-import type { Credential, CredentialClaim, CredentialType, IssuerType } from './credential.js';
+import type { Credential, CredentialClaim, CredentialType, IssuerType, GstClaimPayload, BankIncomeClaimPayload, MarketplaceClaimPayload } from './credential.js';
 import type { DelegationScope, DelegationToken } from './delegation.js';
 import type { ProofPurpose, ProofShare, VerificationStatus } from './proof.js';
 import type { AgentAction, AgentType, HumanDecision } from './audit.js';
@@ -265,4 +265,28 @@ export interface GetAuditLogsResponse {
   audit_logs: import('./audit.js').AuditLog[];
   agent_proposals: import('./audit.js').AgentAction[];
 }
+
+// -------------------------------------------------------------
+// 7. Mock Issuers Endpoints (/mocks/issue-batch/:business_id)
+// -------------------------------------------------------------
+
+export type MockBatchTemplate = 'standard_healthy' | 'gst_defaulter' | 'high_growth_merchant';
+
+export interface IssueMockBatchRequest {
+  template?: MockBatchTemplate;
+  overrides?: {
+    gst?: Partial<GstClaimPayload>;
+    bank?: Partial<BankIncomeClaimPayload>;
+    marketplace?: Partial<MarketplaceClaimPayload>;
+  };
+}
+
+export interface IssueMockBatchResponse {
+  success: boolean;
+  business_id: string;
+  template: MockBatchTemplate;
+  message: string;
+  credentials: Credential[];
+}
+
 

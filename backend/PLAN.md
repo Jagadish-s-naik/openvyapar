@@ -76,12 +76,14 @@ graph LR
 **Goal:** Allow live demonstration of diverse business profiles and anomaly flagging.
 
 #### Tasks:
-1. **Dynamic Mock Configuration**:
+1. [x] **Dynamic Mock Configuration**:
    - Extend `POST /mocks/issue-batch/:business_id` with profile templates:
      - `standard_healthy`: 100% compliance, high orders, tier 1 balance.
      - `gst_defaulter`: Missed returns, active compliance score 42.
      - `high_growth_merchant`: >5,000 orders on ONDC, 4.9 rating.
-2. **CSC Agent Witnessing Flow**:
+   - Support custom claim payload overrides for fine-grained simulation.
+   - Validate HMAC signature integrity on all batch-issued institutional credentials.
+2. [ ] **CSC Agent Witnessing Flow**:
    - Implement `POST /mocks/csc-witness` to simulate physical geolocation tag and CSC photo verification claim generation for Beat 1 zero-footprint onboarding.
 
 ---

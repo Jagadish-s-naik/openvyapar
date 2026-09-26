@@ -507,6 +507,63 @@ async function runApiTests() {
 
     console.log('✅ 15. Interactive Tamper Testing API & Cryptographic Restoration PASSED');
 
+    // 16. Test Dynamic Mock Configuration & Profile Templates (Phase 4 Task 1)
+    // 16a. Issue GST Defaulter Profile
+    const defaulterRes = await fetch(`${baseUrl}/mocks/issue-batch/${newBizId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'gst_defaulter' }),
+    });
+    const defaulterJson = await defaulterRes.json();
+    console.assert(defaulterRes.status === 201 && defaulterJson.template === 'gst_defaulter', 'Defaulter template issuance failed');
+    const defaulterGst = defaulterJson.credentials.find((c: any) => c.issuer === 'gst_mock');
+    const defaulterBank = defaulterJson.credentials.find((c: any) => c.issuer === 'bank_mock');
+    const defaulterMkt = defaulterJson.credentials.find((c: any) => c.issuer === 'marketplace_mock');
+    console.assert(defaulterGst.claim.filing_status_last_6_months === 'defaulter', 'Defaulter GST status mismatch');
+    console.assert(defaulterGst.claim.active_compliance_score === 42, 'Defaulter score should be 42');
+    console.assert(defaulterBank.claim.average_monthly_balance_tier === 'tier_3', 'Defaulter bank balance tier should be tier_3');
+    console.assert(defaulterMkt.claim.customer_satisfaction_rating === 3.9, 'Defaulter rating should be 3.9');
+
+    // Verify HMAC signature on defaulter credential
+    const defaulterSig = verifyCredentialSignature(defaulterGst);
+    console.assert(defaulterSig.isValid === true, 'Defaulter credential must have valid HMAC signature');
+
+    // 16b. Issue High Growth Merchant Profile with Overrides
+    const highGrowthRes = await fetch(`${baseUrl}/mocks/issue-batch/${newBizId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        template: 'high_growth_merchant',
+        overrides: {
+          marketplace: {
+            platform_name: 'Custom MegaMart Network',
+          },
+        },
+      }),
+    });
+    const highGrowthJson = await highGrowthRes.json();
+    console.assert(highGrowthRes.status === 201 && highGrowthJson.template === 'high_growth_merchant', 'High growth template issuance failed');
+    const hgGst = highGrowthJson.credentials.find((c: any) => c.issuer === 'gst_mock');
+    const hgBank = highGrowthJson.credentials.find((c: any) => c.issuer === 'bank_mock');
+    const hgMkt = highGrowthJson.credentials.find((c: any) => c.issuer === 'marketplace_mock');
+    console.assert(hgGst.claim.active_compliance_score === 100, 'High growth score should be 100');
+    console.assert(hgBank.claim.turnover_bracket === '50L_to_1Cr', 'High growth turnover should be 50L_to_1Cr');
+    console.assert(hgMkt.claim.total_completed_orders === 5430, 'High growth order count should be 5430');
+    console.assert(hgMkt.claim.platform_name === 'Custom MegaMart Network', 'Custom override was not applied');
+
+    const hgSig = verifyCredentialSignature(hgMkt);
+    console.assert(hgSig.isValid === true, 'High growth credential must have valid HMAC signature');
+
+    // 16c. Invalid template error check
+    const invalidTemplateRes = await fetch(`${baseUrl}/mocks/issue-batch/${newBizId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'unknown_profile_xyz' }),
+    });
+    console.assert(invalidTemplateRes.status === 400, 'Invalid template should return 400 Bad Request');
+
+    console.log('✅ 16. Dynamic Mock Configuration, Profile Presets & Overrides PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();
