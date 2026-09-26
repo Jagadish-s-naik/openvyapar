@@ -8,6 +8,7 @@ import { auditRouter } from './routes/audit.js';
 import { mocksRouter } from './routes/mocks.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
+import { healthRouter } from './routes/health.js';
 import { authContextMiddleware } from './middleware/auth.js';
 import { corsMiddleware, securityHeadersMiddleware } from './middleware/cors.js';
 
@@ -20,15 +21,8 @@ export function createApp(): Application {
   app.use(express.json());
   app.use(authContextMiddleware);
 
-  // Health Check
-  app.get('/health', (_req, res) => {
-    res.json({
-      status: 'healthy',
-      service: 'openvyapar-backend',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-    });
-  });
+  // Health and Readiness Probes
+  app.use('/health', healthRouter);
 
   // API Routes matching PRD §8
   app.use('/auth', authRouter);

@@ -737,6 +737,32 @@ async function runApiTests() {
 
     console.log('✅ 19. CORS & Multi-Port Environment Hardening PASSED');
 
+    // 20. Test End-to-End Health Diagnostics & Readiness Probes (Phase 5 Task 3)
+    // 20a. Comprehensive Health Probe
+    const deepHealthRes = await fetch(`${baseUrl}/health`);
+    const deepHealthJson = await deepHealthRes.json();
+    console.assert(deepHealthRes.status === 200, 'Health diagnostic probe failed');
+    console.assert(deepHealthJson.status === 'healthy', 'Health status should be healthy');
+    console.assert(deepHealthJson.database.status === 'connected', 'Database status should be connected');
+    console.assert(typeof deepHealthJson.database.record_counts.businesses === 'number', 'Business count missing in health');
+    console.assert(deepHealthJson.subsystems.gst_mock.status === 'active', 'GST mock subsystem not active');
+    console.assert(deepHealthJson.subsystems.bank_mock.status === 'active', 'Bank mock subsystem not active');
+    console.assert(deepHealthJson.subsystems.marketplace_mock.status === 'active', 'Marketplace mock subsystem not active');
+    console.assert(deepHealthJson.subsystems.csc_witness.status === 'active', 'CSC witness subsystem not active');
+    console.assert(parseFloat(deepHealthJson.memory.heap_used_mb) > 0, 'Memory telemetry missing');
+    console.assert(deepHealthJson.environment.port === 3001 || typeof deepHealthJson.environment.port === 'number', 'Port missing');
+
+    // 20b. Readiness & Liveness Probes
+    const readyRes = await fetch(`${baseUrl}/health/ready`);
+    const readyJson = await readyRes.json();
+    console.assert(readyRes.status === 200 && readyJson.ready === true, 'Readiness probe failed');
+
+    const liveRes = await fetch(`${baseUrl}/health/live`);
+    const liveJson = await liveRes.json();
+    console.assert(liveRes.status === 200 && liveJson.live === true, 'Liveness probe failed');
+
+    console.log('✅ 20. End-to-End Health Diagnostics & Readiness Probes PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

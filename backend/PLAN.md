@@ -32,7 +32,7 @@ graph LR
     Phase1[Phase 1: Core API & Crypto ✅] --> Phase2[Phase 2: Agent Handshake & Guardrails ✅]
     Phase2 --> Phase3[Phase 3: Proof Engine & Verification ✅]
     Phase3 --> Phase4[Phase 4: Mock Issuers & Anomaly Sim ✅]
-    Phase4 --> Phase5[Phase 5: Demo Hardening & Snapshots]
+    Phase4 --> Phase5[Phase 5: Demo Hardening & Snapshots ✅]
 ```
 
 ---
@@ -89,7 +89,7 @@ graph LR
 
 ---
 
-### ⚡ Phase 5: Demo Hardening & State Management
+### ⚡ Phase 5: Demo Hardening & State Management (Completed ✅)
 **Goal:** Ensure 0s reset latency and zero-friction presentation during hackathon evaluations.
 
 #### Tasks:
@@ -99,8 +99,9 @@ graph LR
 2. [x] **CORS & Multi-Port Environment Hardening**:
    - Ensure permissive yet structured CORS handling for ports `5173` (Wallet), `5174` (Verifier), and `5175` (Onboarding).
    - Support dynamic local origins regex, preflight cache, security headers, and request tracing.
-3. **End-to-End Health & Readiness Probes**:
-   - Enhance `GET /health` to report DB record counts, memory usage, and mock issuer status.
+3. [x] **End-to-End Health & Readiness Probes**:
+   - Enhance `GET /health` to report DB record counts, memory usage, environment, and mock issuer status.
+   - Add `GET /health/ready` and `GET /health/live` probes for orchestration and dev monitoring.
 
 ---
 
@@ -108,7 +109,9 @@ graph LR
 
 | Method | Route | Description | Human Guardrail Required |
 |---|---|---|:---:|
-| `GET` | `/health` | Service health and subsystem status | No |
+| `GET` | `/health` | Deep service diagnostics, memory, DB counts, & subsystem telemetry | No |
+| `GET` | `/health/ready` | Fast readiness probe | No |
+| `GET` | `/health/live` | Liveness probe | No |
 | `POST` | `/admin/reset` | 1-click database reset to demo seed state | No |
 | `POST` | `/admin/snapshot` | Create named state snapshot checkpoint | No |
 | `GET` | `/admin/snapshots` | List all saved state snapshots | No |
@@ -143,6 +146,7 @@ graph LR
 - [x] Add tests for dynamic mock templates and CSC field witnessing
 - [x] Add test for `POST /admin/reset` state reload & snapshots
 - [x] Add tests for CORS preflights across multi-port frontend environments
+- [x] Add tests for deep health diagnostics, readiness, and liveness probes
 
 ---
 
