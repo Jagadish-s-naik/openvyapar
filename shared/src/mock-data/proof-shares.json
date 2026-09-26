@@ -1,0 +1,15 @@
+[
+  {
+    "proof_id": "proof-loan-001",
+    "business_id": "did:biz:sharma001",
+    "purpose": "loan_application",
+    "disclosed_credential_ids": [
+      "cred-gst-002",
+      "cred-mkt-004"
+    ],
+    "shared_with": "Viksit Capital MSME Lending",
+    "generated_at": "2024-09-20T15:00:00.000Z",
+    "link_or_qr": "https://openvyapar.in/verify/proof-loan-001",
+    "verification_status": "valid"
+  }
+]

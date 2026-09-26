@@ -1,0 +1,47 @@
+[
+  {
+    "person_id": "did:person:ramesh001",
+    "name": "Ramesh Sharma",
+    "contact": {
+      "phone": "+91 98765 43210",
+      "email": "ramesh.sharma@example.com"
+    },
+    "auth_ref": "mock_auth_token_owner_ramesh"
+  },
+  {
+    "person_id": "did:person:priya001",
+    "name": "Priya Sharma",
+    "contact": {
+      "phone": "+91 98765 43211",
+      "email": "priya.sharma@example.com"
+    },
+    "auth_ref": "mock_auth_token_successor_priya"
+  },
+  {
+    "person_id": "did:person:ca001",
+    "name": "Vikas Mehta (Chartered Accountant)",
+    "contact": {
+      "phone": "+91 98111 22334",
+      "email": "vikas.mehta.ca@example.com"
+    },
+    "auth_ref": "mock_auth_token_delegate_ca"
+  },
+  {
+    "person_id": "did:person:csc001",
+    "name": "Aarav Patel (CSC VLE Agent)",
+    "contact": {
+      "phone": "+91 98222 33445",
+      "email": "aarav.csc.varanasi@example.com"
+    },
+    "auth_ref": "mock_auth_token_csc_agent"
+  },
+  {
+    "person_id": "did:person:verifier001",
+    "name": "Ananya Roy (Senior Credit Officer - Viksit Capital)",
+    "contact": {
+      "phone": "+91 98333 44556",
+      "email": "ananya.roy@viksitcapital.mock"
+    },
+    "auth_ref": "mock_auth_token_verifier_lender"
+  }
+]

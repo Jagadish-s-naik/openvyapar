@@ -1,0 +1,57 @@
+[
+  {
+    "log_id": "log-001",
+    "business_id": "did:biz:sharma001",
+    "actor_type": "owner",
+    "actor_id": "did:person:ramesh001",
+    "action": "issue_starter_credential",
+    "confirmed_by_human": true,
+    "timestamp": "2024-03-15T08:45:00.000Z",
+    "metadata": {
+      "credential_id": "cred-self-001",
+      "csc_agent_id": "did:person:csc001"
+    }
+  },
+  {
+    "log_id": "log-002",
+    "business_id": "did:biz:sharma001",
+    "actor_type": "issuer",
+    "actor_id": "gst_mock",
+    "action": "issue_credential",
+    "confirmed_by_human": true,
+    "timestamp": "2024-04-01T10:00:00.000Z",
+    "metadata": {
+      "credential_id": "cred-gst-002"
+    }
+  },
+  {
+    "log_id": "log-003",
+    "business_id": "did:biz:sharma001",
+    "actor_type": "owner",
+    "actor_id": "did:person:ramesh001",
+    "action": "grant_delegation",
+    "confirmed_by_human": true,
+    "timestamp": "2024-07-01T10:00:00.000Z",
+    "metadata": {
+      "token_id": "tok-ca-001",
+      "delegate": "did:person:ca001",
+      "scopes": ["file_returns", "view_compliance"],
+      "suggested_by_agent_action_id": "agent-act-scope-001"
+    }
+  },
+  {
+    "log_id": "log-004",
+    "business_id": "did:biz:sharma001",
+    "actor_type": "owner",
+    "actor_id": "did:person:ramesh001",
+    "action": "generate_proof",
+    "confirmed_by_human": true,
+    "timestamp": "2024-09-20T15:00:00.000Z",
+    "metadata": {
+      "proof_id": "proof-loan-001",
+      "purpose": "loan_application",
+      "disclosed": ["cred-gst-002", "cred-mkt-004"],
+      "explained_by_agent_action_id": "agent-act-consent-001"
+    }
+  }
+]

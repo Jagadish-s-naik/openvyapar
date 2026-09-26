@@ -1,0 +1,31 @@
+{
+  "name": "openvyapar",
+  "version": "1.0.0",
+  "description": "OpenVyapar Unified Business Identity — Reimagined DPI for Business Owners",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "backend",
+    "agent-service",
+    "frontend-wallet",
+    "frontend-verifier",
+    "frontend-onboarding"
+  ],
+  "scripts": {
+    "build:shared": "npm --workspace=shared run build",
+    "dev:backend": "npm --workspace=backend run dev",
+    "dev:agent": "npm --workspace=agent-service run dev",
+    "dev:wallet": "npm --workspace=frontend-wallet run dev",
+    "dev:verifier": "npm --workspace=frontend-verifier run dev",
+    "dev:onboarding": "npm --workspace=frontend-onboarding run dev"
+  },
+  "keywords": [
+    "dpi",
+    "business-identity",
+    "openvyapar",
+    "verifiable-credentials",
+    "india"
+  ],
+  "author": "OpenVyapar Team",
+  "license": "MIT"
+}

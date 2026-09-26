@@ -1,0 +1,31 @@
+[
+  {
+    "business_id": "did:biz:sharma001",
+    "name": "Sharma General Store",
+    "status": "active",
+    "created_at": "2024-03-15T08:30:00.000Z",
+    "primary_language": "hi",
+    "metadata": {
+      "sector": "Retail Grocery & Daily Essentials",
+      "location": "Shop 14, Main Market, Godowlia, Varanasi, UP 221001",
+      "gstin": "09ABCPS1234F1Z5",
+      "pan": "ABCPS1234F",
+      "udyam_reg_no": "UDYAM-UP-75-0012345",
+      "onboarding_source": "csc_agent",
+      "csc_agent_id": "did:person:csc001"
+    }
+  },
+  {
+    "business_id": "did:biz:anand002",
+    "name": "Anand Silk Weaving Emporium",
+    "status": "active",
+    "created_at": "2024-08-20T11:15:00.000Z",
+    "primary_language": "hi",
+    "metadata": {
+      "sector": "Handloom & Textiles",
+      "location": " बुनकर कॉलोनी, Chowk, Varanasi, UP 221002",
+      "onboarding_source": "csc_agent",
+      "csc_agent_id": "did:person:csc001"
+    }
+  }
+]

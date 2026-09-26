@@ -1,0 +1,22 @@
+{
+  "name": "@openvyapar/shared",
+  "version": "1.0.0",
+  "description": "Shared types, schemas, and mock data for OpenVyapar",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "openvyapar",
+    "shared",
+    "types"
+  ],
+  "author": "OpenVyapar Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
