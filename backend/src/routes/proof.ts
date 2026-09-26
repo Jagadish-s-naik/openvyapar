@@ -23,11 +23,32 @@ export const proofRouter = Router();
  */
 proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
   try {
-    const { business_id, purpose, disclosed_credential_ids, shared_with, agent_action_id } = req.body;
+    const {
+      business_id,
+      purpose,
+      disclosed_credential_ids,
+      shared_with,
+      agent_action_id,
+      expires_at,
+      max_uses,
+    } = req.body;
     const generated_by = req.body.generated_by || req.actor?.actorId;
 
     if (!business_id || !purpose || !disclosed_credential_ids || !shared_with || !generated_by) {
       return sendError(res, 400, 'Missing required fields: business_id, purpose, disclosed_credential_ids, shared_with, generated_by');
+    }
+
+    if (max_uses !== undefined && max_uses !== null) {
+      if (typeof max_uses !== 'number' || !Number.isInteger(max_uses) || max_uses <= 0) {
+        return sendError(res, 400, 'Invalid max_uses: must be a positive integer greater than 0');
+      }
+    }
+
+    if (expires_at !== undefined && expires_at !== null) {
+      const expiresTimestamp = new Date(expires_at).getTime();
+      if (isNaN(expiresTimestamp)) {
+        return sendError(res, 400, 'Invalid expires_at: must be a valid ISO 8601 date string');
+      }
     }
 
     const business = db.getBusiness(business_id);
@@ -54,6 +75,9 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       generated_at: generatedAt,
       link_or_qr: verificationUrl,
       verification_status: 'valid',
+      expires_at: expires_at || null,
+      max_uses: max_uses !== undefined ? max_uses : null,
+      use_count: 0,
     };
 
     db.setProofShare(newProof);
@@ -73,7 +97,14 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
         diff: {
           disclosed_credentials: { before: [], after: disclosed_credential_ids },
         },
-        metadata: { proof_id: proofId, purpose, shared_with, disclosed_count: disclosed_credential_ids.length },
+        metadata: {
+          proof_id: proofId,
+          purpose,
+          shared_with,
+          disclosed_count: disclosed_credential_ids.length,
+          expires_at: newProof.expires_at,
+          max_uses: newProof.max_uses,
+        },
       }
     );
 
@@ -106,6 +137,14 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     return sendError(res, 404, `Associated business ${proof.business_id} not found`);
   }
 
+  // Atomically increment use count for this verification attempt
+  proof.use_count = (proof.use_count || 0) + 1;
+  db.setProofShare(proof);
+
+  // Check expiration & max-uses constraints
+  const isExpired = !!(proof.expires_at && new Date(proof.expires_at).getTime() < Date.now());
+  const isMaxUsesExceeded = !!(proof.max_uses && proof.use_count > proof.max_uses);
+
   const resolvedCredentials: Credential[] = [];
   const tamperDetails: string[] = [];
   let isAnyTampered = false;
@@ -125,7 +164,28 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     }
   }
 
-  const verificationStatus = isAnyTampered ? 'tampered' : 'valid';
+  // Determine overall verification status and reason code
+  let verificationStatus: import('@openvyapar/shared').VerificationStatus = 'valid';
+  let verificationReason = 'VALID';
+
+  if (isExpired) {
+    verificationStatus = 'expired';
+    verificationReason = 'PROOF_EXPIRED';
+    tamperDetails.push(`Proof expired on ${proof.expires_at}`);
+  } else if (isMaxUsesExceeded) {
+    verificationStatus = 'max_uses_exceeded';
+    verificationReason = 'PROOF_MAX_USES_EXCEEDED';
+    tamperDetails.push(`Proof maximum use limit of ${proof.max_uses} exceeded (attempt #${proof.use_count})`);
+  } else if (isAnyTampered) {
+    verificationStatus = 'tampered';
+    verificationReason = 'TAMPERED_CREDENTIALS';
+  }
+
+  // Persist status change if transitioned
+  if (proof.verification_status !== verificationStatus) {
+    proof.verification_status = verificationStatus;
+    db.setProofShare(proof);
+  }
 
   // Compute baseline trust assessment for Verifier
   const hasGst = resolvedCredentials.some((c) => c.type === 'gst_compliant');
@@ -133,10 +193,22 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
   const hasMarketplace = resolvedCredentials.some((c) => c.type === 'order_history');
 
   const anomalyFlags: string[] = [];
+  if (isExpired) anomalyFlags.push(`Proof token expired on ${proof.expires_at}`);
+  if (isMaxUsesExceeded) anomalyFlags.push(`Proof single/multi-use quota of ${proof.max_uses} exceeded`);
   if (!hasGst) anomalyFlags.push('GST compliance credential not disclosed');
   if (business.status !== 'active') anomalyFlags.push(`Business status is currently '${business.status}'`);
 
-  const trustScore = verificationStatus === 'tampered' ? 0 : Math.min(100, (hasGst ? 40 : 0) + (hasBank ? 30 : 0) + (hasMarketplace ? 30 : 20));
+  const isInvalid = verificationStatus !== 'valid';
+  const trustScore = isInvalid ? 0 : Math.min(100, (hasGst ? 40 : 0) + (hasBank ? 30 : 0) + (hasMarketplace ? 30 : 20));
+
+  let summary = `Verified authentic DPI selective-disclosure proof for ${proof.purpose}.`;
+  if (isExpired) {
+    summary = `Proof expired at ${proof.expires_at}. Verifier access rejected.`;
+  } else if (isMaxUsesExceeded) {
+    summary = `Proof quota limit of ${proof.max_uses} exceeded (attempt #${proof.use_count}). Verifier access rejected.`;
+  } else if (isAnyTampered) {
+    summary = `Cryptographic verification failed. Evidence of payload alteration or missing credentials.`;
+  }
 
   const responsePayload: VerifyProofResponse = {
     success: true,
@@ -148,12 +220,14 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     business,
     credentials: resolvedCredentials,
     verification_status: verificationStatus,
+    verification_reason: verificationReason,
+    use_count: proof.use_count,
+    max_uses: proof.max_uses ?? null,
+    expires_at: proof.expires_at ?? null,
     tamper_details: tamperDetails.length > 0 ? tamperDetails : undefined,
     trust_analysis: {
       anomaly_flags: anomalyFlags,
-      summary: verificationStatus === 'valid'
-        ? `Verified authentic DPI selective-disclosure proof for ${proof.purpose}.`
-        : `Cryptographic verification failed. Evidence of payload alteration or missing credentials.`,
+      summary,
       trust_score: trustScore,
     },
   };

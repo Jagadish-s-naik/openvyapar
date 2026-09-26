@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "dev": "tsc -w & node --watch dist/server.js",
     "seed": "node dist/db/seed.js",
-    "test": "node dist/test/api.test.js"
+    "test": "tsc && node dist/test/api.test.js"
   },
   "keywords": [
     "openvyapar",

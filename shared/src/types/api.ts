@@ -115,6 +115,8 @@ export interface GenerateProofRequest {
   disclosed_credential_ids: string[];
   shared_with: string;
   generated_by: string;
+  expires_at?: string | null;
+  max_uses?: number | null;
   agent_action_id?: string; // If originated from consent explainer
 }
 
@@ -130,6 +132,10 @@ export interface VerifyProofResponse {
   business: Business;
   credentials: Credential[];
   verification_status: VerificationStatus;
+  verification_reason?: string;
+  use_count?: number;
+  max_uses?: number | null;
+  expires_at?: string | null;
   tamper_details?: string[];
   trust_analysis?: {
     anomaly_flags: string[];

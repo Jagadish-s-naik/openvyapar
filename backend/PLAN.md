@@ -56,9 +56,11 @@ graph LR
 **Goal:** Deliver verifier experiences for lending, GST inspection, and vendor onboarding.
 
 #### Tasks:
-1. **Proof Expiration & Single-Use Tokens**:
+1. [x] **Proof Expiration & Single-Use Tokens**:
    - Support `expires_at` and `max_uses` fields on proof shares.
    - When a verifier accesses an expired proof, return explicit verification reason `PROOF_EXPIRED`.
+   - When a verifier exceeds maximum allowed inspections, return explicit verification reason `PROOF_MAX_USES_EXCEEDED`.
+   - Atomically increment and persist `use_count` on each verification attempt.
 2. **Granular Attribute Redaction**:
    - Allow claims to disclose partial fields (e.g., disclosing `turnover_bracket` while redacting exact account balance).
    - Compute Merkle / HMAC sub-hashes for individual claim fields.

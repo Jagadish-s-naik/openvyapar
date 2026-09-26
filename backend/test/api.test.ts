@@ -322,6 +322,96 @@ async function runApiTests() {
 
     console.log('✅ 12. Multi-Persona Simulation, Actor Auto-population & 403 Guardrails PASSED');
 
+    // 13. Test Proof Expiration & Single-Use Quota Enforcement (Phase 3 Task 1)
+    // 13a. Test input validation for max_uses and expires_at
+    const invalidMaxUsesRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Test Bank',
+        generated_by: 'did:person:gupta001',
+        max_uses: -5,
+      }),
+    });
+    console.assert(invalidMaxUsesRes.status === 400, 'Invalid max_uses should fail with 400');
+
+    const invalidExpiresRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Test Bank',
+        generated_by: 'did:person:gupta001',
+        expires_at: 'invalid-date-string',
+      }),
+    });
+    console.assert(invalidExpiresRes.status === 400, 'Invalid expires_at should fail with 400');
+
+    // 13b. Single-use token (max_uses: 1)
+    const singleUseProofRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Single Use Lender',
+        generated_by: 'did:person:gupta001',
+        max_uses: 1,
+      }),
+    });
+    const singleUseProofJson = await singleUseProofRes.json();
+    console.assert(singleUseProofRes.status === 201 && singleUseProofJson.proof.max_uses === 1, 'Single-use proof generation failed');
+    const singleUseProofId = singleUseProofJson.proof.proof_id;
+
+    // First inspection: valid, use_count = 1
+    const firstVerifyRes = await fetch(`${baseUrl}/proof/verify/${singleUseProofId}`);
+    const firstVerifyJson = await firstVerifyRes.json();
+    console.assert(firstVerifyRes.status === 200, 'First verify failed');
+    console.assert(firstVerifyJson.verification_status === 'valid', 'First inspection should be valid');
+    console.assert(firstVerifyJson.use_count === 1, 'First inspection use_count should be 1');
+    console.assert(firstVerifyJson.verification_reason === 'VALID', 'First inspection reason should be VALID');
+
+    // Second inspection: rejected with max_uses_exceeded, use_count = 2, trust_score = 0
+    const secondVerifyRes = await fetch(`${baseUrl}/proof/verify/${singleUseProofId}`);
+    const secondVerifyJson = await secondVerifyRes.json();
+    console.assert(secondVerifyRes.status === 200, 'Second verify request failed');
+    console.assert(secondVerifyJson.verification_status === 'max_uses_exceeded', 'Second inspection should exceed max uses');
+    console.assert(secondVerifyJson.verification_reason === 'PROOF_MAX_USES_EXCEEDED', 'Second inspection reason should be PROOF_MAX_USES_EXCEEDED');
+    console.assert(secondVerifyJson.use_count === 2, 'Second inspection use_count should be 2');
+    console.assert(secondVerifyJson.trust_analysis.trust_score === 0, 'Trust score should be 0 when quota exceeded');
+
+    // 13c. Expired proof (expires_at in past)
+    const expiredProofRes = await fetch(`${baseUrl}/proof/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        purpose: 'loan_application',
+        disclosed_credential_ids: credIdsToDisclose,
+        shared_with: 'Expired Loan Officer',
+        generated_by: 'did:person:gupta001',
+        expires_at: '2020-01-01T00:00:00.000Z',
+      }),
+    });
+    const expiredProofJson = await expiredProofRes.json();
+    console.assert(expiredProofRes.status === 201, 'Expired proof generation failed');
+    const expiredProofId = expiredProofJson.proof.proof_id;
+
+    const expiredVerifyRes = await fetch(`${baseUrl}/proof/verify/${expiredProofId}`);
+    const expiredVerifyJson = await expiredVerifyRes.json();
+    console.assert(expiredVerifyRes.status === 200, 'Expired verify request failed');
+    console.assert(expiredVerifyJson.verification_status === 'expired', 'Verification status should be expired');
+    console.assert(expiredVerifyJson.verification_reason === 'PROOF_EXPIRED', 'Verification reason should be PROOF_EXPIRED');
+    console.assert(expiredVerifyJson.trust_analysis.trust_score === 0, 'Trust score should be 0 for expired proof');
+
+    console.log('✅ 13. Proof Expiration & Single-Use Quota Enforcement PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

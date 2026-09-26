@@ -63,7 +63,10 @@ CREATE TABLE IF NOT EXISTS proof_shares (
   shared_with TEXT NOT NULL,
   generated_at TEXT NOT NULL,
   link_or_qr TEXT NOT NULL,
-  verification_status TEXT NOT NULL CHECK (verification_status IN ('valid', 'tampered', 'expired')),
+  verification_status TEXT NOT NULL CHECK (verification_status IN ('valid', 'tampered', 'expired', 'max_uses_exceeded')),
+  expires_at TEXT,
+  max_uses INTEGER,
+  use_count INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (business_id) REFERENCES businesses(business_id)
 );
 

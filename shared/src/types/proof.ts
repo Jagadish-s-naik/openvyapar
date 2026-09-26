@@ -12,7 +12,7 @@ export type ProofPurpose =
   | 'vendor_qualification'
   | string;
 
-export type VerificationStatus = 'valid' | 'tampered' | 'expired';
+export type VerificationStatus = 'valid' | 'tampered' | 'expired' | 'max_uses_exceeded';
 
 export interface ProofShare {
   proof_id: string; // UUID
@@ -24,4 +24,7 @@ export interface ProofShare {
   generated_at: string; // ISO 8601
   link_or_qr: string; // Verification URL / QR code token
   verification_status: VerificationStatus;
+  expires_at?: string | null; // ISO 8601 timestamp or null
+  max_uses?: number | null; // Max number of allowed verifications (e.g. 1 for single-use)
+  use_count?: number; // Total number of times inspected/verified
 }
