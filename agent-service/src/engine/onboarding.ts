@@ -5,7 +5,6 @@ export function extractOnboardingData(input: OnboardExtractRequest): OnboardExtr
   const text = input.raw_transcript_or_text || '';
   const lang = input.language || (text.match(/[\u0900-\u097F]/) ? 'hi' : text.match(/[\u0C80-\u0CFF]/) ? 'kn' : 'en');
 
-  // Intelligent heuristic extraction from unstructured transcript/speech
   let name = 'Sharma General Store';
   let sector = 'Retail Grocery & Essentials';
   let location = 'Godowlia, Varanasi, UP';
@@ -26,23 +25,41 @@ export function extractOnboardingData(input: OnboardExtractRequest): OnboardExtr
     establishedYear = parseInt(yearMatch[1], 10);
   }
 
+  // Heuristic extraction for common demo scenarios
+  if (text.includes('सुनीता') || text.toLowerCase().includes('sunita') || text.includes('सब्ज़ी')) {
+    name = 'Sunita Fresh Vegetables';
+    ownerName = 'Sunita Devi';
+    sector = 'Fresh Produce & Street Vendor';
+    location = 'Assi Ghat, Varanasi, UP';
+    revenue = 'INR 45,000 / month';
+    establishedYear = 2016;
+  } else if (text.includes('ಮಂಜುನಾಥ') || text.toLowerCase().includes('manjunath') || text.toLowerCase().includes('tea stall')) {
+    name = 'Sri Manjunatha Tea Stall';
+    ownerName = 'Manjunath K';
+    sector = 'Food & Beverage';
+    location = 'Jayanagar, Bengaluru, KA';
+    revenue = 'INR 80,000 / month';
+    establishedYear = 2019;
+  } else if (text.toLowerCase().includes('anand') || text.toLowerCase().includes('silk') || text.includes('बुनकर')) {
+    name = 'Anand Silk Weaving';
+    ownerName = 'Anand Ansari';
+    sector = 'Handloom & Textiles';
+    location = 'Chowk, Varanasi, UP';
+    revenue = 'INR 3.0 Lakh / month';
+    establishedYear = 2015;
+  } else if (text.includes('रमेश') || text.includes('sharma') || text.includes('किराना')) {
+    name = 'Sharma General Store';
+    ownerName = 'Ramesh Sharma';
+    sector = 'Retail Grocery & Essentials';
+    location = 'Godowlia, Varanasi, UP';
+    revenue = 'INR 2.0 Lakh / month';
+    establishedYear = 2018;
+  }
+
   // Detect business name hints in quotes or patterns
   const nameQuotesMatch = text.match(/['"“](.*?)['"”]/);
   if (nameQuotesMatch) {
     name = nameQuotesMatch[1];
-  } else if (text.toLowerCase().includes('tea') || text.includes('चाय')) {
-    name = 'Banaras Chai Stall';
-    sector = 'Food & Beverage';
-  } else if (text.toLowerCase().includes('silk') || text.includes('साड़ी') || text.includes('बुनकर')) {
-    name = 'Varanasi Silk Weavers';
-    sector = 'Handloom & Textiles';
-  }
-
-  // Detect location
-  if (text.toLowerCase().includes('assi') || text.includes('अस्सी')) {
-    location = 'Assi Ghat, Varanasi, UP';
-  } else if (text.toLowerCase().includes('chowk') || text.includes('चौक')) {
-    location = 'Chowk, Varanasi, UP';
   }
 
   const missingFields: string[] = [];

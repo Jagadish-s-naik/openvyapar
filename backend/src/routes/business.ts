@@ -203,6 +203,72 @@ businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Re
 });
 
 /**
+ * POST /business/transfer-ownership
+ * Convenience endpoint for Beat 5 Succession Planning
+ */
+businessRouter.post('/transfer-ownership', (req: Request, res: Response) => {
+  try {
+    const { business_id, new_owner_person_id, granted_by = 'did:person:ramesh001' } = req.body;
+    if (!business_id || !new_owner_person_id) {
+      return sendError(res, 400, 'Missing required fields: business_id, new_owner_person_id');
+    }
+
+    const business = db.getBusiness(business_id);
+    if (!business) {
+      return sendError(res, 404, `Business with id ${business_id} not found`);
+    }
+
+    let previousOwnerPersonId: string | undefined;
+    const existingRoles = db.getRolesForBusiness(business_id);
+    for (const role of existingRoles) {
+      if (role.role_type === 'owner') {
+        previousOwnerPersonId = role.person_id;
+        role.status = 'former';
+        role.revoked_at = new Date().toISOString();
+        db.setBusinessRole(role);
+      }
+    }
+
+    const newRole: BusinessRole = {
+      role_id: `role-${crypto.randomUUID()}`,
+      business_id,
+      person_id: new_owner_person_id,
+      role_type: 'owner',
+      status: 'active',
+      granted_at: new Date().toISOString(),
+      revoked_at: null,
+    };
+
+    db.setBusinessRole(newRole);
+
+    recordAuditLog(
+      business_id,
+      'owner',
+      granted_by,
+      'transfer_ownership',
+      true,
+      {
+        req,
+        diff: {
+          owner_person_id: { before: previousOwnerPersonId, after: new_owner_person_id },
+        },
+        metadata: { new_role_id: newRole.role_id, new_owner_person_id, reason: req.body.transfer_reason },
+      }
+    );
+
+    res.json({
+      success: true,
+      business_id,
+      new_owner: new_owner_person_id,
+      previous_owner: previousOwnerPersonId,
+      role: newRole,
+    });
+  } catch (err: any) {
+    sendError(res, 500, err.message || 'Internal server error');
+  }
+});
+
+/**
  * GET /business/:id/roles
  * Get all role holders with hydrated person info
  */

@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 const SERVICES = [
-  { name: 'BACKEND', cwd: path.join(rootDir, 'backend'), cmd: 'node', args: ['dist/server.js'], color: '\x1b[36m' }, // Cyan
-  { name: 'AGENT  ', cwd: path.join(rootDir, 'agent-service'), cmd: 'node', args: ['dist/server.js'], color: '\x1b[35m' }, // Magenta
+  { name: 'BACKEND', cwd: path.join(rootDir, 'backend'), cmd: 'node', args: ['dist/src/server.js'], color: '\x1b[36m' }, // Cyan
+  { name: 'AGENT  ', cwd: path.join(rootDir, 'agent-service'), cmd: 'node', args: ['dist/src/server.js'], color: '\x1b[35m' }, // Magenta
   { name: 'WALLET ', cwd: path.join(rootDir, 'frontend-wallet'), cmd: 'node', args: ['server.js'], color: '\x1b[34m' }, // Blue
   { name: 'VERIFY ', cwd: path.join(rootDir, 'frontend-verifier'), cmd: 'node', args: ['server.js'], color: '\x1b[33m' }, // Yellow
   { name: 'ONBOARD', cwd: path.join(rootDir, 'frontend-onboarding'), cmd: 'node', args: ['server.js'], color: '\x1b[32m' }, // Green

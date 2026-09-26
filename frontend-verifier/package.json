@@ -1,6 +1,7 @@
 {
   "name": "@openvyapar/frontend-verifier",
   "version": "1.0.0",
+  "type": "module",
   "description": "Verifier Portal & Trust Inspection for OpenVyapar",
   "scripts": {
     "dev": "node server.js",

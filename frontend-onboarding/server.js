@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 5175;
 
 app.use(express.static(__dirname));
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(PORT, () => {
-  console.log(`✍️ OpenVyapar CSC Onboarding UI running at http://localhost:${PORT}`);
+  console.log(`✍️ OpenVyapar Onboarding Portal running at http://localhost:${PORT}`);
 });

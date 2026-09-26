@@ -8,71 +8,163 @@
 </head>
 <body>
 
-  <!-- Top Portal Navigation -->
-  <nav class="top-portal-bar">
-    <div class="portal-links">
-      <span style="font-weight: 800; color: #fff; font-family: var(--font-display);">🇮🇳 OpenVyapar DPI</span>
-      <a href="http://localhost:5173" class="portal-link">💼 Owner Wallet</a>
-      <a href="http://localhost:5174" class="portal-link active">🔍 Verifier Portal</a>
-      <a href="http://localhost:5175" class="portal-link">✍️ CSC Onboarding</a>
+  <!-- Top Navigation Bar (Unified Across All Portals) -->
+  <nav class="top-nav-bar">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <span>OpenVyapar</span>
+        <span class="brand-badge">DPI</span>
+      </div>
+    </div>
+
+    <div class="portal-nav-links">
+      <a href="http://localhost:5173" class="nav-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Owner Wallet</span>
+      </a>
+      <a href="http://localhost:5174" class="nav-tab active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Verifier Portal</span>
+      </a>
+      <a href="http://localhost:5175" class="nav-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        <span>CSC Onboarding</span>
+      </a>
+    </div>
+
+    <div class="top-right-tools">
+      <div class="lang-switch-group">
+        <button class="lang-btn" data-lang="hi">हिन्दी</button>
+        <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+        <button class="lang-btn active" data-lang="en">EN</button>
+      </div>
+      <div class="institution-badge">
+        <span class="status-dot-active"></span>
+        <span>Viksit Capital (NBFC Underwriting)</span>
+      </div>
     </div>
   </nav>
 
+  <!-- Main Container -->
   <main class="app-container">
 
-    <!-- Search / Inspect Hero -->
-    <header class="verifier-hero">
-      <h1 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 6px;">
-        🔍 Verifier Portal (Lender / Platform Underwriting)
-      </h1>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">
-        Inspect selective-disclosure proofs, verify cryptographic HMAC signatures, and check AI anomaly flags.
-      </p>
+    <!-- Inspector Hero Card -->
+    <section class="identity-hero-card">
+      <div>
+        <h1 class="biz-heading-title">
+          <span>Selective Proof Inspector</span>
+          <span class="role-tag">Zero-Knowledge Verification</span>
+        </h1>
+        <div class="biz-meta-row">
+          <span>Verify cryptographic HMAC signatures without accessing raw bank accounts or tax records.</span>
+        </div>
+      </div>
 
       <div class="search-proof-box">
-        <input type="text" id="txtProofIdInput" class="input-text" placeholder="Enter Proof Share ID (e.g. proof-loan-001)" value="proof-loan-001">
-        <button id="btnInspectProof" class="btn btn-primary">Inspect Proof</button>
-        <button id="btnSimulateTamper" class="btn btn-danger" title="Modify a claim figure in memory to demonstrate live cryptographic signature failure">
-          ⚠️ Simulate Tampering
+        <input type="text" id="txtProofIdInput" class="input-text" placeholder="Enter Proof ID (e.g. PRF-loan-001)" value="PRF-loan-001">
+        <button id="btnInspectProof" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Inspect & Verify</span>
+        </button>
+        <button id="btnSimulateTamper" class="btn btn-danger-outline" title="Simulate modified payload data to test cryptographic failure">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span id="tamperBtnText">Simulate Tampering</span>
         </button>
       </div>
-    </header>
+    </section>
+
+    <!-- Target Applicant Summary Card -->
+    <section id="businessSummaryCard" class="biz-inspect-card" style="display: none;">
+      <div>
+        <span class="sub-label">TARGET APPLICANT</span>
+        <h2 id="inspectBizName" class="inspect-biz-title">Sharma General Store</h2>
+        <div class="meta-tags-row">
+          <span id="inspectBizDid" class="did-tag">did:biz:sharma001</span>
+          <span id="inspectBizSector">Retail Grocery</span>
+          <span id="inspectBizLoc">Varanasi, UP</span>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div id="inspectPurposeBadge" class="purpose-pill">MSME Working Capital Loan</div>
+        <div id="inspectTimestamp" class="shared-with-label">Shared with: Viksit Capital</div>
+      </div>
+    </section>
 
     <!-- Verification Status Banner -->
     <div id="statusBanner" class="verification-status-banner banner-valid">
-      <div>
-        <h3 id="txtStatusTitle" style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 4px;">
-          ✅ Cryptographically Valid Proof
-        </h3>
-        <p id="txtStatusSubtitle" style="font-size: 0.85rem; color: #cbd5e1;">
-          All disclosed credential HMAC-SHA256 signatures are authentic and unmodified.
-        </p>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span id="bannerIcon" class="banner-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </span>
+        <div>
+          <h3 id="txtStatusTitle" class="status-banner-title">
+            Cryptographically Valid Proof Bundle
+          </h3>
+          <p id="txtStatusSubtitle" class="status-banner-desc">
+            All disclosed claims have passed HMAC-SHA256 signature verification against registered root issuers.
+          </p>
+        </div>
       </div>
-      <span id="badgeStatusChip" class="status-chip chip-valid">VALID</span>
+      <span id="badgeStatusChip" class="status-chip chip-valid">VALIDATED</span>
     </div>
 
-    <!-- AI Trust & Anomaly Analysis Panel -->
-    <div class="panel" style="border-left: 4px solid #8b5cf6;">
-      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #c084fc;">
-        🤖 AI Verifier Trust & Risk Assessment
-      </h3>
-      <p id="txtTrustSummary" style="font-size: 0.88rem; color: #e2e8f0; margin-bottom: 12px;">
-        Analyzing proof history...
-      </p>
-      <div id="trustFlagsContainer" style="display: flex; flex-direction: column; gap: 6px;">
-        <!-- Dynamically rendered -->
-      </div>
-    </div>
+    <!-- 2-Column Split: AI Risk & Underwriting vs. Disclosed Claims -->
+    <div class="dashboard-main-grid">
 
-    <!-- Disclosed Credentials Grid -->
-    <section>
-      <h2 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 16px;">
-        📋 Disclosed Credentials
-      </h2>
-      <div class="cards-grid" id="disclosedCardsContainer">
-        <!-- Rendered dynamically -->
-      </div>
-    </section>
+      <!-- Left Column: Disclosed Verifiable Claims -->
+      <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 class="section-header-title" style="margin-bottom: 0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Disclosed Verifiable Claims</span>
+          </h2>
+          <span id="credCountTag" class="count-tag">0 credentials</span>
+        </div>
+
+        <div class="disclosed-grid" id="disclosedCardsContainer">
+          <!-- Dynamically populated from backend -->
+        </div>
+      </section>
+
+      <!-- Right Column: Risk & Anomaly Report + Loan Sanction -->
+      <aside>
+        
+        <!-- Risk & Anomaly Verification Report -->
+        <div class="panel">
+          <h3 class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>Risk & Trust Evaluation</span>
+          </h3>
+          <p id="txtTrustSummary" class="panel-desc">
+            Evaluating cross-issuer correlation, GST filing consistency, banking velocity, and credential signature authenticity...
+          </p>
+          <div id="trustFlagsContainer" class="trust-flags-box"></div>
+        </div>
+
+        <!-- Instant Underwriting Decision Card -->
+        <div class="panel underwriting-card">
+          <div style="margin-bottom: 14px;">
+            <div class="sub-label">UNDERWRITING DECISION</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--text-main);">Instant Loan Sanction</h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">
+              Automated credit sanction based on cryptographically validated GST turnover and SBI cash flows.
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="btnApproveLoan" class="btn btn-success" style="width: 100%; justify-content: center; padding: 10px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Sanction Working Capital (₹5.0 Lakhs)</span>
+            </button>
+            <button id="btnRequestMoreClaims" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+              <span>Request Additional Claims</span>
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
 
   </main>
 
