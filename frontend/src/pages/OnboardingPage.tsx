@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { extractOnboarding, createBusiness } from '../api/client';
 import { useAppStore } from '../store/useAppStore';
+import { useTranslation } from '../i18n/useTranslation';
 
 const SAMPLE_TRANSCRIPTS = {
   'hi-kirana': {
@@ -38,6 +39,7 @@ const SAMPLE_TRANSCRIPTS = {
 export const OnboardingPage = () => {
   const navigate = useNavigate();
   const { setBusinessId, loadAllData } = useAppStore();
+  const { t } = useTranslation();
 
   const [activeSampleKey, setActiveSampleKey] = useState<keyof typeof SAMPLE_TRANSCRIPTS>('hi-kirana');
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPTS['hi-kirana'].text);
@@ -114,15 +116,15 @@ export const OnboardingPage = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                CSC VLE Assisted Flow
+                {t.onboarding.agentBadge}
               </span>
               <span className="text-xs font-mono text-slate-400">Zero-Footprint Protocol (Beat 1)</span>
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight">
-              Zero-Footprint Business Onboarding
+              {t.onboarding.title}
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Onboard informal micro-enterprises with zero prior formal digital footprint using natural speech transcripts and community-witnessed starter credentials.
+              {t.onboarding.subtitle}
             </p>
           </div>
 
@@ -150,7 +152,7 @@ export const OnboardingPage = () => {
 
             {/* Sample Chips */}
             <div>
-              <span className="text-xs font-semibold text-slate-600 block mb-2">Select a Sample Transcript:</span>
+              <span className="text-xs font-semibold text-slate-600 block mb-2">{t.onboarding.selectSample}</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {Object.entries(SAMPLE_TRANSCRIPTS).map(([key, item]) => (
                   <button
@@ -170,7 +172,7 @@ export const OnboardingPage = () => {
 
             {/* Transcript Textarea */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">Raw Spoken Dialogue / Voice Transcript:</label>
+              <label className="text-xs font-semibold text-slate-700">{t.onboarding.rawTranscript}</label>
               <textarea
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
@@ -189,12 +191,12 @@ export const OnboardingPage = () => {
               {isExtracting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
-                  <span>Extracting Structured Metadata with AI...</span>
+                  <span>{t.onboarding.extracting}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Extract Structured Business Claims (AI Agent)</span>
+                  <span>{t.onboarding.extractButton}</span>
                 </>
               )}
             </button>

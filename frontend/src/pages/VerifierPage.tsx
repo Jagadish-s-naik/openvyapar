@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { verifyProof, analyzeVerifierTrust, getProof } from '../api/client';
+import { useTranslation } from '../i18n/useTranslation';
 
 const SAMPLE_PROOFS = [
   { id: 'proof-loan-001', label: 'Sharma General Store (MSME Loan Proof)', desc: 'GST + ONDC Disclosures' },
@@ -24,6 +25,7 @@ const SAMPLE_PROOFS = [
 
 export const VerifierPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   const [proofId, setProofId] = useState(searchParams.get('proof_id') || 'proof-loan-001');
   const [loading, setLoading] = useState(false);
@@ -127,15 +129,15 @@ export const VerifierPage = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Verified DPI Node
+                {t.verifier.verifiedNode}
               </span>
               <span className="text-xs font-mono text-slate-400">SBI MSME Underwriting v2.1</span>
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight">
-              Cryptographic Proof & Tamper Inspector
+              {t.verifier.title}
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Zero-knowledge verification of HMAC-SHA256 signed business credentials. Verify loan eligibility without accessing raw confidential accounting books or personal bank statements.
+              {t.verifier.subtitle}
             </p>
           </div>
 
@@ -179,7 +181,7 @@ export const VerifierPage = () => {
               className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-60"
             >
               <Search className="w-3.5 h-3.5 text-amber-400" />
-              <span>{loading ? 'Verifying Proof...' : 'Inspect Proof'}</span>
+              <span>{loading ? t.verifier.verifying : t.verifier.inspectProof}</span>
             </button>
 
             <button
@@ -191,7 +193,7 @@ export const VerifierPage = () => {
               }`}
             >
               <AlertTriangle className={`w-3.5 h-3.5 ${isTampering ? 'text-white animate-bounce' : 'text-amber-600'}`} />
-              <span>{isTampering ? 'Restore Authentic Signed Payload' : '⚡ Simulate Tampered Payload'}</span>
+              <span>{isTampering ? t.verifier.restorePayload : t.verifier.simulateTamper}</span>
             </button>
           </div>
         </div>
