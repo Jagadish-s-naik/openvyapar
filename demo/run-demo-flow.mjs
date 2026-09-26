@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { createApp as createBackendApp } from '../backend/dist/src/app.js';
-import { createAgentApp } from '../agent-service/dist/src/app.js';
 import { seedDatabase } from '../backend/dist/src/db/seed.js';
 import { verifyCredentialSignature } from '../backend/dist/src/utils/crypto.js';
 
@@ -19,15 +18,12 @@ async function runDemoNarrativeSimulation() {
   // 1. Seed database state
   seedDatabase();
 
-  // 2. Start temporary in-memory servers
+  // 2. Start temporary in-memory backend server
   const backendApp = createBackendApp();
-  const agentApp = createAgentApp();
-
   const backendServer = backendApp.listen(4001);
-  const agentServer = agentApp.listen(4002);
 
   const BACKEND_URL = 'http://localhost:4001';
-  const AGENT_URL = 'http://localhost:4002';
+  const AGENT_URL = 'http://localhost:4001';
 
   try {
     // -------------------------------------------------------------
@@ -208,7 +204,6 @@ async function runDemoNarrativeSimulation() {
     console.log(`${BOLD}======================================================\n${RESET}`);
   } finally {
     backendServer.close();
-    agentServer.close();
   }
 }
 

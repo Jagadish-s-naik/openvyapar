@@ -1,4 +1,4 @@
-import { filterValidScopes, FIXED_DELEGATION_SCOPES } from '../src/engine/scoping.js';
+import { filterValidScopes, FIXED_DELEGATION_SCOPES } from '../src/agents/engine/scoping.js';
 
 async function runScopingValidationTests() {
   console.log('🧪 Running Scoping Engine Scope Filter Unit Tests...');

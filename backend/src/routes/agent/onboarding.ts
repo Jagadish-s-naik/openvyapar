@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import type { OnboardExtractRequest } from '@openvyapar/shared';
-import { extractOnboardingData } from '../engine/onboarding.js';
-import { sendAgentError } from '../lib/errors.js';
-import { recordProposalToBackend } from '../utils/recordProposal.js';
+import { extractOnboardingData } from '../../agents/engine/onboarding.js';
+import { sendAgentError } from '../../agents/lib/errors.js';
+import { recordProposalToBackend } from '../../agents/utils/recordProposal.js';
 
 export const onboardingRouter = Router();
 

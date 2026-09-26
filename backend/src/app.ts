@@ -9,6 +9,7 @@ import { mocksRouter } from './routes/mocks.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { healthRouter } from './routes/health.js';
+import { agentRouter } from './routes/agent/index.js';
 import { authContextMiddleware } from './middleware/auth.js';
 import { corsMiddleware, securityHeadersMiddleware } from './middleware/cors.js';
 
@@ -33,6 +34,7 @@ export function createApp(): Application {
   app.use('/proof', proofRouter);
   app.use('/audit', auditRouter);
   app.use('/mocks', mocksRouter);
+  app.use('/agent', agentRouter);
 
   return app;
 }

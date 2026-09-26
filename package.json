@@ -7,19 +7,17 @@
   "workspaces": [
     "shared",
     "backend",
-    "agent-service",
     "frontend-wallet",
     "frontend-verifier",
     "frontend-onboarding"
   ],
   "scripts": {
     "dev": "node scripts/dev-all.mjs",
-    "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=agent-service run build && npm --workspace=frontend-wallet run build",
-    "test": "node shared/test-shared.mjs && npm --workspace=backend run test && npm --workspace=agent-service run test",
+    "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=frontend-wallet run build",
+    "test": "node shared/test-shared.mjs && npm --workspace=backend run test",
     "test:demo": "node demo/run-demo-flow.mjs",
     "seed": "node demo/seed-demo.js",
     "start:backend": "npm --workspace=backend start",
-    "start:agent": "npm --workspace=agent-service start",
     "start:wallet": "npm --workspace=frontend-wallet start",
     "start:verifier": "npm --workspace=frontend-verifier start",
     "start:onboarding": "npm --workspace=frontend-onboarding start"

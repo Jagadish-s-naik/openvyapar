@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import type { VerifierFlagRequest } from '@openvyapar/shared';
-import { analyzeVerifierTrust } from '../engine/verifier.js';
-import { sendAgentError } from '../lib/errors.js';
-import { recordProposalToBackend } from '../utils/recordProposal.js';
+import { analyzeVerifierTrust } from '../../agents/engine/verifier.js';
+import { sendAgentError } from '../../agents/lib/errors.js';
+import { recordProposalToBackend } from '../../agents/utils/recordProposal.js';
 
 export const verifierRouter = Router();
 

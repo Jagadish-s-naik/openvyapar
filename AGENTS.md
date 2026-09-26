@@ -11,8 +11,7 @@
 | Workspace | Directory | Port | Primary Purpose & Tech |
 |---|---|---|---|
 | `@openvyapar/shared` | [`shared/`](file:///home/shamblonaut/dev/openvyapar/shared/) | — | **Single Source of Truth**: TypeScript schemas, DTOs, constants, and demo fixtures. |
-| `@openvyapar/backend` | [`backend/`](file:///home/shamblonaut/dev/openvyapar/backend/) | `3001` | Express API, SQLite persistence, HMAC-SHA256 crypto signing, and Mock Issuers (GSTN, Bank, ONDC). |
-| `@openvyapar/agent-service` | [`agent-service/`](file:///home/shamblonaut/dev/openvyapar/agent-service/) | `3002` | Conversational Onboarding, Consent Explainer, Least-Privilege Scoping, and Verifier Anomaly Flagger. |
+| `@openvyapar/backend` | [`backend/`](file:///home/shamblonaut/dev/openvyapar/backend/) | `3001` | Express API, SQLite persistence, HMAC crypto signing, Mock Issuers (GSTN, Bank, ONDC), and AI Agents (`/agent/*`). |
 | `@openvyapar/frontend-wallet` | [`frontend-wallet/`](file:///home/shamblonaut/dev/openvyapar/frontend-wallet/) | `5173` | Owner dashboard: Credential wallet, selective proof generator with Consent AI, and delegation panel. |
 | `@openvyapar/frontend-verifier` | [`frontend-verifier/`](file:///home/shamblonaut/dev/openvyapar/frontend-verifier/) | `5174` | Verifier portal: Selective-disclosure proof inspection, HMAC cryptographic verification, and tamper simulation. |
 | `@openvyapar/frontend-onboarding` | [`frontend-onboarding/`](file:///home/shamblonaut/dev/openvyapar/frontend-onboarding/) | `5175` | Zero-footprint conversational onboarding flow with CSC Agent assistance. |
@@ -39,20 +38,16 @@
 
 ## 3. Workstream Playbooks for Subagents
 
-### 👨‍💻 Workstream A: Backend & Identity Lead (`/backend`)
+### 👨‍💻 Workstream A: Backend & AI Agents Lead (`/backend`)
 - **Key Responsibilities**:
   - Implement endpoints strictly matching [PRD.md](file:///home/shamblonaut/dev/openvyapar/PRD.md) §8.
   - Maintain SQLite schema (`backend/src/db/schema.sql`) and ensure ACID state persistence in `backend/data/`.
   - Ensure mock issuers (`gst_issuer.ts`, `bank_issuer.ts`, `marketplace_issuer.ts`) generate authentic signed credentials.
-- **Verification**: Run `npm --workspace=backend run test`.
-
-### 🤖 Workstream B: AI & Agent Lead (`/agent-service`)
-- **Key Responsibilities**:
-  - Maintain system prompts in `agent-service/prompts/`.
+  - Maintain system prompts in `backend/prompts/` and engine in `backend/src/agents/engine/`.
   - Ensure Onboarding Agent (`/agent/onboard-extract`) parses unstructured Hindi, Kannada, and English transcripts into valid starter claims.
   - Ensure Consent Explainer (`/agent/consent-explain`) explicitly contrasts shared vs. withheld data.
   - Enforce least-privilege scoping in Scoping Agent (`/agent/scope-suggest`) so that tax requests never leak banking or loan permissions.
-- **Verification**: Run `npm --workspace=agent-service run test`.
+- **Verification**: Run `npm --workspace=backend run test`.
 
 ### 🎨 Workstream C: Frontend & Full UI Experience Lead (`/frontend-wallet`, `/frontend-verifier`, `/frontend-onboarding`)
 - **Key Responsibilities**:
@@ -97,15 +92,14 @@ npm run test:demo
 # 4. Reset & Seed Database State
 npm run seed
 
-# 5. Start All 5 Micro-Services Concurrently
+# 5. Start Micro-Services Concurrently
 npm run dev
 
 # 6. Start Individual Micro-Services
-npm run start:backend      # Port 3001
-npm run start:agent        # Port 3002
-npm run start:wallet       # Port 5173
-npm run start:verifier     # Port 5174
-npm run start:onboarding   # Port 5175
+npm run start:backend      # Port 3001 (Backend API + AI Agents)
+npm run start:wallet       # Port 5173 (Owner Wallet)
+npm run start:verifier     # Port 5174 (Verifier Portal)
+npm run start:onboarding   # Port 5175 (CSC Onboarding)
 ```
 
 ---

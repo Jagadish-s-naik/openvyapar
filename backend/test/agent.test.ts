@@ -1,10 +1,10 @@
-import { createAgentApp } from '../src/app.js';
+import { createApp } from '../src/app.js';
 import type { Server } from 'node:http';
 
 async function runAgentTests() {
-  console.log('🧪 Running OpenVyapar Agent Service Integration Tests...');
+  console.log('🧪 Running OpenVyapar Agent Integration Tests (Unified Backend)...');
 
-  const app = createAgentApp();
+  const app = createApp();
   const server: Server = app.listen(3998);
   const baseUrl = 'http://localhost:3998';
 
@@ -94,7 +94,7 @@ async function runAgentTests() {
     console.assert(verifierJson.overall_verdict !== undefined, 'Verdict missing');
     console.log('✅ 5. Verifier Trust Flagger PASSED (Verdict:', verifierJson.overall_verdict, ')');
 
-    console.log('\n🎉 ALL AGENT SERVICE INTEGRATION TESTS PASSED CLEANLY!\n');
+    console.log('\n🎉 ALL AGENT INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();
   }

@@ -18,9 +18,11 @@ export function loadPrompt(filename: string): string {
   try {
     // Look up prompts relative to dist/ or src/
     const possiblePaths = [
+      path.resolve(__dirname, '../../../prompts', filename),
       path.resolve(__dirname, '../../prompts', filename),
       path.resolve(__dirname, '../prompts', filename),
       path.resolve(process.cwd(), 'prompts', filename),
+      path.resolve(process.cwd(), 'backend/prompts', filename),
       path.resolve(process.cwd(), 'agent-service/prompts', filename),
     ];
 

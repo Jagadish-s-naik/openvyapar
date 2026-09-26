@@ -27,8 +27,7 @@ npm run test
 ### 2. Launch Services
 | Service | Port | Command | Purpose |
 |---|---|---|---|
-| **Backend API & DB** | `3001` | `npm run start:backend` | Core state, SQLite DB, HMAC signing, Mock issuers |
-| **AI Agent Service** | `3002` | `npm run start:agent` | Onboarding extraction, Consent explainer, Scope suggester, Verifier trust |
+| **Backend API & AI Agents** | `3001` | `npm run start:backend` | Core state, SQLite DB, HMAC signing, Mock issuers, and AI Agents (`/agent/*`) |
 | **Owner Wallet UI** | `5173` | `npm run start:wallet` | Owner credential dashboard, selective proof generator, delegation panel |
 | **Verifier Portal UI** | `5174` | `npm run start:verifier` | Lender/verifier proof inspection, cryptographic verification, tamper simulator |
 | **CSC Onboarding UI**| `5175` | `npm run start:onboarding`| Zero-footprint conversational onboarding flow |
@@ -50,8 +49,7 @@ See [`demo/script.md`](file:///home/shamblonaut/dev/openvyapar/demo/script.md) f
 ```
 openvyapar/
 ├── shared/            # Single source of truth TypeScript types, constants & mock fixtures
-├── backend/           # Express API, SQLite persistence, HMAC crypto engine & mock issuers (Port 3001)
-├── agent-service/     # AI Agent endpoints & prompts (Onboarding, Consent, Scoping, Verifier) (Port 3002)
+├── backend/           # Express API, SQLite persistence, HMAC crypto engine, Mock Issuers & AI Agents (Port 3001)
 ├── frontend-wallet/   # Owner identity wallet & delegation management (Port 5173)
 ├── frontend-verifier/ # Verifier & underwriting portal (Port 5174)
 ├── frontend-onboarding/# Zero-footprint conversational onboarding UI (Port 5175)

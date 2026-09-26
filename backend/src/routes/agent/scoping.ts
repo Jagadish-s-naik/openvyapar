@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import type { ScopeSuggestRequest } from '@openvyapar/shared';
-import { suggestDelegationScope } from '../engine/scoping.js';
-import { sendAgentError } from '../lib/errors.js';
-import { recordProposalToBackend } from '../utils/recordProposal.js';
+import { suggestDelegationScope } from '../../agents/engine/scoping.js';
+import { sendAgentError } from '../../agents/lib/errors.js';
+import { recordProposalToBackend } from '../../agents/utils/recordProposal.js';
 
 export const scopingRouter = Router();
 

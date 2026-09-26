@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import type { ConsentExplainRequest } from '@openvyapar/shared';
-import { explainConsent } from '../engine/consent.js';
-import { sendAgentError } from '../lib/errors.js';
-import { recordProposalToBackend } from '../utils/recordProposal.js';
+import { explainConsent } from '../../agents/engine/consent.js';
+import { sendAgentError } from '../../agents/lib/errors.js';
+import { recordProposalToBackend } from '../../agents/utils/recordProposal.js';
 
 export const consentRouter = Router();
 
