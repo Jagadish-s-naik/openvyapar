@@ -2,12 +2,15 @@ import { Router, type Request, type Response } from 'express';
 import type {
   IssueMockBatchRequest,
   IssueMockBatchResponse,
+  IssueCscWitnessRequest,
+  IssueCscWitnessResponse,
   MockBatchTemplate,
 } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
 import { issueMockGstCredential } from '../mocks/gst_issuer.js';
 import { issueMockBankCredential } from '../mocks/bank_issuer.js';
 import { issueMockMarketplaceCredential } from '../mocks/marketplace_issuer.js';
+import { issueMockCscWitnessCredential } from '../mocks/csc_issuer.js';
 import { MOCK_BATCH_TEMPLATES } from '../mocks/templates.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
@@ -78,6 +81,85 @@ mocksRouter.post(
         template: templateParam,
         message: `Successfully issued batch credentials for profile template '${templateParam}'.`,
         credentials: [gstCred, bankCred, mktCred],
+      };
+
+      res.status(201).json(response);
+    } catch (err: any) {
+      sendError(res, 500, err.message || 'Internal server error');
+    }
+  }
+);
+
+/**
+ * POST /mocks/csc-witness
+ * Simulates CSC Field Agent Physical Witnessing:
+ * Geo-tags physical shop coordinates, generates photo verification hash,
+ * and issues an authentic HMAC-signed self_attested credential for Beat 1 zero-footprint onboarding.
+ */
+mocksRouter.post(
+  '/csc-witness',
+  (req: Request<any, any, IssueCscWitnessRequest>, res: Response) => {
+    try {
+      const {
+        business_id,
+        csc_agent_id,
+        agent_name,
+        csc_center_id,
+        coordinates,
+        claim_overrides,
+        agent_action_id,
+      } = req.body;
+
+      if (!business_id) {
+        return sendError(res, 400, 'Missing required field: business_id');
+      }
+
+      const business = db.getBusiness(business_id);
+      if (!business) {
+        return sendError(res, 404, `Business with id ${business_id} not found`);
+      }
+
+      const cscCred = issueMockCscWitnessCredential(business_id, {
+        csc_agent_id,
+        agent_name,
+        csc_center_id,
+        coordinates,
+        claim_overrides,
+        agent_action_id,
+      });
+
+      db.setCredential(cscCred);
+
+      if (agent_action_id) {
+        const action = db.getAgentAction(agent_action_id);
+        if (action && action.human_decision === 'pending') {
+          action.human_decision = 'confirmed';
+          db.setAgentAction(action);
+        }
+      }
+
+      const claim = cscCred.claim as any;
+      recordAuditLog(business_id, 'field_agent', claim.witnessed_by_csc_agent_id || 'did:person:csc001', 'issue_credential', true, {
+        credential_id: cscCred.credential_id,
+        type: 'self_attested',
+        csc_center_id: claim.csc_center_id,
+        location_coordinates: claim.location_coordinates,
+        photo_verification_hash: claim.photo_verification_hash,
+      });
+
+      const response: IssueCscWitnessResponse = {
+        success: true,
+        business_id,
+        credential: cscCred,
+        witness_summary: {
+          agent_id: claim.witnessed_by_csc_agent_id,
+          agent_name: claim.witness_agent_name,
+          csc_center_id: claim.csc_center_id,
+          location_coordinates: claim.location_coordinates,
+          photo_verification_hash: claim.photo_verification_hash,
+          verified_at: cscCred.issued_at,
+        },
+        message: 'Physical premises verified and HMAC-signed CSC witness credential issued successfully.',
       };
 
       res.status(201).json(response);

@@ -3,7 +3,7 @@
  * Matching PRD §7
  */
 
-export type AuditActorType = 'owner' | 'delegate' | 'agent_suggestion' | 'issuer' | 'admin';
+export type AuditActorType = 'owner' | 'delegate' | 'agent_suggestion' | 'issuer' | 'field_agent' | 'admin';
 
 export interface AuditLog {
   log_id: string; // UUID

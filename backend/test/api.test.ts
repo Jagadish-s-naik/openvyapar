@@ -564,6 +564,52 @@ async function runApiTests() {
 
     console.log('✅ 16. Dynamic Mock Configuration, Profile Presets & Overrides PASSED');
 
+    // 17. Test CSC Agent Field Witnessing & Geo-Photo Attestation (Phase 4 Task 2)
+    // 17a. Issue CSC witness credential with geolocation and photo verification
+    const cscWitnessRes = await fetch(`${baseUrl}/mocks/csc-witness`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: newBizId,
+        csc_agent_id: 'did:person:csc001',
+        agent_name: 'Aarav Patel (VLE #UP-VAR-8821)',
+        csc_center_id: 'CSC-VAR-0912',
+        coordinates: { lat: 25.3176, lng: 82.9739 },
+        claim_overrides: {
+          business_nature: 'Traditional Banarasi Handloom & Silk Weaving',
+          approx_monthly_revenue: 'INR 3,50,000',
+        },
+      }),
+    });
+    const cscWitnessJson = await cscWitnessRes.json();
+    console.assert(cscWitnessRes.status === 201 && cscWitnessJson.success === true, 'CSC witness issuance failed');
+    console.assert(cscWitnessJson.credential.issuer === 'agent_witnessed', 'Issuer should be agent_witnessed');
+    console.assert(cscWitnessJson.credential.type === 'self_attested', 'Credential type should be self_attested');
+    console.assert(cscWitnessJson.credential.claim.witnessed_by_csc_agent_id === 'did:person:csc001', 'CSC agent ID mismatch');
+    console.assert(cscWitnessJson.credential.claim.location_coordinates.lat === 25.3176, 'Geo latitude mismatch');
+    console.assert(typeof cscWitnessJson.credential.claim.photo_verification_hash === 'string', 'Photo verification hash missing');
+    console.assert(cscWitnessJson.witness_summary.csc_center_id === 'CSC-VAR-0912', 'Center ID mismatch');
+
+    // Verify HMAC signature
+    const cscSig = verifyCredentialSignature(cscWitnessJson.credential);
+    console.assert(cscSig.isValid === true, 'CSC Witness credential must have authentic HMAC signature');
+
+    // 17b. Verify credential in business wallet list
+    const bizCredsRes = await fetch(`${baseUrl}/credentials/${newBizId}`);
+    const bizCredsJson = await bizCredsRes.json();
+    const foundCscCred = bizCredsJson.credentials.find((c: any) => c.credential_id === cscWitnessJson.credential.credential_id);
+    console.assert(foundCscCred !== undefined, 'CSC credential should be retrievable from business credentials');
+
+    // 17c. Error handling for non-existent business
+    const nonExistentBizRes = await fetch(`${baseUrl}/mocks/csc-witness`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ business_id: 'did:biz:doesnotexist999' }),
+    });
+    console.assert(nonExistentBizRes.status === 404, 'Non-existent business should return 404');
+
+    console.log('✅ 17. CSC Agent Field Witnessing, Geo-tagging & Photo Attestation PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

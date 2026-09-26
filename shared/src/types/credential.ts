@@ -48,8 +48,12 @@ export interface SelfAttestedClaimPayload {
   established_year: number;
   approx_monthly_revenue: string;
   witnessed_by_csc_agent_id?: string;
+  witness_agent_name?: string;
   witness_notes?: string;
   location_coordinates?: { lat: number; lng: number };
+  photo_verification_hash?: string;
+  csc_center_id?: string;
+  physical_verification_timestamp?: string;
 }
 
 export type CredentialClaim =

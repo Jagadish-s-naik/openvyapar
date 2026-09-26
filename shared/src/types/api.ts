@@ -5,7 +5,7 @@
 
 import type { Business, BusinessMetadata, BusinessStatus, Person } from './business.js';
 import type { BusinessRole, RoleStatus, RoleType } from './role.js';
-import type { Credential, CredentialClaim, CredentialType, IssuerType, GstClaimPayload, BankIncomeClaimPayload, MarketplaceClaimPayload } from './credential.js';
+import type { Credential, CredentialClaim, CredentialType, IssuerType, GstClaimPayload, BankIncomeClaimPayload, MarketplaceClaimPayload, SelfAttestedClaimPayload } from './credential.js';
 import type { DelegationScope, DelegationToken } from './delegation.js';
 import type { ProofPurpose, ProofShare, VerificationStatus } from './proof.js';
 import type { AgentAction, AgentType, HumanDecision } from './audit.js';
@@ -288,5 +288,31 @@ export interface IssueMockBatchResponse {
   message: string;
   credentials: Credential[];
 }
+
+export interface IssueCscWitnessRequest {
+  business_id: string;
+  csc_agent_id?: string;
+  agent_name?: string;
+  csc_center_id?: string;
+  coordinates?: { lat: number; lng: number };
+  claim_overrides?: Partial<SelfAttestedClaimPayload>;
+  agent_action_id?: string;
+}
+
+export interface IssueCscWitnessResponse {
+  success: boolean;
+  business_id: string;
+  credential: Credential;
+  witness_summary: {
+    agent_id: string;
+    agent_name: string;
+    csc_center_id: string;
+    location_coordinates: { lat: number; lng: number };
+    photo_verification_hash: string;
+    verified_at: string;
+  };
+  message: string;
+}
+
 
 

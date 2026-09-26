@@ -31,7 +31,7 @@ The core data persistence, HMAC cryptography, and baseline REST endpoints are fu
 graph LR
     Phase1[Phase 1: Core API & Crypto ✅] --> Phase2[Phase 2: Agent Handshake & Guardrails ✅]
     Phase2 --> Phase3[Phase 3: Proof Engine & Verification ✅]
-    Phase3 --> Phase4[Phase 4: Mock Issuers & Anomaly Sim]
+    Phase3 --> Phase4[Phase 4: Mock Issuers & Anomaly Sim ✅]
     Phase4 --> Phase5[Phase 5: Demo Hardening & Snapshots]
 ```
 
@@ -83,8 +83,9 @@ graph LR
      - `high_growth_merchant`: >5,000 orders on ONDC, 4.9 rating.
    - Support custom claim payload overrides for fine-grained simulation.
    - Validate HMAC signature integrity on all batch-issued institutional credentials.
-2. [ ] **CSC Agent Witnessing Flow**:
+2. [x] **CSC Agent Witnessing Flow**:
    - Implement `POST /mocks/csc-witness` to simulate physical geolocation tag and CSC photo verification claim generation for Beat 1 zero-footprint onboarding.
+   - Persist HMAC-signed `self_attested` credential and record rich witness metadata in audit trail.
 
 ---
 
@@ -119,6 +120,7 @@ graph LR
 | `POST` | `/proof/generate` | Generate selective-disclosure proof token | Yes (`agent_action_id`) |
 | `GET` | `/proof/verify/:proof_id` | Verifier inspection & HMAC validation | No |
 | `POST` | `/mocks/issue-batch/:business_id` | Beat 2 batch issuance (GST, Bank, Marketplace) | No (Simulation) |
+| `POST` | `/mocks/csc-witness` | Beat 1 CSC physical field attestation & geo-photo | Yes (`agent_action_id`) |
 | `GET` | `/audit/:business_id` | Fetch immutable audit trail & agent proposals | No |
 | `POST` | `/audit/agent-action` | Record agent proposal (`pending` state) | No (Proposal only) |
 
@@ -129,8 +131,9 @@ graph LR
 - [x] Run shared types verification: `npm --workspace=shared run test`
 - [x] Run backend integration test suite: `npm --workspace=backend run test`
 - [x] Run multi-service demo narrative: `npm run test:demo`
-- [ ] Add unit tests for partial claim disclosure & redaction
-- [ ] Add unit tests for idempotency on confirmed agent proposals
+- [x] Add unit tests for partial claim disclosure & redaction
+- [x] Add unit tests for idempotency on confirmed agent proposals
+- [x] Add tests for dynamic mock templates and CSC field witnessing
 - [ ] Add test for `POST /admin/reset` state reload
 
 ---
