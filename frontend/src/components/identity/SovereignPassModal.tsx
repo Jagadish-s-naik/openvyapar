@@ -28,7 +28,8 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
 
   if (!isOpen) return null;
 
-  const verifierUrl = `http://localhost:5174/?did=${encodeURIComponent(businessId)}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+  const verifierUrl = `${origin}/verifier?proof_id=proof-loan-001&did=${encodeURIComponent(businessId)}`;
 
   const handlePrint = () => {
     window.print();

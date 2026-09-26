@@ -11,10 +11,6 @@ interface TopBarProps {
 
 export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
   const location = useLocation();
-  const isOnboarding = location.pathname === '/onboarding';
-  const isVerifier = location.pathname === '/verifier';
-  const isWallet = !isOnboarding && !isVerifier;
-
   const {
     businessName,
     delegations,
@@ -50,6 +46,10 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
       setIsIssuingBatch(false);
     }
   };
+
+  const isOnboarding = location.pathname === '/onboarding';
+  const isVerifier = location.pathname === '/verifier';
+  const isOwnerWallet = !isOnboarding && !isVerifier;
 
   return (
     <header className="h-16 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none">
@@ -90,13 +90,13 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           to="/onboarding"
           className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
             isOnboarding
-              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+              ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
           title="Step 1: Rural Assisted Voice Onboarding in CSC Center"
         >
           <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
-            isOnboarding ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
+            isOnboarding ? 'bg-slate-950 text-emerald-300' : 'bg-slate-200 text-slate-700'
           }`}>1</span>
           <span>CSC Kiosk</span>
         </Link>
@@ -106,14 +106,14 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         <Link
           to="/"
           className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-            isWallet
-              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+            isOwnerWallet
+              ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
           title="Step 2: Business Owner Credential Wallet"
         >
           <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
-            isWallet ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
+            isOwnerWallet ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
           }`}>2</span>
           <span>Owner Wallet</span>
         </Link>
@@ -124,7 +124,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           to="/verifier"
           className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
             isVerifier
-              ? 'bg-amber-400 text-slate-950 shadow-xs font-bold'
+              ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
           title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"

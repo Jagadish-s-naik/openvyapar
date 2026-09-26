@@ -50,7 +50,8 @@ export const VerifierPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
 
-  const [proofId, setProofId] = useState(searchParams.get('proof_id') || 'proof-loan-001');
+  const initialProofId = searchParams.get('proof_id') || searchParams.get('did') || 'proof-loan-001';
+  const [proofId, setProofId] = useState(initialProofId);
   const [loading, setLoading] = useState(false);
   const [isTampering, setIsTampering] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerifyInspectionResult | null>(null);
@@ -126,8 +127,12 @@ export const VerifierPage = () => {
 
   useEffect(() => {
     let active = true;
-    const urlProofId = searchParams.get('proof_id');
+    const urlProofId = searchParams.get('proof_id') || searchParams.get('did');
     const targetId = urlProofId || proofId;
+
+    if (urlProofId && urlProofId !== proofId) {
+      setProofId(urlProofId);
+    }
 
     (async () => {
       if (active) {
@@ -138,7 +143,7 @@ export const VerifierPage = () => {
     return () => {
       active = false;
     };
-  }, [searchParams, proofId, isTampering, handleInspect]);
+  }, [searchParams, isTampering, handleInspect]);
 
   const toggleTamper = () => {
     setIsTampering((prev) => !prev);

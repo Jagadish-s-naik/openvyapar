@@ -114,7 +114,8 @@ export const CredentialsPage = () => {
         agentActionId: consentExplanation?.agent_action_id,
       });
 
-      const verifierUrl = `http://localhost:5173/verifier?proof_id=${res.proof.proof_id}`;
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+      const verifierUrl = `${origin}/verifier?proof_id=${res.proof.proof_id}`;
       setGeneratedProofResult({
         proofId: res.proof.proof_id,
         verifyUrl: verifierUrl,
