@@ -170,6 +170,8 @@ export async function verifyProof(params: {
   valid: boolean;
   tampered: boolean;
   proof?: ProofShare;
+  business?: Business;
+  credentials?: Credential[];
   trust_score?: number;
   message?: string;
 }> {

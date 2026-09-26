@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n/useTranslation';
-import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award } from 'lucide-react';
+import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, Clock } from 'lucide-react';
+import { formatDate, formatRelativeTime } from '../utils/formatters';
 
 export const DashboardPage = () => {
   const {
@@ -171,7 +172,7 @@ export const DashboardPage = () => {
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-400 font-mono">
-                    Token ID: {token.token_id} · Created: {new Date(token.created_at).toLocaleString()}
+                    Token ID: {token.token_id} · Created: {formatDate(token.created_at)} ({formatRelativeTime(token.created_at)})
                   </div>
                 </div>
                 <Link
@@ -225,8 +226,10 @@ export const DashboardPage = () => {
                     {event.title} — {event.description}
                   </div>
                 </div>
-                <div className="text-slate-400 font-mono text-[11px] sm:text-right shrink-0">
-                  {new Date(event.timestamp).toLocaleString()}
+                <div className="text-slate-500 text-xs sm:text-right shrink-0 flex items-center gap-1.5 font-mono">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="font-semibold text-slate-700">{formatDate(event.timestamp)}</span>
+                  <span className="text-[11px] text-slate-400">({formatRelativeTime(event.timestamp)})</span>
                 </div>
               </div>
             ))

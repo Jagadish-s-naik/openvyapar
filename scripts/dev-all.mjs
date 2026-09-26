@@ -31,6 +31,7 @@ for (const svc of SERVICES) {
     cwd: svc.cwd,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, FORCE_COLOR: '1' },
+    shell: true,
   });
 
   const prefix = `${svc.color}[${svc.name}]${RESET} `;

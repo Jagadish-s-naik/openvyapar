@@ -10,7 +10,7 @@ seedDatabase();
 const app = createApp();
 
 app.listen(PORT, () => {
-  const aiProvider = process.env.GROQ_API_KEY ? `Groq (${process.env.GROQ_MODEL || 'openai/gpt-oss-120b'})` : (process.env.OPENAI_API_KEY ? `OpenAI (${process.env.OPENAI_MODEL || 'gpt-4o-mini'})` : 'Deterministic Fallback');
+  const aiProvider = process.env.GROQ_API_KEY ? `Groq (${process.env.GROQ_MODEL || 'openai/gpt-oss-20b'})` : (process.env.OPENAI_API_KEY ? `OpenAI (${process.env.OPENAI_MODEL || 'gpt-4o-mini'})` : 'Deterministic Fallback');
   console.log(`🚀 OpenVyapar Backend API listening on port ${PORT}`);
   console.log(`🧠 AI Engine:    ${aiProvider}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);

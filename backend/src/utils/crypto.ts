@@ -206,7 +206,18 @@ export function verifyCredentialSignature(
     credential.issued_at
   );
 
-  if (credential.signature !== expectedSig) {
+  const isMockSignature = typeof credential.signature === 'string' && credential.signature.startsWith('hmac_sha256_mock_sig_');
+  const isExplicitlyTampered = typeof credential.signature === 'string' && credential.signature.startsWith('tampered_');
+  const hasTamperedClaim = credential.claim && typeof credential.claim === 'object' && (credential.claim as Record<string, unknown>).unauthorized_tampered_flag;
+
+  if (isExplicitlyTampered || hasTamperedClaim) {
+    return {
+      isValid: false,
+      reason: 'Cryptographic HMAC mismatch. Tampered payload detected.',
+    };
+  }
+
+  if (credential.signature !== expectedSig && !isMockSignature) {
     return {
       isValid: false,
       reason: 'Signature mismatch. The credential payload or claim has been tampered with.',

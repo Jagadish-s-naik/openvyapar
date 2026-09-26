@@ -13,17 +13,17 @@ import {
   Clock,
   QrCode,
   ArrowRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { verifyProof, analyzeVerifierTrust, getProof } from '../api/client';
 import { useTranslation } from '../i18n/useTranslation';
+import type { ProofShare, Credential, Business } from '@openvyapar/shared';
 
 const SAMPLE_PROOFS = [
-  { id: 'proof-loan-001', label: 'Sharma General Store (MSME Loan Proof)', desc: 'GST + ONDC Disclosures' },
-  { id: 'proof-gst-002', label: 'Sri Lakshmi Textiles (GST Filing Proof)', desc: 'Zero Tax Arrears' },
-  { id: 'proof-mkt-003', label: 'Anand Silk Weaving (ONDC Volume)', desc: '1,420 Order History' },
+  { id: 'proof-loan-001', label: 'Sharma General Store (MSME Loan Proof)', desc: 'GST + ONDC + Bank Disclosures' },
+  { id: 'proof-gst-002', label: 'Sri Lakshmi Textiles (GST Filing Proof)', desc: 'Zero Tax Arrears & Udyam' },
+  { id: 'proof-mkt-003', label: 'Anand Silk Weaving (ONDC Volume)', desc: '2,840 Order History & GST' },
 ];
-
-import type { ProofShare, Credential } from '@openvyapar/shared';
 
 export interface VerifyInspectionResult {
   success: boolean;
@@ -31,6 +31,8 @@ export interface VerifyInspectionResult {
   tampered?: boolean;
   verification_status?: string;
   proof?: ProofShare;
+  business?: Business;
+  credentials?: Credential[];
   trust_score?: number;
   message?: string;
   [key: string]: unknown;
@@ -61,7 +63,7 @@ export const VerifierPage = () => {
   const [deskPin] = useState('SBI-DESK-7492');
   const [showQrModal, setShowQrModal] = useState(false);
 
-  // Synchronize proofId when URL query parameters change without causing setState in effect
+  // Synchronize proofId when URL query parameters change
   if (urlProofId && urlProofId !== prevUrlProofId) {
     setPrevUrlProofId(urlProofId);
     setProofId(urlProofId);
@@ -80,7 +82,7 @@ export const VerifierPage = () => {
           setRawProof(proofData);
         }
       } catch {
-        // Continue with mock or synthetic if proof not found in active memory
+        // Continue with verify call
       }
 
       // 2. Cryptographic proof verification
@@ -91,16 +93,24 @@ export const VerifierPage = () => {
       });
       setVerificationResult(verifyRes);
 
+      const activeProof = verifyRes.proof || proofData;
+      if (activeProof) {
+        setRawProof(activeProof);
+      }
+
+      const activeCredentials = (verifyRes.credentials || (activeProof?.disclosed_credentials as Credential[]) || []);
+      const activeBusinessId = activeProof?.business_id || verifyRes?.business?.business_id || 'did:biz:sharma001';
+
       // 3. AI Trust analysis
       try {
         const trustRes = await analyzeVerifierTrust({
           proof_id: idToInspect.trim(),
-          business_id: proofData?.business_id || 'did:biz:sharma001',
+          business_id: activeBusinessId,
           business_status: 'active',
-          credentials: (proofData?.disclosed_credentials as Credential[]) || [
+          credentials: activeCredentials.length > 0 ? activeCredentials : [
             {
               credential_id: 'cred-gst-002',
-              business_id: 'did:biz:sharma001',
+              business_id: activeBusinessId,
               type: 'gst_compliant',
               issuer: 'gst_mock',
               issuer_signature: 'sig_mock_001',
@@ -119,10 +129,10 @@ export const VerifierPage = () => {
         // Fallback trust status
         setTrustAnalysis({
           overall_verdict: simulateTamper ? 'tampered_data' : 'verified_clean',
-          trust_score: simulateTamper ? 15 : 88,
+          trust_score: simulateTamper ? 15 : (verifyRes.trust_score || 88),
           flags: simulateTamper
             ? ['HMAC signature payload divergence detected', 'Modified turnover claim exceeds verified ledger bracket']
-            : ['Authentic GSTN cryptographic signature', 'ONDC verified transaction count', 'Single-use nonce verified'],
+            : ['Authentic issuer cryptographic signatures verified', 'Disclosed credentials match root registry', 'Single-use nonce verified'],
         });
       }
     } catch (err: unknown) {
@@ -157,6 +167,80 @@ export const VerifierPage = () => {
   };
 
   const isValid = verificationResult?.valid === true && !isTampering;
+  const displayedCredentials = (verificationResult?.credentials || (rawProof?.disclosed_credentials as Credential[]) || []);
+  const displayedBusiness = verificationResult?.business;
+
+  const formatCredType = (type: string) => {
+    switch (type) {
+      case 'gst_compliant':
+        return 'GST Compliance Certificate';
+      case 'income_bracket':
+        return 'Turnover Bracket & Current Account Attestation';
+      case 'order_history':
+        return 'ONDC Merchant Order History';
+      case 'self_attested':
+        return 'CSC Witnessed Starter Claim';
+      default:
+        return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+  };
+
+  const formatIssuer = (issuer: string) => {
+    switch (issuer) {
+      case 'gst_mock':
+        return 'Goods and Services Tax Network (GSTN)';
+      case 'bank_mock':
+        return 'State Bank of India — MSME Sahay';
+      case 'marketplace_mock':
+        return 'BharatMart (ONDC Open Network)';
+      case 'agent_witnessed':
+        return 'CSC Field Agent Witness (did:person:csc001)';
+      default:
+        return issuer;
+    }
+  };
+
+  const formatClaimHighlights = (cred: Credential) => {
+    const claim = cred.claim as Record<string, unknown>;
+    const highlights: { label: string; value: string; isTampered?: boolean }[] = [];
+
+    if (claim.gstin) {
+      highlights.push({ label: 'GSTIN', value: String(claim.gstin) });
+    }
+    if (claim.active_compliance_score !== undefined) {
+      highlights.push({ label: 'Compliance Score', value: `${claim.active_compliance_score}% (All on-time)` });
+    }
+    if (claim.turnover_bracket) {
+      highlights.push({
+        label: 'Turnover Bracket',
+        value: isTampering ? '₹1.5Cr - ₹2.5Cr [TAMPERED]' : String(claim.turnover_bracket).replace(/_/g, ' '),
+        isTampered: isTampering,
+      });
+    }
+    if (claim.bank_name) {
+      highlights.push({ label: 'Bank', value: String(claim.bank_name) });
+    }
+    if (claim.total_completed_orders !== undefined) {
+      highlights.push({ label: 'Completed Orders', value: `${Number(claim.total_completed_orders).toLocaleString()} Deliveries` });
+    }
+    if (claim.customer_satisfaction_rating !== undefined) {
+      highlights.push({ label: 'Rating', value: `${claim.customer_satisfaction_rating} ★ (${claim.fulfillment_rate_pct || 99}% Fulfillment)` });
+    }
+    if (claim.business_nature) {
+      highlights.push({ label: 'Nature', value: String(claim.business_nature) });
+    }
+    if (claim.doc_number) {
+      highlights.push({ label: 'Doc Number', value: String(claim.doc_number) });
+    }
+    if (claim.enterprise_type) {
+      highlights.push({ label: 'Category', value: String(claim.enterprise_type) });
+    }
+    if (claim.approx_monthly_revenue) {
+      highlights.push({ label: 'Est. Monthly Sales', value: String(claim.approx_monthly_revenue) });
+    }
+
+    return highlights;
+  };
 
   return (
     <div className="space-y-6">
@@ -255,6 +339,39 @@ export const VerifierPage = () => {
         </div>
       </div>
 
+      {/* Target Business Metadata Banner */}
+      {displayedBusiness && (
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-base shrink-0">
+              🏪
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm">{displayedBusiness.name}</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 font-mono">
+                  {displayedBusiness.business_id}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {(displayedBusiness.metadata?.location as string) || (displayedBusiness.metadata?.sector as string) || 'Verified MSME Entity'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-xs">
+            <div className="text-right">
+              <span className="text-slate-400 block text-[10px]">Declared Purpose:</span>
+              <span className="font-semibold text-slate-800">{rawProof?.purpose || 'MSME Verification'}</span>
+            </div>
+            <div className="text-right border-l pl-4 border-slate-200">
+              <span className="text-slate-400 block text-[10px]">Shared With:</span>
+              <span className="font-semibold text-slate-800">{rawProof?.shared_with || 'Viksit Capital'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cryptographic Verification Status Banner */}
       <div
         className={`rounded-2xl p-5 border shadow-sm transition-all ${
@@ -302,7 +419,7 @@ export const VerifierPage = () => {
                 isValid ? 'text-emerald-700' : 'text-rose-700'
               }`}
             >
-              {isValid ? `${trustAnalysis?.trust_score || 88}/100` : '15/100'}
+              {isValid ? `${trustAnalysis?.trust_score || verificationResult?.trust_score || 95}/100` : '15/100'}
             </span>
           </div>
         </div>
@@ -340,11 +457,14 @@ export const VerifierPage = () => {
               <div>
                 <span className="text-xs font-semibold text-slate-600 block mb-2">Evaluated Verification Rules:</span>
                 <ul className="space-y-2">
-                  {(trustAnalysis?.flags || [
-                    'Issuer public key matches national GSTN registry',
+                  {(trustAnalysis?.flags || (isValid ? [
+                    `Authentic cryptographic credentials disclosed for ${displayedBusiness?.name || 'entity'}`,
+                    'Issuer signatures match national root registries (GSTN, Banks, ONDC)',
                     'Single-use nonce verified; zero double-spend detected',
-                    'Disclosed turnover matches accredited bank bracket',
-                  ]).map((flag, idx: number) => {
+                  ] : [
+                    'HMAC signature payload divergence detected',
+                    'Modified turnover or compliance claim exceeds verified ledger',
+                  ])).map((flag, idx: number) => {
                     const flagText = typeof flag === 'string' ? flag : flag.message;
                     return (
                       <li key={idx} className="text-xs flex items-start gap-2 text-slate-700">
@@ -376,12 +496,14 @@ export const VerifierPage = () => {
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-1.5">
                   <Eye className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Shared / Disclosed Attributes</span>
+                  <span>Shared / Disclosed Attributes ({displayedCredentials.length} Credentials)</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-950 space-y-1 font-mono">
-                  <div>• GST Compliance Rating: Active (No Arrears)</div>
-                  <div>• ONDC Fulfilled Orders: 1,420 Deliveries</div>
-                  <div>• Verified Annual Turnover: ₹25L - ₹50L</div>
+                  {displayedCredentials.map((c, idx) => (
+                    <div key={idx}>
+                      • {formatCredType(c.type)}: Verified by {formatIssuer(c.issuer)}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -394,6 +516,7 @@ export const VerifierPage = () => {
                   <div>• [REDACTED] Raw Bank Account Number & IFSC</div>
                   <div>• [REDACTED] Detailed Customer Contact Lists</div>
                   <div>• [REDACTED] Individual Line-Item Invoice Margins</div>
+                  <div>• [REDACTED] Aadhaar / Personal Biometric Data</div>
                 </div>
               </div>
             </div>
@@ -407,75 +530,94 @@ export const VerifierPage = () => {
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-slate-700" />
                 <h3 className="text-sm font-bold text-slate-900">
-                  Disclosed Credentials in Proof ({rawProof?.disclosed_credentials?.length || 2})
+                  Disclosed Credentials in Proof ({displayedCredentials.length})
                 </h3>
               </div>
               <span className="text-xs font-mono text-slate-500">{proofId}</span>
             </div>
 
-            {/* Disclosed Credentials List */}
+            {/* Dynamic Disclosed Credentials List */}
             <div className="space-y-4">
-              {/* Credential 1: GST */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                      GST_COMPLIANT
-                    </span>
-                    <span className="text-xs font-semibold text-slate-900">Goods & Services Tax Network</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-500">did:issuer:gstn01</span>
+              {displayedCredentials.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs border border-dashed rounded-xl">
+                  No credentials attached to this proof bundle.
                 </div>
+              ) : (
+                displayedCredentials.map((cred) => {
+                  const highlights = formatClaimHighlights(cred);
+                  const credIsTampered = isTampering && (cred.type === 'income_bracket' || cred.type === 'gst_compliant');
 
-                <div className="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-lg border border-slate-200">
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Filing Frequency:</span>
-                    <span className="font-semibold text-slate-800">Monthly (GSTR-3B Regular)</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Status:</span>
-                    <span className="font-semibold text-emerald-600">Active & Compliant</span>
-                  </div>
-                </div>
+                  return (
+                    <div
+                      key={cred.credential_id}
+                      className={`p-4 rounded-xl border transition-colors space-y-3 ${
+                        credIsTampered
+                          ? 'border-rose-300 bg-rose-50/50'
+                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase ${
+                              cred.type === 'gst_compliant'
+                                ? 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                                : cred.type === 'income_bracket'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : cred.type === 'order_history'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-slate-200 text-slate-800 border border-slate-300'
+                            }`}
+                          >
+                            {cred.type.replace(/_/g, ' ')}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-900">{formatIssuer(cred.issuer)}</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-500">{cred.credential_id}</span>
+                      </div>
 
-                <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
-                  <span>HMAC: 3a9f7e8...c940</span>
-                  <span className="text-emerald-700 font-semibold">✓ Cryptographically Sealed</span>
-                </div>
-              </div>
+                      {/* Claim Key-Values Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-white p-3 rounded-lg border border-slate-200">
+                        {highlights.map((item, hIdx) => (
+                          <div key={hIdx}>
+                            <span className="text-slate-500 block text-[11px]">{item.label}:</span>
+                            <span
+                              className={`font-semibold ${
+                                item.isTampered
+                                  ? 'text-rose-600 font-mono font-bold'
+                                  : 'text-slate-800'
+                              }`}
+                            >
+                              {item.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
 
-              {/* Credential 2: Bank Turnover */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                      TURNOVER_BRACKET
-                    </span>
-                    <span className="text-xs font-semibold text-slate-900">State Bank of India</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-500">did:issuer:sbi01</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-lg border border-slate-200">
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Verified Turnover Bracket:</span>
-                    <span className="font-semibold text-slate-800 font-mono">
-                      {isTampering ? '₹1.5Cr - ₹2.5Cr [TAMPERED]' : '₹25L - ₹50L'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Account Stability:</span>
-                    <span className="font-semibold text-slate-800">Verified &gt; 3 Years</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
-                  <span>HMAC: {isTampering ? 'CORRUPT_DIGEST' : '88f21e0...bb12'}</span>
-                  <span className={isTampering ? 'text-rose-600 font-bold' : 'text-emerald-700 font-semibold'}>
-                    {isTampering ? '✗ Signature Mismatch' : '✓ Cryptographically Sealed'}
-                  </span>
-                </div>
-              </div>
+                      {/* Cryptographic Signature Integrity Row */}
+                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+                        <span>
+                          HMAC:{' '}
+                          {credIsTampered
+                            ? 'CORRUPT_DIGEST_SIG'
+                            : cred.signature
+                            ? `${cred.signature.slice(0, 8)}...${cred.signature.slice(-6)}`
+                            : '3a9f7e8...c940'}
+                        </span>
+                        <span
+                          className={
+                            credIsTampered
+                              ? 'text-rose-600 font-bold'
+                              : 'text-emerald-700 font-semibold'
+                          }
+                        >
+                          {credIsTampered ? '✗ Signature Mismatch' : '✓ Cryptographically Sealed'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Fast Action Underwriter Buttons */}
@@ -487,9 +629,10 @@ export const VerifierPage = () => {
               <div className="flex items-center gap-2">
                 <button
                   disabled={!isValid}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 shadow-xs"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 shadow-xs flex items-center gap-1.5"
                 >
-                  Approve Loan Line
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Approve Underwriting Decision</span>
                 </button>
               </div>
             </div>

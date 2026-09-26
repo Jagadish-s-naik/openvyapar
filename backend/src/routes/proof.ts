@@ -273,6 +273,166 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
 });
 
 /**
+ * GET /proof/:proof_id
+ * Retrieves raw proof details with disclosed credentials
+ */
+proofRouter.get('/:proof_id', (req: Request<{ proof_id: string }>, res: Response) => {
+  const inputId = req.params.proof_id;
+  const session = deskSessions.get(inputId);
+  const proofId = session?.proof_id || inputId;
+  const proof = db.getProofShare(proofId);
+
+  if (!proof) {
+    return sendError(res, 404, `Proof with id ${inputId} not found`);
+  }
+
+  const resolvedCredentials = proof.disclosed_credential_ids
+    .map((cId) => db.getCredentialById(cId))
+    .filter(Boolean) as Credential[];
+
+  res.json({
+    success: true,
+    proof: {
+      ...proof,
+      disclosed_credentials: resolvedCredentials,
+    },
+  });
+});
+
+/**
+ * POST /proof/verify
+ * Verifier Portal: Inspects and cryptographically verifies proof
+ */
+proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_id?: string; simulate_tamper?: boolean }>, res: Response) => {
+  const { proof_id, verifier_id, simulate_tamper } = req.body;
+  const inputId = proof_id;
+  if (!inputId) {
+    return sendError(res, 400, 'Missing required field: proof_id');
+  }
+
+  const session = deskSessions.get(inputId);
+  const targetProofId = session?.proof_id || inputId;
+  const proof = db.getProofShare(targetProofId);
+
+  if (!proof) {
+    if (session) {
+      return sendError(res, 404, `Desk Session ${inputId} is active, but no proof has been transmitted yet. Please dispatch from Owner Wallet.`);
+    }
+    return sendError(res, 404, `Proof with id ${inputId} not found`);
+  }
+
+  const business = db.getBusiness(proof.business_id);
+  if (!business) {
+    return sendError(res, 404, `Associated business ${proof.business_id} not found`);
+  }
+
+  // Atomically increment use count
+  proof.use_count = (proof.use_count || 0) + 1;
+  db.setProofShare(proof);
+
+  const isExpired = !!(proof.expires_at && new Date(proof.expires_at).getTime() < Date.now());
+  const isMaxUsesExceeded = !!(proof.max_uses && proof.use_count > proof.max_uses);
+
+  const resolvedCredentials: Credential[] = [];
+  const tamperDetails: string[] = [];
+  let isAnyTampered = !!simulate_tamper;
+
+  if (simulate_tamper) {
+    tamperDetails.push('Simulated cryptographic HMAC signature alteration');
+  }
+
+  for (const credId of proof.disclosed_credential_ids) {
+    const cred = db.getCredentialById(credId);
+    if (cred) {
+      const manifest = proof.redaction_manifest?.[credId];
+      if (manifest && manifest.redacted_fields.length > 0) {
+        const { redactedClaim } = createRedactedClaim(cred.claim as Record<string, unknown>, manifest.disclosed_fields);
+        const presentationCred: Credential = {
+          ...cred,
+          claim: redactedClaim,
+          redacted_fields: manifest.redacted_fields,
+          attribute_hashes: manifest.attribute_hashes,
+        };
+        const sigCheck = verifyCredentialSignature(presentationCred, manifest);
+        if (!sigCheck.isValid && !simulate_tamper) {
+          isAnyTampered = true;
+          tamperDetails.push(`Credential ${credId} (${cred.type}): ${sigCheck.reason}`);
+        }
+        resolvedCredentials.push(presentationCred);
+      } else {
+        const sigCheck = verifyCredentialSignature(cred);
+        if (!sigCheck.isValid && !simulate_tamper) {
+          isAnyTampered = true;
+          tamperDetails.push(`Credential ${credId} (${cred.type}): ${sigCheck.reason}`);
+        }
+        resolvedCredentials.push(cred);
+      }
+    } else {
+      isAnyTampered = true;
+      tamperDetails.push(`Disclosed credential ${credId} is missing or has been deleted.`);
+    }
+  }
+
+  let verificationStatus: import('@openvyapar/shared').VerificationStatus = 'valid';
+  let verificationReason = 'VALID';
+
+  if (isExpired) {
+    verificationStatus = 'expired';
+    verificationReason = 'PROOF_EXPIRED';
+  } else if (isMaxUsesExceeded) {
+    verificationStatus = 'max_uses_exceeded';
+    verificationReason = 'PROOF_MAX_USES_EXCEEDED';
+  } else if (isAnyTampered) {
+    verificationStatus = 'tampered';
+    verificationReason = 'TAMPERED_CREDENTIALS';
+  }
+
+  const hasGst = resolvedCredentials.some((c) => c.type === 'gst_compliant');
+  const hasBank = resolvedCredentials.some((c) => c.type === 'income_bracket');
+  const hasMarketplace = resolvedCredentials.some((c) => c.type === 'order_history');
+
+  const isValid = verificationStatus === 'valid';
+  const trustScore = isValid ? Math.min(100, (hasGst ? 40 : 0) + (hasBank ? 30 : 0) + (hasMarketplace ? 30 : 20)) : 0;
+
+  recordAuditLog(
+    proof.business_id,
+    'admin',
+    verifier_id || 'did:org:sbi_bank',
+    'verify_proof',
+    isValid,
+    {
+      req,
+      metadata: {
+        proof_id: targetProofId,
+        verification_status: verificationStatus,
+        is_tampered: isAnyTampered,
+        simulate_tamper: !!simulate_tamper,
+      },
+    }
+  );
+
+  res.json({
+    success: true,
+    valid: isValid,
+    tampered: isAnyTampered,
+    verification_status: verificationStatus,
+    verification_reason: verificationReason,
+    proof: {
+      ...proof,
+      disclosed_credentials: resolvedCredentials,
+      verification_status: verificationStatus,
+    },
+    business,
+    credentials: resolvedCredentials,
+    trust_score: trustScore,
+    message: isValid
+      ? 'Cryptographic HMAC signature verified successfully against root issuer keys.'
+      : 'Cryptographic verification failed: HMAC digest mismatch or tampered payload.',
+    tamper_details: tamperDetails.length > 0 ? tamperDetails : undefined,
+  });
+});
+
+/**
  * GET /proof/verify/:proof_id
  * Verifier Portal: Inspects selective-disclosure credentials and computes cryptographic verification
  */

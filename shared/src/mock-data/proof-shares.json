@@ -2,14 +2,47 @@
   {
     "proof_id": "proof-loan-001",
     "business_id": "did:biz:sharma001",
-    "purpose": "loan_application",
+    "purpose": "Working Capital Loan Application (₹5L Limit)",
     "disclosed_credential_ids": [
       "cred-gst-002",
+      "cred-bank-003",
       "cred-mkt-004"
     ],
-    "shared_with": "Viksit Capital MSME Lending",
+    "shared_with": "State Bank of India — MSME Sahay",
     "generated_at": "2024-09-20T15:00:00.000Z",
     "link_or_qr": "https://openvyapar.in/verify/proof-loan-001",
+    "verification_status": "valid",
+    "expires_at": null,
+    "max_uses": null,
+    "use_count": 0
+  },
+  {
+    "proof_id": "proof-gst-002",
+    "business_id": "OV-4471",
+    "purpose": "GST Filing Compliance & Zero Tax Arrears Verification",
+    "disclosed_credential_ids": [
+      "cred-gstin-02",
+      "cred-udyam-01"
+    ],
+    "shared_with": "Karnataka Commercial Taxes Department",
+    "generated_at": "2024-09-21T10:30:00.000Z",
+    "link_or_qr": "https://openvyapar.in/verify/proof-gst-002",
+    "verification_status": "valid",
+    "expires_at": null,
+    "max_uses": null,
+    "use_count": 0
+  },
+  {
+    "proof_id": "proof-mkt-003",
+    "business_id": "did:biz:anand002",
+    "purpose": "ONDC Artisan Merchant High-Volume Fulfillment Verification",
+    "disclosed_credential_ids": [
+      "cred-anand-ondc-003",
+      "cred-anand-gst-002"
+    ],
+    "shared_with": "ONDC Open Network Registry Node",
+    "generated_at": "2024-09-22T14:15:00.000Z",
+    "link_or_qr": "https://openvyapar.in/verify/proof-mkt-003",
     "verification_status": "valid",
     "expires_at": null,
     "max_uses": null,
