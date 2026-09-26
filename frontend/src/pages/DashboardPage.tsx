@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useTranslation } from '../i18n/useTranslation';
 import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award } from 'lucide-react';
 
 export const DashboardPage = () => {
