@@ -9,7 +9,7 @@ import type {
   AttributeRedactionManifest,
 } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
-import { verifyCredentialSignature, createRedactedClaim } from '../utils/crypto.js';
+import { verifyCredentialSignature, createRedactedClaim, signCredential } from '../utils/crypto.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
@@ -295,4 +295,103 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
   };
 
   res.json(responsePayload);
+});
+
+/**
+ * POST /proof/simulate-tamper/:proof_id
+ * Live Demonstration API: Allows corrupting signature bytes or claim values on the fly,
+ * or restoring authentic state, to witness real-time verifier alerts and cryptographic rejections.
+ */
+proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string }, {}, import('@openvyapar/shared').SimulateTamperRequest>, res: Response) => {
+  try {
+    const proofId = req.params.proof_id;
+    const mode = req.body?.mode || 'corrupt_signature';
+    const targetCredentialId = req.body?.target_credential_id;
+
+    const proof = db.getProofShare(proofId);
+    if (!proof) {
+      return sendError(res, 404, `Proof with id ${proofId} not found`);
+    }
+
+    const targetCredIds = targetCredentialId
+      ? [targetCredentialId]
+      : proof.disclosed_credential_ids;
+
+    const affectedIds: string[] = [];
+
+    for (const credId of targetCredIds) {
+      const cred = db.getCredentialById(credId);
+      if (!cred) continue;
+
+      if (mode === 'corrupt_signature') {
+        // Invert/corrupt the signature bytes
+        cred.signature = `tampered_${crypto.randomUUID().slice(0, 8)}_${cred.signature.slice(16)}`;
+        db.setCredential(cred);
+        affectedIds.push(credId);
+      } else if (mode === 'corrupt_claim_payload') {
+        // Alter claim data without regenerating signature
+        const claimObj = { ...(cred.claim as Record<string, unknown>) };
+        if ('turnover_bracket' in claimObj) {
+          claimObj.turnover_bracket = 'above_1Cr';
+        } else if ('active_compliance_score' in claimObj) {
+          claimObj.active_compliance_score = 100;
+        } else if ('total_completed_orders' in claimObj) {
+          claimObj.total_completed_orders = 99999;
+        } else {
+          claimObj.unauthorized_tampered_flag = true;
+        }
+        cred.claim = claimObj as any;
+        db.setCredential(cred);
+        affectedIds.push(credId);
+      } else if (mode === 'restore') {
+        // Recompute authentic HMAC signature
+        cred.signature = signCredential(
+          cred.business_id,
+          cred.issuer,
+          cred.type,
+          cred.claim,
+          cred.issued_at
+        );
+        db.setCredential(cred);
+        affectedIds.push(credId);
+      }
+    }
+
+    // Update proof status if restored
+    if (mode === 'restore') {
+      proof.verification_status = 'valid';
+      db.setProofShare(proof);
+    }
+
+    recordAuditLog(
+      proof.business_id,
+      'admin',
+      req.actor?.actorId || 'system_tamper_simulator',
+      'simulate_tamper',
+      true,
+      {
+        req,
+        metadata: {
+          proof_id: proofId,
+          mode,
+          affected_credential_ids: affectedIds,
+        },
+      }
+    );
+
+    const responsePayload: import('@openvyapar/shared').SimulateTamperResponse = {
+      success: true,
+      proof_id: proofId,
+      mode,
+      affected_credential_ids: affectedIds,
+      details: mode === 'restore'
+        ? `Successfully restored authentic cryptographic signatures for credentials: ${affectedIds.join(', ')}`
+        : `Successfully simulated ${mode} on credentials: ${affectedIds.join(', ')}. Verifier inspection will now fail.`,
+      restored: mode === 'restore',
+    };
+
+    res.json(responsePayload);
+  } catch (err: any) {
+    sendError(res, 500, err.message || 'Internal server error');
+  }
 });

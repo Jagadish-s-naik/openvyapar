@@ -16,9 +16,23 @@ async function init() {
     loadProof(document.getElementById('txtProofIdInput').value.trim());
   });
 
-  document.getElementById('btnSimulateTamper').addEventListener('click', () => {
+  document.getElementById('btnSimulateTamper').addEventListener('click', async () => {
+    const proofId = document.getElementById('txtProofIdInput').value.trim();
+    if (!proofId) return;
+
     isTamperSimulated = !isTamperSimulated;
-    renderProofView(currentProofData);
+    const mode = isTamperSimulated ? 'corrupt_signature' : 'restore';
+
+    try {
+      await fetch(`${BACKEND_URL}/proof/simulate-tamper/${proofId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
+      await loadProof(proofId);
+    } catch (err) {
+      console.error('Tamper simulation request failed:', err);
+    }
   });
 
   await loadProof(document.getElementById('txtProofIdInput').value.trim());

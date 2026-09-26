@@ -470,6 +470,43 @@ async function runApiTests() {
 
     console.log('✅ 14. Granular Attribute Redaction & Sub-Hash Verification PASSED');
 
+    // 15. Test Interactive Tamper Testing API (Phase 3 Task 3)
+    // 15a. Simulate signature tampering
+    const tamperRes = await fetch(`${baseUrl}/proof/simulate-tamper/${proofId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'corrupt_signature' }),
+    });
+    const tamperJson = await tamperRes.json();
+    console.assert(tamperRes.status === 200 && tamperJson.success === true, 'Tamper simulation failed');
+    console.assert(tamperJson.mode === 'corrupt_signature', 'Mode should be corrupt_signature');
+
+    // Verifier checks tampered proof: should fail with tampered status & 0 trust score
+    const verifyTamperedRes = await fetch(`${baseUrl}/proof/verify/${proofId}`);
+    const verifyTamperedJson = await verifyTamperedRes.json();
+    console.assert(verifyTamperedJson.verification_status === 'tampered', 'Tampered proof should return status tampered');
+    console.assert(verifyTamperedJson.verification_reason === 'TAMPERED_CREDENTIALS', 'Tampered proof reason mismatch');
+    console.assert(verifyTamperedJson.trust_analysis.trust_score === 0, 'Tampered proof should have trust score 0');
+    console.assert(Array.isArray(verifyTamperedJson.tamper_details) && verifyTamperedJson.tamper_details.length > 0, 'Tamper details should explain mismatch');
+
+    // 15b. Restore authentic state
+    const restoreRes = await fetch(`${baseUrl}/proof/simulate-tamper/${proofId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'restore' }),
+    });
+    const restoreJson = await restoreRes.json();
+    console.assert(restoreRes.status === 200 && restoreJson.restored === true, 'Restoration failed');
+
+    // Verifier checks restored proof: should now be valid again
+    const verifyRestoredRes = await fetch(`${baseUrl}/proof/verify/${proofId}`);
+    const verifyRestoredJson = await verifyRestoredRes.json();
+    console.assert(verifyRestoredJson.verification_status === 'valid', 'Restored proof should be valid');
+    console.assert(verifyRestoredJson.verification_reason === 'VALID', 'Restored proof reason should be VALID');
+    console.assert(verifyRestoredJson.trust_analysis.trust_score > 0, 'Restored proof should have positive trust score');
+
+    console.log('✅ 15. Interactive Tamper Testing API & Cryptographic Restoration PASSED');
+
     console.log('\n🎉 ALL BACKEND API INTEGRATION TESTS PASSED CLEANLY!\n');
   } finally {
     server.close();

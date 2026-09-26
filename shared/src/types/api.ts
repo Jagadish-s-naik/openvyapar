@@ -146,6 +146,22 @@ export interface VerifyProofResponse {
   };
 }
 
+export type TamperSimulationMode = 'corrupt_signature' | 'corrupt_claim_payload' | 'restore';
+
+export interface SimulateTamperRequest {
+  mode?: TamperSimulationMode;
+  target_credential_id?: string;
+}
+
+export interface SimulateTamperResponse {
+  success: boolean;
+  proof_id: string;
+  mode: TamperSimulationMode;
+  affected_credential_ids: string[];
+  details: string;
+  restored: boolean;
+}
+
 // -------------------------------------------------------------
 // 5. Agent Endpoints (/agent/*)
 // Guardrail: None of these endpoints mutate core business tables.

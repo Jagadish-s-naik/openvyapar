@@ -30,7 +30,7 @@ The core data persistence, HMAC cryptography, and baseline REST endpoints are fu
 ```mermaid
 graph LR
     Phase1[Phase 1: Core API & Crypto ✅] --> Phase2[Phase 2: Agent Handshake & Guardrails ✅]
-    Phase2 --> Phase3[Phase 3: Proof Engine & Verification]
+    Phase2 --> Phase3[Phase 3: Proof Engine & Verification ✅]
     Phase3 --> Phase4[Phase 4: Mock Issuers & Anomaly Sim]
     Phase4 --> Phase5[Phase 5: Demo Hardening & Snapshots]
 ```
@@ -65,8 +65,10 @@ graph LR
    - Allow claims to disclose partial fields (e.g., disclosing `turnover_bracket` while redacting exact account balance).
    - Compute SHA-256 sub-hashes and root hash manifests for individual claim fields.
    - Verify attribute authenticity against manifest sub-hashes during verifier inspection.
-3. **Interactive Tamper Testing API**:
+3. [x] **Interactive Tamper Testing API**:
    - Add utility route `POST /proof/simulate-tamper/:proof_id` for judges/demoers to corrupt signature bytes on the fly and witness real-time verifier alerts.
+   - Support `corrupt_signature`, `corrupt_claim_payload`, and `restore` modes with automated state recovery.
+   - Connected live to verifier UI for real-time judge testing.
 
 ---
 
