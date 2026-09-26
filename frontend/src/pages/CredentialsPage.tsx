@@ -116,7 +116,7 @@ export const CredentialsPage = () => {
         agentActionId: consentExplanation?.agent_action_id,
       });
 
-      const verifierUrl = `http://localhost:5174?proof_id=${res.proof.proof_id}`;
+      const verifierUrl = `http://localhost:5173/verifier?proof_id=${res.proof.proof_id}`;
       setGeneratedProofResult({
         proofId: res.proof.proof_id,
         verifyUrl: verifierUrl,
@@ -694,7 +694,7 @@ export const CredentialsPage = () => {
                     rel="noopener noreferrer"
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-xs"
                   >
-                    <span>Open in Verifier Portal (Port 5174)</span>
+                    <span>Open in Verifier Portal</span>
                     <ExternalLink className="w-4 h-4" />
                   </a>
 

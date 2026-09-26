@@ -7,7 +7,7 @@ This script walks through the **5-Beat Demo Narrative** defined in **PRD §6**. 
 ### **Beat 1: Zero-Footprint Onboarding (The Differentiator)**
 - **Persona**: Ramesh Sharma (Proprietor) assisted by Aarav Patel (CSC Field VLE Agent).
 - **Action**:
-  1. Open `http://localhost:5175` (CSC Onboarding Portal).
+  1. Open `http://localhost:5173/onboarding` (CSC Onboarding Portal).
   2. Click the sample transcript: *"नमस्ते, मेरा नाम रमेश शर्मा है। गोदौलिया वाराणसी में 'शर्मा जनरल स्टोर' नाम से 2018 से किराना की दुकान है..."*
   3. Click **Extract Structured Business & Starter Credential**.
   4. Notice the AI Onboarding Agent extracts shop name, sector, location, and generates a `self_attested` credential claim witnessed by CSC Agent `did:person:csc001`.
@@ -39,7 +39,7 @@ This script walks through the **5-Beat Demo Narrative** defined in **PRD §6**. 
      - *Shared*: GST compliance score and 1,420 orders track record.
      - *Protected/Withheld*: Full bank statements, line-item margins, customer names.
   5. Click **Confirm & Generate QR Proof**.
-  6. Click **Open in Verifier Portal** (`http://localhost:5174?proof_id=...`).
+  6. Click **Open in Verifier Portal** (`http://localhost:5173/verifier?proof_id=...`).
   7. Show the **Valid HMAC** verification chip and AI Trust narrative.
   8. Click **Simulate Tampering** to demonstrate live cryptographic signature rejection if turnover is altered!
 
