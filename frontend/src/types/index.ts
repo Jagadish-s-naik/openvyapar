@@ -1,10 +1,12 @@
 import type {
   Business,
+  BusinessRole,
   Credential,
   DelegationToken,
   TimelineEvent,
   Person,
   ProofShare,
+  RoleType,
 } from '@openvyapar/shared';
 
 export type Language = 'EN' | 'HI' | 'KN';
@@ -67,7 +69,7 @@ export type AppState = {
   uploadAndIssueCredential: (params: {
     issuer: string;
     type: string;
-    claim: Record<string, any>;
+    claim: Record<string, unknown>;
   }) => Promise<Credential>;
 
   // Beat 3: Selective Disclosure & Proof Generation
@@ -89,8 +91,8 @@ export type AppState = {
   // Beat 5: Succession Role Transfer
   transferRole: (params: {
     personId: string;
-    roleType: 'owner' | 'manager' | 'ca_accountant' | 'csc_agent' | 'staff';
-  }) => Promise<any>;
+    roleType: RoleType;
+  }) => Promise<BusinessRole>;
 
   // External Connected Services UI simulation
   connectService: (service: { name: string; category?: string; accessScope: string[]; accentColor?: string }) => void;

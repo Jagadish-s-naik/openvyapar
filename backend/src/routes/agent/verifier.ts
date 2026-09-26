@@ -17,7 +17,7 @@ verifierRouter.post('/verifier-flag', async (req: Request<{}, {}, VerifierFlagRe
       { verdict: result.overall_verdict, flags: result.flags }
     );
     res.status(200).json(result);
-  } catch (err: any) {
-    sendAgentError(res, 500, 'VERIFIER_FLAG_FAILED', err.message || 'Verifier flag analysis failed', err);
+  } catch (err: unknown) {
+    sendAgentError(res, 500, 'VERIFIER_FLAG_FAILED', (err as Error).message || 'Verifier flag analysis failed', err);
   }
 });

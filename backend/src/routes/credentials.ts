@@ -82,8 +82,8 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
     };
 
     res.status(201).json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 

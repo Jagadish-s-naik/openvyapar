@@ -6,6 +6,7 @@ import type {
   GenerateProofResponse,
   VerifyProofResponse,
   Credential,
+  CredentialClaim,
   AttributeRedactionManifest,
 } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
@@ -266,8 +267,8 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
     };
 
     res.status(201).json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 
@@ -465,7 +466,7 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
         } else {
           claimObj.unauthorized_tampered_flag = true;
         }
-        cred.claim = claimObj as any;
+        cred.claim = claimObj as unknown as CredentialClaim;
         db.setCredential(cred);
         affectedIds.push(credId);
       } else if (mode === 'restore') {
@@ -516,7 +517,7 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
     };
 
     res.json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });

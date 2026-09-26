@@ -54,7 +54,7 @@ export const IdentityPage = () => {
       setTimeout(() => {
         setIsTransferModalOpen(false);
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Transfer error:', err);
     } finally {
       setIsTransferring(false);

@@ -97,8 +97,8 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
     };
 
     res.status(201).json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 
@@ -197,8 +197,8 @@ businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Re
     };
 
     res.status(201).json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 
@@ -263,8 +263,8 @@ businessRouter.post('/transfer-ownership', (req: Request, res: Response) => {
       previous_owner: previousOwnerPersonId,
       role: newRole,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 

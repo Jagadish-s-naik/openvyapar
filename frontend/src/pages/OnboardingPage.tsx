@@ -36,6 +36,8 @@ const SAMPLE_TRANSCRIPTS = {
   },
 };
 
+import type { OnboardExtractResponse, Business, Credential } from '@openvyapar/shared';
+
 export const OnboardingPage = () => {
   const navigate = useNavigate();
   const { setBusinessId, loadAllData } = useAppStore();
@@ -44,9 +46,9 @@ export const OnboardingPage = () => {
   const [activeSampleKey, setActiveSampleKey] = useState<keyof typeof SAMPLE_TRANSCRIPTS>('hi-kirana');
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPTS['hi-kirana'].text);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [proposal, setProposal] = useState<any>(null);
+  const [proposal, setProposal] = useState<OnboardExtractResponse | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [createdResult, setCreatedResult] = useState<any>(null);
+  const [createdResult, setCreatedResult] = useState<{ business: Business; starter_credential?: Credential } | null>(null);
 
   const handleSelectSample = (key: keyof typeof SAMPLE_TRANSCRIPTS) => {
     setActiveSampleKey(key);
@@ -157,7 +159,7 @@ export const OnboardingPage = () => {
                 {Object.entries(SAMPLE_TRANSCRIPTS).map(([key, item]) => (
                   <button
                     key={key}
-                    onClick={() => handleSelectSample(key as any)}
+                    onClick={() => handleSelectSample(key as keyof typeof SAMPLE_TRANSCRIPTS)}
                     className={`p-2.5 rounded-xl text-left text-xs transition-all border cursor-pointer ${
                       activeSampleKey === key
                         ? 'bg-slate-900 text-white border-slate-900 font-semibold shadow-xs'
@@ -280,7 +282,7 @@ export const OnboardingPage = () => {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Award className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Est. Revenue: {proposal.estimated_revenue_bracket || '₹25L - ₹50L'}</span>
+                    <span>Est. Revenue: {proposal.proposed_starter_credential?.claim?.approx_monthly_revenue || '₹25L - ₹50L'}</span>
                   </div>
                 </div>
               </div>

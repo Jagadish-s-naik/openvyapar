@@ -122,7 +122,7 @@ export const ConsentPage = () => {
         setGrantSuccessMsg(null);
         setActiveTab('active');
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Grant delegation error:', err);
     } finally {
       setIsGranting(false);
@@ -369,7 +369,7 @@ export const ConsentPage = () => {
 
                 <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
                   <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider">Zero-Password Protocol</span>
-                  <span className="text-emerald-400 font-semibold mt-0.5 block flex items-center gap-1">
+                  <span className="text-emerald-400 font-semibold mt-0.5 flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5" /> No Master Credentials Needed
                   </span>
                   <span className="text-slate-400 text-[11px]">Least-Privilege Cryptography</span>

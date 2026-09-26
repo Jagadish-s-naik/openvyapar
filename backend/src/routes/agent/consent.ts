@@ -17,7 +17,7 @@ consentRouter.post('/consent-explain', async (req: Request<{}, {}, ConsentExplai
       { purpose: req.body.purpose, recipient_name: req.body.recipient_name, selected_credentials: req.body.selected_credential_ids }
     );
     res.status(200).json(result);
-  } catch (err: any) {
-    sendAgentError(res, 500, 'CONSENT_EXPLAIN_FAILED', err.message || 'Consent explanation failed', err);
+  } catch (err: unknown) {
+    sendAgentError(res, 500, 'CONSENT_EXPLAIN_FAILED', (err as Error).message || 'Consent explanation failed', err);
   }
 });

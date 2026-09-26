@@ -92,7 +92,18 @@ export async function explainConsent(input: ConsentExplainRequest): Promise<Cons
   const agentActionId = `agent-act-consent-${crypto.randomUUID().slice(0, 8)}`;
   const fallbackData = heuristicFallback(input);
 
-  const extracted: any = await callAgent({
+  interface ExtractedConsent {
+    plain_summary?: string;
+    plain_language_explanation?: string;
+    will_share?: string[];
+    shared_data_summary?: string[];
+    will_not_share?: string[];
+    withheld_data_summary?: string[];
+    risk_assessment?: 'low' | 'medium' | 'high';
+    recommendations?: string[];
+  }
+
+  const extracted = await callAgent<ExtractedConsent>({
     promptFile: 'consent_explainer.md',
     userInput: {
       business_id: input.business_id,

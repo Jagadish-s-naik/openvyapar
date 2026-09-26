@@ -114,9 +114,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         currentPersona,
         isSyncing: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err?.message || 'Failed to sync with OpenVyapar backend on port 3001',
+        error: (err as Error)?.message || 'Failed to sync with OpenVyapar backend on port 3001',
         isSyncing: false,
       });
     }
@@ -140,7 +140,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   uploadAndIssueCredential: async (params: {
     issuer: string;
     type: string;
-    claim: Record<string, any>;
+    claim: Record<string, unknown>;
   }) => {
     const bizId = get().businessId;
     set({ isSyncing: true });

@@ -116,7 +116,7 @@ export async function suggestDelegationScope(input: ScopeSuggestRequest): Promis
   const agentActionId = `agent-act-scope-${crypto.randomUUID().slice(0, 8)}`;
   const fallbackData = heuristicFallback(input);
 
-  const extracted: any = await callAgent({
+  const extracted = await callAgent<Partial<ScopingResult>>({
     promptFile: 'scope_suggester.md',
     userInput: {
       business_id: input.business_id,

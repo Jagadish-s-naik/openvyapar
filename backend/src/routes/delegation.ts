@@ -83,8 +83,8 @@ delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (r
     };
 
     res.status(201).json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 
@@ -131,8 +131,8 @@ delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req
     };
 
     res.json(responsePayload);
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 

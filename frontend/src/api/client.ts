@@ -1,13 +1,21 @@
 import type {
   Business,
+  BusinessRole,
   Credential,
+  CredentialClaim,
+  DelegationScope,
   DelegationToken,
   TimelineEvent,
   Person,
+  ProofPurpose,
   ProofShare,
+  GenerateProofResponse,
+  IssueMockBatchResponse,
   ConsentExplainResponse,
   ScopeSuggestResponse,
+  OnboardExtractResponse,
   VerifierFlagResponse,
+  RoleType,
 } from '@openvyapar/shared';
 
 export interface AgentAssistantResponse {
@@ -19,8 +27,8 @@ export interface AgentAssistantResponse {
   };
 }
 
-export const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:3001';
-export const AGENT_URL = (import.meta as any).env?.VITE_AGENT_URL || BACKEND_URL;
+export const BACKEND_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_BACKEND_URL || 'http://localhost:3001';
+export const AGENT_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_AGENT_URL || BACKEND_URL;
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -83,26 +91,30 @@ export async function triggerMockIssuance(
 
 export async function triggerBatchMocks(
   businessId: string
-): Promise<{ success: boolean; issued: Credential[] }> {
-  return request(`${BACKEND_URL}/mocks/issue-batch`, {
+): Promise<{ success: boolean; issued: Credential[]; credentials: Credential[] }> {
+  const res = await request<IssueMockBatchResponse>(`${BACKEND_URL}/mocks/issue-batch/${businessId}`, {
     method: 'POST',
     body: JSON.stringify({ business_id: businessId }),
   });
+  return { success: res.success, issued: res.credentials, credentials: res.credentials };
 }
 
 export async function triggerBatchIssuance(
   businessId: string,
-  _templateProfile?: string
+  templateProfile?: string
 ): Promise<{ success: boolean; credentials: Credential[] }> {
-  const res = await triggerBatchMocks(businessId);
-  return { success: res.success, credentials: res.issued };
+  const res = await request<IssueMockBatchResponse>(`${BACKEND_URL}/mocks/issue-batch/${businessId}`, {
+    method: 'POST',
+    body: JSON.stringify({ template: templateProfile }),
+  });
+  return { success: res.success, credentials: res.credentials };
 }
 
 export async function issueCredential(params: {
   business_id: string;
   issuer: string;
   type: string;
-  claim: Record<string, any>;
+  claim: CredentialClaim | Record<string, unknown>;
 }): Promise<{ success: boolean; credential: Credential }> {
   return request(`${BACKEND_URL}/credentials/issue`, {
     method: 'POST',
@@ -112,7 +124,7 @@ export async function issueCredential(params: {
 
 export async function generateProof(params: {
   business_id: string;
-  purpose: any;
+  purpose: ProofPurpose | string;
   recipient_name?: string;
   shared_with?: string;
   selected_credential_ids?: string[];
@@ -126,19 +138,19 @@ export async function generateProof(params: {
     business_id: params.business_id,
     purpose: params.purpose,
     recipient_name: params.recipient_name || params.shared_with || 'General Verifier',
-    selected_credential_ids: params.selected_credential_ids || params.disclosed_credential_ids || [],
+    disclosed_credential_ids: params.disclosed_credential_ids || params.selected_credential_ids || [],
     expires_in_hours: params.expires_in_hours || 48,
     agent_action_id: params.agent_action_id,
     confirmed_by_human: params.confirmed_by_human,
   };
-  const res: any = await request(`${BACKEND_URL}/proof/generate`, {
+  const res = await request<GenerateProofResponse>(`${BACKEND_URL}/proof/generate`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
   return {
     success: res.success,
     proof: res.proof,
-    qr_payload: res.qr_payload || res.proof?.proof_id,
+    qr_payload: res.proof?.proof_id,
     verification_url: res.verification_url || `/verifier?proof_id=${res.proof?.proof_id}`,
   };
 }
@@ -172,7 +184,7 @@ export async function grantDelegation(params: {
   delegatee_person_id?: string;
   delegate_person_id?: string;
   delegatee_name?: string;
-  scopes: any[];
+  scopes: DelegationScope[] | string[];
   expires_at?: string;
   agent_action_id?: string;
   confirmed_by_human?: boolean;
@@ -180,8 +192,7 @@ export async function grantDelegation(params: {
 }): Promise<{ success: boolean; token: DelegationToken }> {
   const payload = {
     business_id: params.business_id,
-    delegatee_person_id: params.delegatee_person_id || params.delegate_person_id || 'did:person:ca001',
-    delegatee_name: params.delegatee_name || 'Vikas Mehta CA',
+    delegate_person_id: params.delegate_person_id || params.delegatee_person_id || 'did:person:ca001',
     scopes: params.scopes,
     expires_at: params.expires_at || new Date(Date.now() + 30 * 86400000).toISOString(),
     agent_action_id: params.agent_action_id,
@@ -207,9 +218,9 @@ export async function revokeDelegation(params: {
 export async function transferOwnership(params: {
   business_id: string;
   person_id: string;
-  role_type: 'owner' | 'manager' | 'ca_accountant' | 'csc_agent' | 'staff';
+  role_type: RoleType;
   granted_by?: string;
-}): Promise<{ success: boolean; role: any }> {
+}): Promise<{ success: boolean; role: BusinessRole }> {
   return request(`${BACKEND_URL}/business/${params.business_id}/roles`, {
     method: 'POST',
     body: JSON.stringify({
@@ -226,7 +237,7 @@ export async function createBusiness(params: {
   owner_person_id?: string;
   agent_action_id?: string;
   confirmed_by_human?: boolean;
-  starter_credential?: any;
+  starter_credential?: Credential | Record<string, unknown>;
 }): Promise<{ success: boolean; business: Business; starter_credential?: Credential }> {
   return request(`${BACKEND_URL}/business`, {
     method: 'POST',
@@ -240,7 +251,7 @@ export async function createBusiness(params: {
 
 export async function explainConsent(params: {
   business_id: string;
-  purpose: any;
+  purpose: ProofPurpose | string;
   selected_credential_ids: string[];
   recipient_name: string;
   language?: string;
@@ -267,35 +278,7 @@ export async function extractOnboarding(params: {
   raw_transcript_or_text: string;
   csc_agent_id?: string;
   language?: string;
-}): Promise<{
-  success: boolean;
-  agent_action_id: string;
-  name: string;
-  sector: string;
-  location: string;
-  estimated_revenue_bracket: string;
-  primary_language: string;
-  confidence_notes: string;
-  proposed_business: {
-    name: string;
-    sector: string;
-    location: string;
-    primary_language: string;
-    contact_phone: string;
-    owner_name: string;
-  };
-  proposed_starter_credential: {
-    type: 'self_attested';
-    claim: {
-      business_nature: string;
-      established_year: number;
-      approx_monthly_revenue: string;
-      witness_notes?: string;
-    };
-  };
-  missing_fields: string[];
-  confidence_score: number;
-}> {
+}): Promise<OnboardExtractResponse> {
   return request(`${AGENT_URL}/agent/onboard-extract`, {
     method: 'POST',
     body: JSON.stringify(params),
@@ -306,7 +289,7 @@ export async function analyzeVerifierTrust(params: {
   proof_id: string;
   business_id: string;
   business_status?: string;
-  credentials: any[];
+  credentials: Credential[];
   language?: string;
 }): Promise<VerifierFlagResponse> {
   return request(`${AGENT_URL}/agent/verifier-flag`, {
@@ -318,7 +301,7 @@ export async function analyzeVerifierTrust(params: {
 export async function askAssistant(params: {
   message: string;
   language?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }): Promise<AgentAssistantResponse> {
   return request(`${AGENT_URL}/agent/assistant`, {
     method: 'POST',

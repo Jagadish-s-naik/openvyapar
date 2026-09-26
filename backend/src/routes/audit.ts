@@ -98,8 +98,8 @@ auditRouter.post('/agent-action', (req: Request<{}, {}, {
       success: true,
       agent_action: agentAction,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });
 
@@ -157,7 +157,7 @@ auditRouter.post('/agent-action/:id/decision', (req: Request<{ id: string }, {},
       success: true,
       agent_action: agentAction,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Internal server error');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Internal server error');
   }
 });

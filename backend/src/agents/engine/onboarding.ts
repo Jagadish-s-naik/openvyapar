@@ -134,7 +134,29 @@ export async function extractOnboardingData(input: OnboardExtractRequest): Promi
   const agentActionId = `agent-act-onboard-${crypto.randomUUID().slice(0, 8)}`;
   const fallbackData = heuristicFallback(input);
 
-  const extracted: any = await callAgent({
+  interface ExtractedOnboarding {
+    name?: string;
+    sector?: string;
+    location?: string;
+    owner_name?: string;
+    contact_phone?: string;
+    established_year?: number;
+    estimated_revenue_bracket?: string;
+    primary_language?: string;
+    confidence_notes?: string;
+    missing_fields?: string[];
+    confidence_score?: number;
+    proposed_business?: {
+      name?: string;
+      sector?: string;
+      location?: string;
+      primary_language?: string;
+      contact_phone?: string;
+      owner_name?: string;
+    };
+  }
+
+  const extracted = await callAgent<ExtractedOnboarding>({
     promptFile: 'onboarding_extractor.md',
     userInput: {
       raw_transcript_or_text: input.raw_transcript_or_text,

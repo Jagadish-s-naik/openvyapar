@@ -17,7 +17,7 @@ onboardingRouter.post('/onboard-extract', async (req: Request<{}, {}, OnboardExt
       result.proposed_business
     );
     res.status(200).json(result);
-  } catch (err: any) {
-    sendAgentError(res, 500, 'ONBOARD_EXTRACT_FAILED', err.message || 'Onboarding extraction failed', err);
+  } catch (err: unknown) {
+    sendAgentError(res, 500, 'ONBOARD_EXTRACT_FAILED', (err as Error).message || 'Onboarding extraction failed', err);
   }
 });

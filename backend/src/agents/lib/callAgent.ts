@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export interface CallAgentOptions<T> {
   promptFile: string;
-  userInput: any;
+  userInput: unknown;
   fallback: () => T;
 }
 
@@ -87,7 +87,15 @@ export async function callAgent<T>(options: CallAgentOptions<T>): Promise<T> {
       return options.fallback();
     }
 
-    const data: any = await response.json();
+    interface OpenAIChatCompletion {
+      choices?: Array<{
+        message?: {
+          content?: string;
+        };
+      }>;
+    }
+
+    const data = (await response.json()) as OpenAIChatCompletion;
     const content = data?.choices?.[0]?.message?.content;
     if (!content) {
       console.warn('[callAgent] Empty response content from OpenAI. Falling back to deterministic engine.');

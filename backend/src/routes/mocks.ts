@@ -5,6 +5,7 @@ import type {
   IssueCscWitnessRequest,
   IssueCscWitnessResponse,
   MockBatchTemplate,
+  SelfAttestedClaimPayload,
 } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
 import { issueMockGstCredential } from '../mocks/gst_issuer.js';
@@ -29,7 +30,7 @@ export const mocksRouter = Router();
  */
 mocksRouter.post(
   '/issue-batch/:business_id',
-  (req: Request<{ business_id: string }, any, IssueMockBatchRequest, { template?: string }>, res: Response) => {
+  (req: Request<{ business_id: string }, IssueMockBatchResponse | { success: false }, IssueMockBatchRequest, { template?: string }>, res: Response) => {
     try {
       const businessId = req.params.business_id;
       const business = db.getBusiness(businessId);
@@ -84,8 +85,8 @@ mocksRouter.post(
       };
 
       res.status(201).json(response);
-    } catch (err: any) {
-      sendError(res, 500, err.message || 'Internal server error');
+    } catch (err: unknown) {
+      sendError(res, 500, (err as Error).message || 'Internal server error');
     }
   }
 );
@@ -98,7 +99,7 @@ mocksRouter.post(
  */
 mocksRouter.post(
   '/csc-witness',
-  (req: Request<any, any, IssueCscWitnessRequest>, res: Response) => {
+  (req: Request<Record<string, string>, IssueCscWitnessResponse | { success: false }, IssueCscWitnessRequest>, res: Response) => {
     try {
       const {
         business_id,
@@ -138,7 +139,7 @@ mocksRouter.post(
         }
       }
 
-      const claim = cscCred.claim as any;
+      const claim = cscCred.claim as SelfAttestedClaimPayload;
       recordAuditLog(business_id, 'field_agent', claim.witnessed_by_csc_agent_id || 'did:person:csc001', 'issue_credential', true, {
         credential_id: cscCred.credential_id,
         type: 'self_attested',
@@ -152,19 +153,19 @@ mocksRouter.post(
         business_id,
         credential: cscCred,
         witness_summary: {
-          agent_id: claim.witnessed_by_csc_agent_id,
-          agent_name: claim.witness_agent_name,
-          csc_center_id: claim.csc_center_id,
-          location_coordinates: claim.location_coordinates,
-          photo_verification_hash: claim.photo_verification_hash,
+          agent_id: claim.witnessed_by_csc_agent_id || 'did:person:csc001',
+          agent_name: claim.witness_agent_name || 'Aarav Patel (CSC VLE)',
+          csc_center_id: claim.csc_center_id || 'CSC-UP-VAR-049',
+          location_coordinates: claim.location_coordinates || { lat: 25.3176, lng: 82.9739 },
+          photo_verification_hash: claim.photo_verification_hash || 'hash_mock_photo_attest',
           verified_at: cscCred.issued_at,
         },
         message: 'Physical premises verified and HMAC-signed CSC witness credential issued successfully.',
       };
 
       res.status(201).json(response);
-    } catch (err: any) {
-      sendError(res, 500, err.message || 'Internal server error');
+    } catch (err: unknown) {
+      sendError(res, 500, (err as Error).message || 'Internal server error');
     }
   }
 );

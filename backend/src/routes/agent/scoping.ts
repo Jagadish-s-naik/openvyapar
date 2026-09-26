@@ -17,7 +17,7 @@ scopingRouter.post('/scope-suggest', async (req: Request<{}, {}, ScopeSuggestReq
       { proposed_scopes: result.proposed_scopes, plain_summary: result.plain_summary }
     );
     res.status(200).json(result);
-  } catch (err: any) {
-    sendAgentError(res, 500, 'SCOPE_SUGGEST_FAILED', err.message || 'Scope suggestion failed', err);
+  } catch (err: unknown) {
+    sendAgentError(res, 500, 'SCOPE_SUGGEST_FAILED', (err as Error).message || 'Scope suggestion failed', err);
   }
 });

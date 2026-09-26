@@ -26,8 +26,8 @@ adminRouter.post('/reset', (req: Request<{}, {}, {}, { empty?: string }>, res: R
       timestamp: new Date().toISOString(),
       stats: db.getStats(),
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Failed to reset database');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Failed to process admin request');
   }
 });
 
@@ -45,8 +45,8 @@ adminRouter.post('/snapshot', (req: Request<{}, {}, { name?: string; description
       message: `Snapshot '${snapshot.name}' created successfully`,
       snapshot,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Failed to create snapshot');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Failed to create snapshot');
   }
 });
 
@@ -62,8 +62,8 @@ adminRouter.get('/snapshots', (_req: Request, res: Response) => {
       count: snapshots.length,
       snapshots,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Failed to list snapshots');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Failed to list snapshots');
   }
 });
 
@@ -90,8 +90,8 @@ adminRouter.post('/restore', (req: Request<{}, {}, { snapshot_id?: string; name?
       stats: db.getStats(),
       timestamp: new Date().toISOString(),
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Failed to restore snapshot');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Failed to restore snapshot');
   }
 });
 
@@ -111,7 +111,7 @@ adminRouter.delete('/snapshot/:id', (req: Request<{ id: string }>, res: Response
       success: true,
       message: `Snapshot '${target}' deleted successfully`,
     });
-  } catch (err: any) {
-    sendError(res, 500, err.message || 'Failed to delete snapshot');
+  } catch (err: unknown) {
+    sendError(res, 500, (err as Error).message || 'Failed to delete snapshot');
   }
 });

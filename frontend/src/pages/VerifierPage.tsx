@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -23,6 +23,29 @@ const SAMPLE_PROOFS = [
   { id: 'proof-mkt-003', label: 'Anand Silk Weaving (ONDC Volume)', desc: '1,420 Order History' },
 ];
 
+import type { ProofShare, Credential } from '@openvyapar/shared';
+
+export interface VerifyInspectionResult {
+  success: boolean;
+  valid?: boolean;
+  tampered?: boolean;
+  verification_status?: string;
+  proof?: ProofShare;
+  trust_score?: number;
+  message?: string;
+  [key: string]: unknown;
+}
+
+export interface TrustInspectionAnalysis {
+  success?: boolean;
+  overall_verdict: string;
+  trust_score?: number;
+  flags?: Array<string | { severity: string; code: string; message: string }>;
+  narrative_summary?: string;
+  anomalies_detected?: boolean;
+  agent_action_id?: string;
+}
+
 export const VerifierPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
@@ -30,28 +53,18 @@ export const VerifierPage = () => {
   const [proofId, setProofId] = useState(searchParams.get('proof_id') || 'proof-loan-001');
   const [loading, setLoading] = useState(false);
   const [isTampering, setIsTampering] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
-  const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
-  const [rawProof, setRawProof] = useState<any>(null);
+  const [verificationResult, setVerificationResult] = useState<VerifyInspectionResult | null>(null);
+  const [trustAnalysis, setTrustAnalysis] = useState<TrustInspectionAnalysis | null>(null);
+  const [rawProof, setRawProof] = useState<ProofShare | null>(null);
   const [deskPin] = useState('SBI-DESK-7492');
   const [showQrModal, setShowQrModal] = useState(false);
 
-  useEffect(() => {
-    const urlProofId = searchParams.get('proof_id');
-    if (urlProofId && urlProofId !== proofId) {
-      setProofId(urlProofId);
-      handleInspect(urlProofId, isTampering);
-    } else {
-      handleInspect(proofId, isTampering);
-    }
-  }, [searchParams]);
-
-  const handleInspect = async (idToInspect: string, simulateTamper = false) => {
+  const handleInspect = useCallback(async (idToInspect: string, simulateTamper = false) => {
     if (!idToInspect.trim()) return;
     setLoading(true);
     try {
       // 1. Fetch raw proof
-      let proofData = null;
+      let proofData: ProofShare | null = null;
       try {
         const proofRes = await getProof(idToInspect.trim());
         if (proofRes.success) {
@@ -76,13 +89,19 @@ export const VerifierPage = () => {
           proof_id: idToInspect.trim(),
           business_id: proofData?.business_id || 'did:biz:sharma001',
           business_status: 'active',
-          credentials: proofData?.disclosed_credentials || [
+          credentials: (proofData?.disclosed_credentials as Credential[]) || [
             {
               credential_id: 'cred-gst-002',
+              business_id: 'did:biz:sharma001',
               type: 'gst_compliant',
               issuer: 'gst_mock',
+              issuer_signature: 'sig_mock_001',
+              signature: 'sig_mock_001',
+              issued_at: new Date().toISOString(),
+              expires_at: null,
+              claim: { compliance_score: 98 },
               status: simulateTamper ? 'tampered' : 'valid',
-            },
+            } as unknown as Credential,
           ],
         });
         if (trustRes.success) {
@@ -98,24 +117,37 @@ export const VerifierPage = () => {
             : ['Authentic GSTN cryptographic signature', 'ONDC verified transaction count', 'Single-use nonce verified'],
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Verification inspection failed:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const urlProofId = searchParams.get('proof_id');
+    const targetId = urlProofId || proofId;
+
+    (async () => {
+      if (active) {
+        await handleInspect(targetId, isTampering);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [searchParams, proofId, isTampering, handleInspect]);
 
   const toggleTamper = () => {
-    const nextState = !isTampering;
-    setIsTampering(nextState);
-    handleInspect(proofId, nextState);
+    setIsTampering((prev) => !prev);
   };
 
   const selectSample = (id: string) => {
     setProofId(id);
     setSearchParams({ proof_id: id });
     setIsTampering(false);
-    handleInspect(id, false);
   };
 
   const isValid = verificationResult?.valid === true && !isTampering;
@@ -306,14 +338,17 @@ export const VerifierPage = () => {
                     'Issuer public key matches national GSTN registry',
                     'Single-use nonce verified; zero double-spend detected',
                     'Disclosed turnover matches accredited bank bracket',
-                  ]).map((flag: string, idx: number) => (
-                    <li key={idx} className="text-xs flex items-start gap-2 text-slate-700">
-                      <span className={`mt-0.5 ${isValid ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {isValid ? '✓' : '✗'}
-                      </span>
-                      <span>{flag}</span>
-                    </li>
-                  ))}
+                  ]).map((flag, idx: number) => {
+                    const flagText = typeof flag === 'string' ? flag : flag.message;
+                    return (
+                      <li key={idx} className="text-xs flex items-start gap-2 text-slate-700">
+                        <span className={`mt-0.5 ${isValid ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {isValid ? '✓' : '✗'}
+                        </span>
+                        <span>{flagText}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </div>

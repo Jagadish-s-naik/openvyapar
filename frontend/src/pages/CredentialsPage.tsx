@@ -163,19 +163,20 @@ export const CredentialsPage = () => {
     }
   };
 
-  const formatClaimValue = (_key: string, value: any): string => {
+  const formatClaimValue = (_key: string, value: unknown): string => {
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'object') {
-      if (value.latitude !== undefined && value.longitude !== undefined) {
-        return `${Number(value.latitude).toFixed(4)}° N, ${Number(value.longitude).toFixed(4)}° E`;
+      const obj = value as Record<string, unknown>;
+      if (obj.latitude !== undefined && obj.longitude !== undefined) {
+        return `${Number(obj.latitude).toFixed(4)}° N, ${Number(obj.longitude).toFixed(4)}° E`;
       }
-      if (value.lat !== undefined && value.lng !== undefined) {
-        return `${Number(value.lat).toFixed(4)}° N, ${Number(value.lng).toFixed(4)}° E`;
+      if (obj.lat !== undefined && obj.lng !== undefined) {
+        return `${Number(obj.lat).toFixed(4)}° N, ${Number(obj.lng).toFixed(4)}° E`;
       }
       if (Array.isArray(value)) {
         return value.map(v => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ');
       }
-      return Object.entries(value)
+      return Object.entries(obj)
         .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
         .join(', ');
     }
@@ -208,7 +209,7 @@ export const CredentialsPage = () => {
     setUploadSuccess(false);
 
     try {
-      let claimPayload: Record<string, any> = {};
+      let claimPayload: Record<string, unknown> = {};
       let credType = 'self_attested';
       let issuerName = uploadIssuer;
 

@@ -97,7 +97,7 @@ export async function analyzeVerifierTrust(input: VerifierFlagRequest): Promise<
   const agentActionId = `agent-act-verify-${crypto.randomUUID().slice(0, 8)}`;
   const fallbackData = heuristicFallback(input);
 
-  const extracted: any = await callAgent({
+  const extracted = await callAgent<Partial<VerifierFlagResult>>({
     promptFile: 'verifier_flagger.md',
     userInput: {
       proof_id: input.proof_id,

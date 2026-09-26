@@ -74,7 +74,7 @@ export function authContextMiddleware(req: Request, _res: Response, next: NextFu
  * Route guard that requires the actor to be an active owner of the target business.
  * If x-openvyapar-actor-id is provided and the actor is NOT an owner, rejects with 403 Forbidden.
  */
-export function requireOwner(getBusinessId: (req: Request<any, any, any, any>) => string | string[] | undefined | null) {
+export function requireOwner(getBusinessId: (req: Request) => string | string[] | undefined | null) {
   return (req: Request, res: Response, next: NextFunction) => {
     const rawId = getBusinessId(req);
     const businessId = Array.isArray(rawId) ? rawId[0] : rawId || undefined;
@@ -103,7 +103,7 @@ export function requireOwner(getBusinessId: (req: Request<any, any, any, any>) =
  */
 export function requireRole(
   allowedRoles: RoleType[],
-  getBusinessId: (req: Request<any, any, any, any>) => string | string[] | undefined | null
+  getBusinessId: (req: Request) => string | string[] | undefined | null
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     const rawId = getBusinessId(req);
