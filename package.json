@@ -1,6 +1,7 @@
 {
   "name": "openvyapar",
   "version": "1.0.0",
+  "type": "module",
   "description": "OpenVyapar Unified Business Identity — Reimagined DPI for Business Owners",
   "private": true,
   "workspaces": [

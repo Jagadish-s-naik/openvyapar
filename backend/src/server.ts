@@ -1,10 +1,8 @@
 import { createApp } from './app.js';
 import { seedDatabase } from './db/seed.js';
-import dotenv from 'dotenv';
+import { config } from './config.js';
 
-dotenv.config();
-
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = config.port;
 
 // Auto-seed if database is empty
 seedDatabase();

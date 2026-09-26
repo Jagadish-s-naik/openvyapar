@@ -1,0 +1,72 @@
+import cors, { type CorsOptions } from 'cors';
+import type { Request, Response, NextFunction } from 'express';
+import { config } from '../config.js';
+
+const localhostRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+export const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. curl, server-to-server, tests)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Check against configured allowed origins
+    if (config.allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Check if origin is any localhost / 127.0.0.1 port in development mode
+    if (localhostRegex.test(origin)) {
+      return callback(null, true);
+    }
+
+    // In development mode, allow all origins
+    if (config.isDev) {
+      return callback(null, true);
+    }
+
+    callback(new Error(`Origin '${origin}' not allowed by CORS policy`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'x-openvyapar-actor-id',
+    'x-openvyapar-actor-role',
+    'x-request-id',
+  ],
+  exposedHeaders: [
+    'x-openvyapar-actor-id',
+    'x-openvyapar-actor-role',
+    'x-request-id',
+    'x-response-time',
+  ],
+  credentials: true,
+  maxAge: 86400, // 24 hours
+  optionsSuccessStatus: 204,
+};
+
+export const corsMiddleware = cors(corsOptions);
+
+/**
+ * Security and Tracing Headers Middleware
+ */
+export function securityHeadersMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const startTime = process.hrtime();
+
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
+  const requestId = (req.headers['x-request-id'] as string) || `req-${Date.now().toString(36)}`;
+  res.setHeader('x-request-id', requestId);
+
+  res.on('finish', () => {
+    const diff = process.hrtime(startTime);
+    const timeInMs = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(2);
+    // Note: header is written before stream ends, finish event tracks metrics if needed
+  });
+
+  next();
+}

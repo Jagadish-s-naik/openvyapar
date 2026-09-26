@@ -5,7 +5,7 @@
 
 import type { Business, BusinessMetadata, BusinessStatus, Person } from './business.js';
 import type { BusinessRole, RoleStatus, RoleType } from './role.js';
-import type { Credential, CredentialClaim, CredentialType, IssuerType } from './credential.js';
+import type { Credential, CredentialClaim, CredentialType, IssuerType, GstClaimPayload, BankIncomeClaimPayload, MarketplaceClaimPayload, SelfAttestedClaimPayload } from './credential.js';
 import type { DelegationScope, DelegationToken } from './delegation.js';
 import type { ProofPurpose, ProofShare, VerificationStatus } from './proof.js';
 import type { AgentAction, AgentType, HumanDecision } from './audit.js';
@@ -115,6 +115,9 @@ export interface GenerateProofRequest {
   disclosed_credential_ids: string[];
   shared_with: string;
   generated_by: string;
+  expires_at?: string | null;
+  max_uses?: number | null;
+  disclosed_attributes?: Record<string, string[]>; // Optional map of cred_id -> array of disclosed attribute names
   agent_action_id?: string; // If originated from consent explainer
 }
 
@@ -130,12 +133,33 @@ export interface VerifyProofResponse {
   business: Business;
   credentials: Credential[];
   verification_status: VerificationStatus;
+  verification_reason?: string;
+  use_count?: number;
+  max_uses?: number | null;
+  expires_at?: string | null;
+  redaction_summary?: Record<string, { disclosed: string[]; redacted: string[] }>;
   tamper_details?: string[];
   trust_analysis?: {
     anomaly_flags: string[];
     summary: string;
     trust_score: number; // 0 - 100
   };
+}
+
+export type TamperSimulationMode = 'corrupt_signature' | 'corrupt_claim_payload' | 'restore';
+
+export interface SimulateTamperRequest {
+  mode?: TamperSimulationMode;
+  target_credential_id?: string;
+}
+
+export interface SimulateTamperResponse {
+  success: boolean;
+  proof_id: string;
+  mode: TamperSimulationMode;
+  affected_credential_ids: string[];
+  details: string;
+  restored: boolean;
 }
 
 // -------------------------------------------------------------
@@ -230,3 +254,65 @@ export interface VerifierFlagResponse {
   overall_verdict: 'verified_clean' | 'attention_recommended' | 'high_risk';
   narrative_summary: string;
 }
+
+// -------------------------------------------------------------
+// 6. Audit & Timeline Endpoints (/audit/:business_id, /audit/:business_id/timeline)
+// -------------------------------------------------------------
+
+export interface GetAuditLogsResponse {
+  success: boolean;
+  business_id: string;
+  audit_logs: import('./audit.js').AuditLog[];
+  agent_proposals: import('./audit.js').AgentAction[];
+}
+
+// -------------------------------------------------------------
+// 7. Mock Issuers Endpoints (/mocks/issue-batch/:business_id)
+// -------------------------------------------------------------
+
+export type MockBatchTemplate = 'standard_healthy' | 'gst_defaulter' | 'high_growth_merchant';
+
+export interface IssueMockBatchRequest {
+  template?: MockBatchTemplate;
+  overrides?: {
+    gst?: Partial<GstClaimPayload>;
+    bank?: Partial<BankIncomeClaimPayload>;
+    marketplace?: Partial<MarketplaceClaimPayload>;
+  };
+}
+
+export interface IssueMockBatchResponse {
+  success: boolean;
+  business_id: string;
+  template: MockBatchTemplate;
+  message: string;
+  credentials: Credential[];
+}
+
+export interface IssueCscWitnessRequest {
+  business_id: string;
+  csc_agent_id?: string;
+  agent_name?: string;
+  csc_center_id?: string;
+  coordinates?: { lat: number; lng: number };
+  claim_overrides?: Partial<SelfAttestedClaimPayload>;
+  agent_action_id?: string;
+}
+
+export interface IssueCscWitnessResponse {
+  success: boolean;
+  business_id: string;
+  credential: Credential;
+  witness_summary: {
+    agent_id: string;
+    agent_name: string;
+    csc_center_id: string;
+    location_coordinates: { lat: number; lng: number };
+    photo_verification_hash: string;
+    verified_at: string;
+  };
+  message: string;
+}
+
+
+

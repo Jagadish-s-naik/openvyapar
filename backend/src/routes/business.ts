@@ -13,6 +13,9 @@ import type {
 import { db } from '../db/connection.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
+import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
+
+import { requireOwner } from '../middleware/auth.js';
 
 export const businessRouter = Router();
 
@@ -26,6 +29,12 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
 
     if (!name || !owner_person_id) {
       return sendError(res, 400, 'Missing required fields: name, owner_person_id');
+    }
+
+    // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
+    const proposalCheck = validateAgentProposal(agent_action_id);
+    if (!proposalCheck.valid) {
+      return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
 
     const businessId = `did:biz:${crypto.randomBytes(4).toString('hex')}`;
@@ -59,15 +68,9 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
 
     db.setBusinessRole(ownerRole);
 
-    // If originated from agent onboarding proposal, update agent_action status
-    if (agent_action_id) {
-      const agentAction = db.getAgentAction(agent_action_id);
-      if (agentAction) {
-        agentAction.human_decision = 'confirmed';
-        agentAction.decided_at = createdAt;
-        agentAction.target_action_ref = businessId;
-        db.setAgentAction(agentAction);
-      }
+    // If originated from agent onboarding proposal, update agent_action status atomically
+    if (proposalCheck.proposal) {
+      confirmAgentProposal(proposalCheck.proposal, businessId, businessId, createdAt);
     }
 
     // Record Immutable Audit Log
@@ -77,7 +80,14 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
       owner_person_id,
       'create_business',
       true,
-      { name, business_id: businessId, agent_action_id }
+      {
+        req,
+        diff: {
+          status: { before: null, after: 'active' },
+          owner: { before: null, after: owner_person_id },
+        },
+        metadata: { name, business_id: businessId, agent_action_id },
+      }
     );
 
     const responsePayload: CreateBusinessResponse = {
@@ -125,10 +135,11 @@ businessRouter.get('/:id', (req: Request<{ id: string }>, res: Response) => {
  * POST /business/:id/roles
  * Grant or transfer a role (owner, partner, successor, delegate)
  */
-businessRouter.post('/:id/roles', (req: Request<{ id: string }, {}, AssignRoleRequest>, res: Response) => {
+businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Request<{ id: string }, {}, AssignRoleRequest>, res: Response) => {
   try {
     const businessId = req.params.id;
-    const { person_id, role_type, granted_by } = req.body;
+    const { person_id, role_type } = req.body;
+    const granted_by = req.body.granted_by || req.actor?.actorId;
 
     const business = db.getBusiness(businessId);
     if (!business) {
@@ -140,10 +151,12 @@ businessRouter.post('/:id/roles', (req: Request<{ id: string }, {}, AssignRoleRe
     }
 
     // If transferring primary ownership (Beat 5 narrative), demote existing owner to former
+    let previousOwnerPersonId: string | undefined;
     if (role_type === 'owner') {
       const existingRoles = db.getRolesForBusiness(businessId);
       for (const role of existingRoles) {
         if (role.role_type === 'owner') {
+          previousOwnerPersonId = role.person_id;
           role.status = 'former';
           role.revoked_at = new Date().toISOString();
           db.setBusinessRole(role);
@@ -169,7 +182,13 @@ businessRouter.post('/:id/roles', (req: Request<{ id: string }, {}, AssignRoleRe
       granted_by,
       role_type === 'owner' ? 'transfer_ownership' : `grant_role_${role_type}`,
       true,
-      { new_role_id: newRole.role_id, person_id, role_type }
+      {
+        req,
+        diff: role_type === 'owner' ? {
+          owner_person_id: { before: previousOwnerPersonId, after: person_id },
+        } : undefined,
+        metadata: { new_role_id: newRole.role_id, person_id, role_type },
+      }
     );
 
     const responsePayload: AssignRoleResponse = {

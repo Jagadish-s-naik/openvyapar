@@ -26,6 +26,18 @@ export interface DatabaseState {
   agent_actions: Record<string, AgentAction>;
 }
 
+export interface SnapshotMetadata {
+  snapshot_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  record_counts: Record<string, number>;
+}
+
+interface StoredSnapshot extends SnapshotMetadata {
+  state: DatabaseState;
+}
+
 const defaultState: DatabaseState = {
   businesses: {},
   persons: {},
@@ -39,6 +51,7 @@ const defaultState: DatabaseState = {
 
 class DatabaseManager {
   private dbPath: string;
+  private snapshotsDir: string;
   private state: DatabaseState = JSON.parse(JSON.stringify(defaultState));
   private isLoaded = false;
 
@@ -48,6 +61,10 @@ class DatabaseManager {
       fs.mkdirSync(dataDir, { recursive: true });
     }
     this.dbPath = path.join(dataDir, 'openvyapar_db.json');
+    this.snapshotsDir = path.join(dataDir, 'snapshots');
+    if (!fs.existsSync(this.snapshotsDir)) {
+      fs.mkdirSync(this.snapshotsDir, { recursive: true });
+    }
     this.load();
   }
 
@@ -75,9 +92,155 @@ class DatabaseManager {
     }
   }
 
+  public getState(): DatabaseState {
+    return JSON.parse(JSON.stringify(this.state));
+  }
+
+  public setState(newState: DatabaseState): void {
+    this.state = JSON.parse(JSON.stringify(newState));
+    this.save();
+  }
+
+  public getStats(): Record<string, number> {
+    return {
+      businesses: Object.keys(this.state.businesses).length,
+      persons: Object.keys(this.state.persons).length,
+      business_roles: Object.keys(this.state.business_roles).length,
+      credentials: Object.keys(this.state.credentials).length,
+      delegation_tokens: Object.keys(this.state.delegation_tokens).length,
+      proof_shares: Object.keys(this.state.proof_shares).length,
+      audit_logs: Object.keys(this.state.audit_logs).length,
+      agent_actions: Object.keys(this.state.agent_actions).length,
+    };
+  }
+
   public reset(): void {
     this.state = JSON.parse(JSON.stringify(defaultState));
     this.save();
+  }
+
+  public createSnapshot(name?: string, description?: string): SnapshotMetadata {
+    const timestamp = new Date().toISOString();
+    const idSuffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+    const snapshot_id = `snap_${idSuffix}`;
+    const snapshotName = name && name.trim().length > 0 ? name.trim() : snapshot_id;
+
+    const metadata: SnapshotMetadata = {
+      snapshot_id,
+      name: snapshotName,
+      description: description || `Snapshot created at ${timestamp}`,
+      created_at: timestamp,
+      record_counts: this.getStats(),
+    };
+
+    const snapshotData: StoredSnapshot = {
+      ...metadata,
+      state: this.getState(),
+    };
+
+    const filePath = path.join(this.snapshotsDir, `${snapshot_id}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(snapshotData, null, 2), 'utf8');
+
+    return metadata;
+  }
+
+  public listSnapshots(): SnapshotMetadata[] {
+    if (!fs.existsSync(this.snapshotsDir)) {
+      return [];
+    }
+
+    try {
+      const files = fs.readdirSync(this.snapshotsDir).filter(f => f.endsWith('.json'));
+      const snapshots: SnapshotMetadata[] = [];
+
+      for (const file of files) {
+        try {
+          const raw = fs.readFileSync(path.join(this.snapshotsDir, file), 'utf8');
+          const data: StoredSnapshot = JSON.parse(raw);
+          snapshots.push({
+            snapshot_id: data.snapshot_id,
+            name: data.name,
+            description: data.description,
+            created_at: data.created_at,
+            record_counts: data.record_counts,
+          });
+        } catch (e) {
+          console.warn(`Failed reading snapshot ${file}:`, e);
+        }
+      }
+
+      return snapshots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } catch (err) {
+      console.error('Failed to list snapshots:', err);
+      return [];
+    }
+  }
+
+  public restoreSnapshot(snapshotIdOrName: string): { success: boolean; snapshot?: SnapshotMetadata; error?: string } {
+    if (!fs.existsSync(this.snapshotsDir)) {
+      return { success: false, error: 'No snapshots directory exists' };
+    }
+
+    try {
+      const files = fs.readdirSync(this.snapshotsDir).filter(f => f.endsWith('.json'));
+      let targetFile: string | null = null;
+      let matchedData: StoredSnapshot | null = null;
+
+      for (const file of files) {
+        try {
+          const raw = fs.readFileSync(path.join(this.snapshotsDir, file), 'utf8');
+          const data: StoredSnapshot = JSON.parse(raw);
+          if (data.snapshot_id === snapshotIdOrName || data.name.toLowerCase() === snapshotIdOrName.toLowerCase()) {
+            targetFile = file;
+            matchedData = data;
+            break;
+          }
+        } catch {
+          // ignore corrupted individual files
+        }
+      }
+
+      if (!matchedData) {
+        return { success: false, error: `Snapshot '${snapshotIdOrName}' not found` };
+      }
+
+      this.state = JSON.parse(JSON.stringify(matchedData.state));
+      this.save();
+
+      return {
+        success: true,
+        snapshot: {
+          snapshot_id: matchedData.snapshot_id,
+          name: matchedData.name,
+          description: matchedData.description,
+          created_at: matchedData.created_at,
+          record_counts: this.getStats(),
+        },
+      };
+    } catch (err) {
+      return { success: false, error: (err as Error).message };
+    }
+  }
+
+  public deleteSnapshot(snapshotIdOrName: string): boolean {
+    if (!fs.existsSync(this.snapshotsDir)) {
+      return false;
+    }
+    try {
+      const files = fs.readdirSync(this.snapshotsDir).filter(f => f.endsWith('.json'));
+      for (const file of files) {
+        const fullPath = path.join(this.snapshotsDir, file);
+        const raw = fs.readFileSync(fullPath, 'utf8');
+        const data: StoredSnapshot = JSON.parse(raw);
+        if (data.snapshot_id === snapshotIdOrName || data.name.toLowerCase() === snapshotIdOrName.toLowerCase()) {
+          fs.unlinkSync(fullPath);
+          return true;
+        }
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   // Businesses
@@ -120,6 +283,12 @@ class DatabaseManager {
   public getAllRolesForBusiness(businessId: string): BusinessRole[] {
     return Object.values(this.state.business_roles).filter(
       (r) => r.business_id === businessId
+    );
+  }
+
+  public getRolesForPerson(personId: string): BusinessRole[] {
+    return Object.values(this.state.business_roles).filter(
+      (r) => r.person_id === personId && r.status === 'active'
     );
   }
 
