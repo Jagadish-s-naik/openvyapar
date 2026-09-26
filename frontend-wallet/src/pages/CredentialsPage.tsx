@@ -413,8 +413,50 @@ export const CredentialsPage = () => {
               </button>
             </div>
 
-            {!generatedProofResult ? (
-              <div className="space-y-5">
+                {/* Friendly Privacy Explanation Banner */}
+                <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-900">
+                    <span>🛡️</span>
+                    <span>How Your Privacy is Protected (Zero-Knowledge)</span>
+                  </div>
+                  <p className="text-[11px] text-amber-900/90 leading-relaxed">
+                    You choose exactly what the bank sees. The bank verifies your turnover mathematically, while unselected items (like personal bank balance or Aadhaar UID) stay 100% private on your phone.
+                  </p>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Quick 1-Tap Presets
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gstOndc = credentials.filter(c => c.type === 'gst_compliant' || c.type === 'order_history').map(c => c.credential_id);
+                        setSelectedCredIds(gstOndc.length > 0 ? gstOndc : credentials.slice(0, 2).map(c => c.credential_id));
+                        setPurpose('Working Capital Loan Application (₹5L Limit)');
+                        setRecipient('State Bank of India — MSME Sahay');
+                      }}
+                      className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 text-slate-800 border border-slate-300 transition-all cursor-pointer"
+                    >
+                      🏦 Working Capital Loan Preset (GST + ONDC)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const trade = credentials.filter(c => c.type === 'self_attested').map(c => c.credential_id);
+                        setSelectedCredIds(trade.length > 0 ? trade : credentials.slice(0, 1).map(c => c.credential_id));
+                        setPurpose('B2B Supplier Onboarding');
+                        setRecipient('BharatMart Supplier Registry');
+                      }}
+                      className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 text-slate-800 border border-slate-300 transition-all cursor-pointer"
+                    >
+                      🏢 Vendor Verification Preset
+                    </button>
+                  </div>
+                </div>
+
                 {/* 1. Recipient & Declared Purpose */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1.5">

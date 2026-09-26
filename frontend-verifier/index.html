@@ -46,6 +46,24 @@
         </a>
       </nav>
 
+      <!-- 3-Step Demo Navigator Bar -->
+      <div style="display: flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 4px 8px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">
+        <a href="http://localhost:5175" style="text-decoration: none; color: #64748b; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #e2e8f0; color: #334155; font-size: 10px;">1</span>
+          <span>CSC</span>
+        </a>
+        <span style="color: #94a3b8;">→</span>
+        <a href="http://localhost:5173" style="text-decoration: none; color: #64748b; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #e2e8f0; color: #334155; font-size: 10px;">2</span>
+          <span>Wallet</span>
+        </a>
+        <span style="color: #94a3b8;">→</span>
+        <span style="color: #92400e; background: rgba(245, 158, 11, 0.2); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.4); display: flex; align-items: center; gap: 4px; font-weight: 700;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #f59e0b; color: #0a1424; font-size: 10px;">3</span>
+          <span>Bank Verifier</span>
+        </span>
+      </div>
+
       <div class="top-right-tools">
         <div class="lang-switch-group">
           <button class="lang-btn" data-lang="hi">हिन्दी</button>
@@ -90,6 +108,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <span>Inspect & Verify</span>
         </button>
+        <button id="btnOfflineScanModal" class="btn btn-dark-outline" title="Verify raw cryptographic JSON payloads completely offline (0 network calls)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/></svg>
+          <span>📴 Offline Verify</span>
+        </button>
         <button id="btnSimulateTamper" class="btn btn-dark-outline" title="Simulate modified payload data to test cryptographic failure">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           <span id="tamperBtnText">Simulate Tampering</span>
@@ -102,22 +124,35 @@
           <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; font-weight: bold; font-size: 16px;">🏦</span>
           <div>
             <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700;">ACTIVE BANK OFFICER DESK SESSION (ZERO-LINK HANDOFF)</div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px; flex-wrap: wrap;">
               <span id="txtDeskSessionCode" style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 13px; color: #fbbf24; background: rgba(245, 158, 11, 0.12); padding: 2px 10px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.35);">SBI-DESK-7492</span>
-              <span id="txtOfficerTitle" style="font-size: 12px; color: #cbd5e1; font-weight: 500;">Priya Sharma · Chief Underwriting Manager</span>
+              
+              <!-- 1. Live Countdown Timer -->
+              <span id="txtSessionTimer" class="countdown-pill">
+                <span>⏱️</span>
+                <span id="txtTimerValue">14:59</span>
+                <span style="color: #94a3b8; font-weight: 400; font-size: 10px;">remaining</span>
+              </span>
+
+              <span id="txtOfficerTitle" style="font-size: 12px; color: #cbd5e1; font-weight: 500;">Priya Sharma · Chief Underwriter</span>
+              
               <span class="badge-pill emerald" style="font-size: 10px; padding: 2px 8px;">
                 <span class="pulse-dot"></span>
-                <span>Listening for Inbound Proofs</span>
+                <span id="txtAutoListenerStatus">Auto-Receiving Proofs</span>
               </span>
             </div>
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <button id="btnNewDeskSession" class="btn btn-dark-outline" style="font-size: 11px; padding: 6px 12px;" title="Generate a fresh 15-minute desk session PIN">
-            <span>🔄 New Desk PIN</span>
+          <!-- 2. Show Desk QR Button -->
+          <button id="btnShowDeskQR" class="btn btn-dark-outline" style="font-size: 11px; padding: 6px 12px;" title="Display printable / scannable Counter QR stand for in-person merchants">
+            <span>📲 Desk QR Stand</span>
           </button>
-          <button id="btnCheckDeskHandoff" class="btn btn-gold" style="font-size: 11px; padding: 6px 14px;" title="Inspect incoming proofs transmitted directly from merchant wallet to this desk">
-            <span>⚡ Check Inbound Handoff</span>
+          <button id="btnNewDeskSession" class="btn btn-dark-outline" style="font-size: 11px; padding: 6px 12px;" title="Generate a fresh 15-minute desk session PIN">
+            <span>🔄 New PIN</span>
+          </button>
+          <button id="btnCheckDeskHandoff" class="btn btn-gold" style="font-size: 11px; padding: 6px 14px;" title="Manually query incoming proofs">
+            <span>⚡ Refresh Handoff</span>
           </button>
         </div>
       </div>
@@ -219,6 +254,192 @@
     </div>
 
   </main>
+
+  <!-- 2. Desk QR Stand Modal -->
+  <div id="modalDeskQR" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>
+          <span>🏦</span>
+          <span>SBI Branch Desk #3 · Counter QR Stand</span>
+        </h3>
+        <button id="btnCloseDeskQR" class="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-stand-visual">
+          <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;">
+            Merchants at Counter 3 can point their phone camera or OpenVyapar Wallet to instantly pair & dispatch selective proofs.
+          </p>
+          <div class="qr-box-wrap">
+            <!-- Stylized Crisp SVG QR Graphic with Bank Logo Anchor -->
+            <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="180" height="180" rx="8" fill="#ffffff"/>
+              <!-- Outer Position Detection Squares -->
+              <rect x="15" y="15" width="45" height="45" rx="6" fill="#0a1424"/>
+              <rect x="23" y="23" width="29" height="29" rx="3" fill="#ffffff"/>
+              <rect x="29" y="29" width="17" height="17" rx="2" fill="#f59e0b"/>
+
+              <rect x="120" y="15" width="45" height="45" rx="6" fill="#0a1424"/>
+              <rect x="128" y="23" width="29" height="29" rx="3" fill="#ffffff"/>
+              <rect x="134" y="29" width="17" height="17" rx="2" fill="#f59e0b"/>
+
+              <rect x="15" y="120" width="45" height="45" rx="6" fill="#0a1424"/>
+              <rect x="23" y="128" width="29" height="29" rx="3" fill="#ffffff"/>
+              <rect x="29" y="134" width="17" height="17" rx="2" fill="#f59e0b"/>
+
+              <!-- Cryptographic QR Pixel Pattern -->
+              <rect x="70" y="18" width="10" height="10" fill="#0a1424"/>
+              <rect x="88" y="18" width="18" height="10" fill="#0a1424"/>
+              <rect x="70" y="36" width="28" height="10" fill="#0a1424"/>
+              <rect x="18" y="70" width="36" height="10" fill="#0a1424"/>
+              <rect x="36" y="88" width="18" height="18" fill="#0a1424"/>
+              <rect x="70" y="70" width="40" height="40" rx="8" fill="#0a1424"/>
+              <!-- Center Bank Anchor Icon -->
+              <text x="80" y="96" font-size="20" fill="#fbbf24">🏦</text>
+              <rect x="120" y="70" width="18" height="10" fill="#0a1424"/>
+              <rect x="146" y="70" width="18" height="28" fill="#0a1424"/>
+              <rect x="120" y="96" width="18" height="10" fill="#0a1424"/>
+              <rect x="70" y="120" width="18" height="30" fill="#0a1424"/>
+              <rect x="96" y="120" width="28" height="12" fill="#0a1424"/>
+              <rect x="96" y="138" width="48" height="12" fill="#0a1424"/>
+              <rect x="150" y="120" width="14" height="30" fill="#0a1424"/>
+            </svg>
+          </div>
+          <div style="font-size: 0.72rem; color: #475569; font-weight: 600;">COUNTER DESK TERMINAL CODE</div>
+          <div id="modalQrDeskCode" class="qr-desk-badge">SBI-DESK-7492</div>
+          <div style="margin-top: 8px; font-size: 0.75rem; color: #059669; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+            <span class="pulse-dot"></span>
+            <span>Active & Ready for Contactless Proof Handoff</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Verifiable Sanction Slip Modal -->
+  <div id="modalSanctionSlip" class="modal-overlay">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header" style="background: #064e3b; border-bottom: 1px solid #10b981;">
+        <h3 style="color: #6ee7b7;">
+          <span>📜</span>
+          <span>Verifiable Credit Sanction Slip</span>
+        </h3>
+        <button id="btnCloseSanctionSlip" class="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="sanction-slip-box">
+          <div class="slip-header-grid">
+            <div>
+              <div class="slip-title">STATE BANK OF INDIA · MSME SAHAY</div>
+              <div style="font-size: 0.75rem; color: #047857; margin-top: 2px;">Automated Working Capital Sanction Order</div>
+            </div>
+            <div style="text-align: right;">
+              <div id="slipSanctionId" class="slip-id">SANCTION-2026-SBI-84920</div>
+              <div style="font-size: 0.68rem; color: #059669; font-family: var(--font-mono); margin-top: 2px;">RBI-DPI v1.4</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+            <div class="slip-row">
+              <span class="slip-row-key">Borrower Enterprise:</span>
+              <span id="slipBorrowerName" class="slip-row-val">Sharma General Store</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Enterprise DID:</span>
+              <span id="slipBorrowerDid" class="slip-row-val font-mono" style="font-size: 0.72rem;">did:biz:sharma001</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Sanctioned Amount:</span>
+              <span class="slip-row-val" style="color: #047857; font-size: 0.95rem;">₹5,00,000 (INR 5 Lakhs)</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Underwriting Basis:</span>
+              <span class="slip-row-val">Zero-Knowledge GST & Banking Proofs</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Repayment Model:</span>
+              <span class="slip-row-val" style="color: #047857; font-weight: 700;">OCEN 5% Daily UPI/ONDC Cash-Flow Auto-Split</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Collateral Status:</span>
+              <span class="slip-row-val">Zero Physical Collateral (Cash-Flow Backed)</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Sanctioning Officer:</span>
+              <span class="slip-row-val font-mono" style="font-size: 0.72rem;">did:in:bank:sbi-officer-7492 (Priya Sharma)</span>
+            </div>
+            <div class="slip-row">
+              <span class="slip-row-key">Timestamp:</span>
+              <span id="slipTimestamp" class="slip-row-val font-mono" style="font-size: 0.72rem;">2026-09-26T21:26:00Z</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <div style="font-size: 0.7rem; font-weight: 700; color: #065f46; text-transform: uppercase;">Cryptographic Audit Digest & Nonce:</div>
+            <div id="slipProofDigest" class="slip-hash-box">
+              0x8f2d91b4e87a20c35691de441098bca1207e9921f7c32b6a71d80234ac
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 16px;">
+          <button id="btnDownloadSlipJson" class="btn btn-gold" style="flex: 1; font-size: 0.8rem; padding: 10px;">
+            <span>📥 Download Signed Receipt (JSON)</span>
+          </button>
+          <button id="btnPrintSlip" class="btn btn-dark-outline" style="font-size: 0.8rem; padding: 10px 16px;">
+            <span>🖨️ Print Slip</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Offline Cryptographic Verification & Raw Payload Scanner Modal -->
+  <div id="modalOfflineVerify" class="modal-overlay">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header" style="background: #0f172a; border-bottom: 1px solid rgba(245, 158, 11, 0.4);">
+        <h3>
+          <span>📴</span>
+          <span>100% Offline Cryptographic Verifier (0 Network Calls)</span>
+        </h3>
+        <button id="btnCloseOfflineVerify" class="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.78rem; color: #475569; margin-bottom: 12px; line-height: 1.45;">
+          This verifier checks Ed25519 & HMAC signatures locally inside the browser using pre-cached public keys of GSTN, UIDAI, and MSME Ministry. Works in complete airplane mode.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 0.72rem; font-weight: 700; color: #0f172a; text-transform: uppercase;">
+            Paste Raw QR Payload or W3C Verifiable Credential:
+          </label>
+          <textarea id="txtOfflinePayload" style="width: 100%; height: 120px; font-family: var(--font-mono); font-size: 0.72rem; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; resize: vertical;" placeholder='{"issuer":"did:in:gstn","subject":"did:biz:sharma001","claim":{"annual_turnover_bracket":"50L_to_1Cr","compliance_score":98},"sig":"3045022100a89..."}'></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button id="btnSamplePayload" class="btn btn-dark-outline" style="font-size: 0.75rem; padding: 6px 12px;">
+            <span>Load Sample Payload</span>
+          </button>
+          <button id="btnRunOfflineVerify" class="btn btn-gold" style="flex: 1; font-size: 0.75rem; padding: 8px 16px;">
+            <span>⚡ Verify Offline Signatures (Browser Math)</span>
+          </button>
+        </div>
+
+        <div id="offlineResultBox" style="margin-top: 14px; display: none; padding: 12px; border-radius: 8px; border: 1px solid #a7f3d0; background: #ecfdf5;">
+          <div style="display: flex; items-center; justify-content: space-between;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #047857; display: flex; align-items: center; gap: 6px;">
+              <span>✓</span>
+              <span id="txtOfflineStatusTitle">Signature Validated Offline</span>
+            </span>
+            <span class="dpdp-badge" style="background: #047857; color: #ffffff; border: none;">Zero API Calls</span>
+          </div>
+          <div id="txtOfflineDetails" style="font-family: var(--font-mono); font-size: 0.7rem; color: #065f46; margin-top: 6px;">
+            Issuer: did:in:gstn · Math: Ed25519 Verified · Tamper: None
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="./app.js"></script>
 </body>

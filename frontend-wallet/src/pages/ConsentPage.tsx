@@ -194,6 +194,66 @@ export const ConsentPage = () => {
         {/* ACTIVE DELEGATIONS TAB */}
         {activeTab === 'active' && (
           <div className="space-y-4">
+
+            {/* Inbound Owner Dispatch & Employee Notification Banner */}
+            <div className="bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-slate-900/5 border-2 border-amber-400/90 rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-400/30 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-sm">
+                    📩
+                  </span>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber-900 font-bold bg-amber-400/20 px-2 py-0.5 rounded border border-amber-400/40">
+                      INBOUND OWNER DISPATCH (EMPLOYEE / CA VIEW)
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900 mt-0.5 font-display">
+                      Ramesh Sharma (Owner) dispatched a Scoped Authority Token to you
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full font-mono border border-emerald-300 flex items-center gap-1 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  READY TO EXECUTE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+                  <span className="text-slate-500 font-medium">Granted Scopes & Boundaries:</span>
+                  <div className="font-mono font-bold text-slate-900 text-sm">
+                    file_returns (GST Tax Returns Only)
+                  </div>
+                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                    Max Invoice Limit: ₹50,000 · Valid for 24 hours · Cryptographically Bound
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-900 text-white rounded-xl border border-slate-800 space-y-1">
+                  <span className="text-amber-400 font-medium flex items-center gap-1">
+                    <span>🛡️</span>
+                    <span>Anti-Scam Cryptographic Guardrails:</span>
+                  </span>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    Loan applications, bank withdrawals, and DID ownership transfers are mathematically blocked for this token.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div className="text-[11px] text-slate-600 font-mono">
+                  Token Hash: <span className="font-bold text-slate-900">did:token:del-001#ed25519-sig</span>
+                </div>
+                <button
+                  onClick={() => {
+                    alert('✓ Authorized Action Executed: GST Return GSTR-3B filed successfully under Owner Delegation did:token:del-001. Complies with least-privilege scope.');
+                  }}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>⚡ Execute Authorized GST Return Filing</span>
+                </button>
+              </div>
+            </div>
+
             {activeList.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3 shadow-xs">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />

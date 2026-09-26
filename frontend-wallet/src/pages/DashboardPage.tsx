@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n/useTranslation';
-import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, Zap } from 'lucide-react';
+import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, Zap, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
 
 export const DashboardPage = () => {
   const {
@@ -15,6 +16,24 @@ export const DashboardPage = () => {
     isSyncing,
   } = useAppStore();
   const { t } = useTranslation();
+
+  const [repaidAmount, setRepaidAmount] = useState(42850);
+  const [recentSplitToast, setRecentSplitToast] = useState<string | null>(null);
+
+  const totalLoan = 500000;
+  const remainingLoan = Math.max(0, totalLoan - repaidAmount);
+  const progressPercent = Math.min(100, Math.round((repaidAmount / totalLoan) * 100));
+
+  const handleSimulateUpiPayment = () => {
+    const payment = 1000;
+    const splitDeduction = 50; // 5%
+    const merchantNet = 950;
+    setRepaidAmount((prev) => Math.min(totalLoan, prev + splitDeduction));
+    setRecentSplitToast(
+      `✓ ₹${payment} UPI Customer Order Received: ₹${merchantNet} credited to your wallet, ₹${splitDeduction} (5%) auto-settled SBI loan!`
+    );
+    setTimeout(() => setRecentSplitToast(null), 5000);
+  };
 
   const activeDelegations = delegations.filter((d) => d.status === 'active');
   const recentEvents = timeline.slice(0, 3);
@@ -70,31 +89,108 @@ export const DashboardPage = () => {
         </div>
       </section>
 
-      {/* Beat 2 Fast-Forward Banner (If credentials < 3) */}
-      {credentials.length < 3 && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3">
-            <span className="p-2 rounded-lg bg-amber-500/20 text-amber-600 shrink-0 mt-0.5 sm:mt-0">
-              <Zap className="w-5 h-5 text-amber-600 animate-pulse" />
-            </span>
+      {/* 🌟 SMART CASH-FLOW PROGRAMMABLE REPAYMENT STREAM CARD */}
+      <section className="bg-white rounded-2xl border-2 border-emerald-500/80 p-6 shadow-sm space-y-4 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold">
+              <TrendingUp className="w-6 h-6 text-emerald-700" />
+            </div>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-amber-950">
-                Beat 2 Demo Time-Skip: Issue Institutional Track Record
-              </p>
-              <p className="text-xs text-amber-900/80 mt-0.5">
-                Simulate verified history accumulation from Mock GSTN, State Bank of India, and BharatMart ONDC.
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
+                  OCEN PROGRAMMABLE CASH-FLOW REPAYMENT
+                </span>
+                <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> ZERO-DEFAULT STREAM
+                </span>
+              </div>
+              <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                SBI Working Capital (₹5,00,000) · 5% Daily UPI Auto-Split Active
+              </h3>
             </div>
           </div>
+
           <button
-            onClick={() => issueBatchCredentials()}
-            disabled={isSyncing}
-            className="px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer self-start sm:self-auto disabled:opacity-50"
+            onClick={handleSimulateUpiPayment}
+            className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+            title="Simulate a customer purchasing ₹1,000 via UPI to demonstrate 5% auto-split loan repayment"
           >
-            Fast-Forward Time (Issue 3 Credentials)
+            <ShoppingBag className="w-4 h-4" />
+            <span>Simulate ₹1,000 Customer UPI Order</span>
           </button>
         </div>
-      )}
+
+        {/* Live Simulation Toast */}
+        {recentSplitToast && (
+          <div className="p-3 rounded-xl bg-emerald-900 text-emerald-100 text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-1 shadow-inner">
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0 animate-spin" />
+            <span>{recentSplitToast}</span>
+          </div>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Credit Facility</span>
+            <div className="text-xl font-bold font-mono text-slate-900 mt-1">₹5,00,000</div>
+            <span className="text-[10px] text-slate-400">SBI MSME Sahay Priority Limit</span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+            <span className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider">Auto-Repaid via UPI Stream</span>
+            <div className="text-xl font-bold font-mono text-emerald-700 mt-1">₹{repaidAmount.toLocaleString()}</div>
+            <span className="text-[10px] text-emerald-600 font-medium">From daily digital sales splits ({progressPercent}%)</span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <span className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">Remaining Balance</span>
+            <div className="text-xl font-bold font-mono text-amber-900 mt-1">₹{remainingLoan.toLocaleString()}</div>
+            <span className="text-[10px] text-amber-700 font-medium">0 fixed EMI pressure · Cash-flow synced</span>
+          </div>
+        </div>
+
+        {/* Animated Progress Bar */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-600 font-medium">Repayment Progress: <strong className="text-emerald-700">{progressPercent}% Settled</strong></span>
+            <span className="text-slate-500 font-mono text-[11px]">₹{repaidAmount.toLocaleString()} / ₹5,00,000</span>
+          </div>
+          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 rounded-full"
+              style={{ width: `${Math.max(5, progressPercent)}%` }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Proactive Pre-Approved Working Capital Credit Discovery Banner */}
+      <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-[#0a1424] border border-emerald-500/40 rounded-2xl p-5 sm:p-6 text-white shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="space-y-2 relative z-10">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wide">
+              ⚡ OCEN / MSME-DPI Pre-Approved
+            </span>
+            <span className="text-xs text-slate-400 font-mono">State Bank of India — MSME Sahay</span>
+          </div>
+          <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <span>₹5,00,000 Working Capital Pre-Sanctioned at 8.45%</span>
+          </h3>
+          <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+            Based on your accumulated cryptographic GST compliance and consistent banking velocity, you qualify for instant collateral-free credit without sharing raw bank accounts or passwords.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 relative z-10 shrink-0">
+          <Link
+            to="/credentials"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-2 group cursor-pointer"
+          >
+            <span>Claim via Zero-Knowledge Proof</span>
+            <ArrowRight className="w-4 h-4 text-slate-950 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+      </div>
 
       {/* 2. STATS OVERVIEW CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
