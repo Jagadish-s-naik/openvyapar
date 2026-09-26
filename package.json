@@ -12,8 +12,10 @@
     "frontend-onboarding"
   ],
   "scripts": {
+    "dev": "node scripts/dev-all.mjs",
     "build": "npm --workspace=shared run build && npm --workspace=backend run build && npm --workspace=agent-service run build",
     "test": "node shared/test-shared.mjs && npm --workspace=backend run test && npm --workspace=agent-service run test",
+    "test:demo": "node demo/run-demo-flow.mjs",
     "seed": "node demo/seed-demo.js",
     "start:backend": "npm --workspace=backend start",
     "start:agent": "npm --workspace=agent-service start",

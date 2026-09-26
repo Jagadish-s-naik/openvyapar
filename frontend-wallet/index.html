@@ -42,6 +42,9 @@
         <button id="btnSimulateTimeSkip" class="btn btn-secondary" title="Beat 2 Demo: Trigger GST, Bank, and Marketplace issuers">
           <span>⏩</span> <span id="txtTimeSkipBtn">Time-Skip (Issue Batch)</span>
         </button>
+        <button id="btnTransferOwnershipModal" class="btn btn-secondary" title="Beat 5 Demo: Transfer business ownership to nominated successor">
+          <span>👑</span> <span>Transfer Ownership (Beat 5)</span>
+        </button>
       </div>
     </header>
 
@@ -182,6 +185,41 @@
         <a id="btnOpenInVerifier" href="#" target="_blank" class="btn btn-success" style="font-size: 0.82rem;">Open in Verifier Portal →</a>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Transfer Ownership Modal (Beat 5) -->
+  <div class="modal-backdrop" id="transferModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-family: var(--font-display); font-size: 1.3rem;">👑 Succession & Ownership Transfer (Beat 5)</h3>
+        <button class="modal-close" id="btnCloseTransferModal">&times;</button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+        Transfer primary business identity and authority to a nominated successor. All accumulated credentials, compliance records, and ratings persist unbroken with <code style="color: #60a5fa;">did:biz:sharma001</code>.
+      </p>
+
+      <div class="input-group">
+        <label class="input-label">Current Primary Owner</label>
+        <input type="text" class="input-text" value="Ramesh Sharma (did:person:ramesh001)" disabled style="opacity: 0.7;">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Nominated Successor</label>
+        <select id="successorSelect" class="input-select">
+          <option value="did:person:priya001">Priya Sharma (Daughter / Designated Successor)</option>
+        </select>
+      </div>
+
+      <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px; font-size: 0.82rem; color: #fdba74;">
+        ⚠️ <strong>Succession Notice:</strong> Ramesh Sharma will become a <em>former_owner</em> with read-only historical rights. Priya Sharma will assume primary executive control.
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" id="btnCancelTransfer">Cancel</button>
+        <button class="btn btn-success" id="btnConfirmTransfer">Confirm & Transfer Ownership</button>
+      </div>
     </div>
   </div>
 

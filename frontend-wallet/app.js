@@ -371,6 +371,38 @@ function setupEventListeners() {
       alert('Failed to generate proof share.');
     }
   });
+
+  // Transfer Ownership Modal (Beat 5)
+  const transferModal = document.getElementById('transferModal');
+  document.getElementById('btnTransferOwnershipModal').addEventListener('click', () => {
+    transferModal.classList.add('active');
+  });
+
+  document.getElementById('btnCloseTransferModal').addEventListener('click', () => transferModal.classList.remove('active'));
+  document.getElementById('btnCancelTransfer').addEventListener('click', () => transferModal.classList.remove('active'));
+
+  document.getElementById('btnConfirmTransfer').addEventListener('click', async () => {
+    const successorId = document.getElementById('successorSelect').value;
+    try {
+      const res = await fetch(`${BACKEND_URL}/business/${CURRENT_BIZ_ID}/roles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          person_id: successorId,
+          role_type: 'owner',
+          granted_by: 'did:person:ramesh001',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('🎉 Succession Complete! Priya Sharma is now the primary owner of Sharma General Store. All accumulated credentials persist seamlessly.');
+        transferModal.classList.remove('active');
+        await refreshDashboard();
+      }
+    } catch (err) {
+      alert('Failed to transfer ownership.');
+    }
+  });
 }
 
 function populateProofModalCredentials() {
