@@ -1,14 +1,31 @@
 import crypto from 'node:crypto';
-import type { ConsentExplainRequest, ConsentExplainResponse } from '@openvyapar/shared';
+import type { ConsentExplainRequest } from '@openvyapar/shared';
+import { callAgent } from '../lib/callAgent.js';
 
-export function explainConsent(input: ConsentExplainRequest): ConsentExplainResponse {
+export interface ConsentExplainResult {
+  success: boolean;
+  agent_action_id: string;
+  plain_summary: string;
+  will_share: string[];
+  will_not_share: string[];
+  risk_assessment: 'low' | 'medium' | 'high';
+  recommendations: string[];
+  // Backwards-compatibility aliases
+  plain_language_explanation: string;
+  shared_data_summary: string[];
+  withheld_data_summary: string[];
+}
+
+function heuristicFallback(input: ConsentExplainRequest): {
+  plain_summary: string;
+  will_share: string[];
+  will_not_share: string[];
+  risk_assessment: 'low' | 'medium' | 'high';
+  recommendations: string[];
+} {
   const lang = input.language || 'hi';
   const recipient = input.recipient_name || 'Lender / Platform';
-  const creds = input.selected_credential_ids || [];
 
-  const agentActionId = `agent-act-consent-${crypto.randomUUID().slice(0, 8)}`;
-
-  // Multilingual explanations
   let explanation = '';
   let shared: string[] = [];
   let withheld: string[] = [];
@@ -63,12 +80,47 @@ export function explainConsent(input: ConsentExplainRequest): ConsentExplainResp
   }
 
   return {
-    success: true,
-    agent_action_id: agentActionId,
-    plain_language_explanation: explanation,
-    shared_data_summary: shared,
-    withheld_data_summary: withheld,
+    plain_summary: explanation,
+    will_share: shared,
+    will_not_share: withheld,
     risk_assessment: 'low',
     recommendations,
+  };
+}
+
+export async function explainConsent(input: ConsentExplainRequest): Promise<ConsentExplainResult> {
+  const agentActionId = `agent-act-consent-${crypto.randomUUID().slice(0, 8)}`;
+  const fallbackData = heuristicFallback(input);
+
+  const extracted: any = await callAgent({
+    promptFile: 'consent_explainer.md',
+    userInput: {
+      business_id: input.business_id,
+      purpose: input.purpose,
+      selected_credential_ids: input.selected_credential_ids,
+      recipient_name: input.recipient_name,
+      language: input.language,
+    },
+    fallback: () => fallbackData,
+  });
+
+  const plainSummary = extracted.plain_summary || extracted.plain_language_explanation || fallbackData.plain_summary;
+  const willShare = extracted.will_share || extracted.shared_data_summary || fallbackData.will_share;
+  const willNotShare = extracted.will_not_share || extracted.withheld_data_summary || fallbackData.will_not_share;
+  const riskAssessment = extracted.risk_assessment || fallbackData.risk_assessment;
+  const recommendations = extracted.recommendations || fallbackData.recommendations;
+
+  return {
+    success: true,
+    agent_action_id: agentActionId,
+    plain_summary: plainSummary,
+    will_share: willShare,
+    will_not_share: willNotShare,
+    risk_assessment: riskAssessment,
+    recommendations,
+    // Backwards-compatibility aliases
+    plain_language_explanation: plainSummary,
+    shared_data_summary: willShare,
+    withheld_data_summary: willNotShare,
   };
 }

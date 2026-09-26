@@ -71,3 +71,14 @@ export const DELEGATION_SCOPES: Record<string, DelegationScopeDefinition> = {
     risk_level: 'high',
   },
 };
+
+export const FIXED_DELEGATION_SCOPES = [
+  'view_credentials',
+  'file_returns',
+  'generate_proof',
+  'manage_delegation',
+  'transfer_ownership',
+] as const;
+
+export type FixedDelegationScope = typeof FIXED_DELEGATION_SCOPES[number];
+

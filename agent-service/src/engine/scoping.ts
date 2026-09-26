@@ -1,17 +1,59 @@
 import crypto from 'node:crypto';
-import type { DelegationScope, ScopeSuggestRequest, ScopeSuggestResponse } from '@openvyapar/shared';
+import {
+  FIXED_DELEGATION_SCOPES,
+  type FixedDelegationScope,
+  type DelegationScope,
+  type ScopeSuggestRequest,
+} from '@openvyapar/shared';
+import { callAgent } from '../lib/callAgent.js';
 
-export function suggestDelegationScope(input: ScopeSuggestRequest): ScopeSuggestResponse {
+export { FIXED_DELEGATION_SCOPES, type FixedDelegationScope };
+
+export interface ScopingResult {
+  success: boolean;
+  agent_action_id: string;
+  proposed_scopes: DelegationScope[];
+  plain_summary: string;
+  excluded_and_why: string;
+  // Backwards-compatibility aliases for frontend-wallet / demo scripts
+  explanation: string;
+  least_privilege_notes: string;
+}
+
+/**
+ * Unconditional runtime filter against FIXED_DELEGATION_SCOPES from @openvyapar/shared.
+ * Drops any scope not in the fixed enum and logs a warning.
+ */
+export function filterValidScopes(rawScopes: string[]): DelegationScope[] {
+  if (!Array.isArray(rawScopes)) {
+    return [];
+  }
+
+  return rawScopes.filter((scope: string): scope is FixedDelegationScope => {
+    const isValid = (FIXED_DELEGATION_SCOPES as readonly string[]).includes(scope);
+    if (!isValid) {
+      console.warn(
+        `[scoping] Dropped invalid scope "${scope}" not in FIXED_DELEGATION_SCOPES. Raw model output:`,
+        JSON.stringify(rawScopes)
+      );
+    }
+    return isValid;
+  });
+}
+
+function heuristicFallback(input: ScopeSuggestRequest): {
+  proposed_scopes: DelegationScope[];
+  plain_summary: string;
+  excluded_and_why: string;
+} {
   const prompt = (input.natural_language_prompt || '').toLowerCase();
   const lang = input.language || 'hi';
   const delegateName = input.delegate_info?.name || 'प्रतिनिधि / CA';
 
-  const agentActionId = `agent-act-scope-${crypto.randomUUID().slice(0, 8)}`;
   let scopes: DelegationScope[] = [];
-  let explanation = '';
-  let leastPrivilegeNotes = '';
+  let plainSummary = '';
+  let excludedAndWhy = '';
 
-  // Principle of least privilege matching
   if (
     prompt.includes('tax') ||
     prompt.includes('gst') ||
@@ -20,47 +62,92 @@ export function suggestDelegationScope(input: ScopeSuggestRequest): ScopeSuggest
     prompt.includes('ca') ||
     prompt.includes('ತೆರಿಗೆ')
   ) {
-    scopes = ['file_returns', 'view_compliance'];
+    scopes = ['file_returns'];
 
     if (lang === 'hi') {
-      explanation = `आपके अनुरोध के आधार पर, आपके सीए (${delegateName}) को केवल जीएसटी/टैक्स रिटर्न तैयार करने और दाखिल करने की अनुमति दी जाएगी।`;
-      leastPrivilegeNotes = 'न्यूनतम विशेषाधिकार सुरक्षा: बैंक विवरण देखने, ऋण आवेदन करने या व्यावसायिक प्रोफ़ाइल बदलने की कोई अनुमति नहीं दी गई है।';
+      plainSummary = `आपके अनुरोध के आधार पर, आपके सीए (${delegateName}) को केवल जीएसटी/टैक्स रिटर्न तैयार करने और दाखिल करने की अनुमति दी जाएगी।`;
+      excludedAndWhy = 'न्यूनतम विशेषाधिकार सुरक्षा: बैंक विवरण देखने, प्रमाण पत्र बनाने या स्वामित्व बदलने की कोई अनुमति नहीं दी गई है।';
     } else if (lang === 'kn') {
-      explanation = `ನಿಮ್ಮ ಮನವಿಯಂತೆ, ನಿಮ್ಮ ಸಿಎ ಅವರಿಗೆ ಕೇವಲ ತೆರಿಗೆ ರಿಟರ್ನ್ಸ್ ಸಲ್ಲಿಸಲು ಮಾತ್ರ ಅಧಿಕಾರ ನೀಡಲಾಗುತ್ತದೆ.`;
-      leastPrivilegeNotes = 'ಕನಿಷ್ಠ ಸವಲತ್ತು ಭದ್ರತೆ: ಬ್ಯಾಂಕ್ ಖಾತೆ ಅಥವಾ ಸಾಲದ ಹಕ್ಕುಗಳನ್ನು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ.';
+      plainSummary = `ನಿಮ್ಮ ಮನವಿಯಂತೆ, ನಿಮ್ಮ ಸಿಎ ಅವರಿಗೆ ಕೇವಲ ತೆರಿಗೆ ರಿಟರ್ನ್ಸ್ ಸಲ್ಲಿಸಲು ಮಾತ್ರ ಅಧಿಕಾರ ನೀಡಲಾಗುತ್ತದೆ.`;
+      excludedAndWhy = 'ಕನಿಷ್ಠ ಸವಲತ್ತು ಭದ್ರತೆ: ಬ್ಯಾಂಕ್ ಖಾತೆ ಅಥವಾ ಸಾಲದ ಹಕ್ಕುಗಳನ್ನು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ.';
     } else {
-      explanation = `Based on your request, only tax preparation and filing scopes ('file_returns', 'view_compliance') will be granted to ${delegateName}.`;
-      leastPrivilegeNotes = 'Least-Privilege Guard: Sensitive banking, loan application, and profile ownership permissions are withheld.';
+      plainSummary = `Based on your request, only tax preparation and filing scope ('file_returns') will be granted to ${delegateName}.`;
+      excludedAndWhy = 'Least-Privilege Guard: Banking, proof generation, and profile ownership permissions are withheld.';
     }
   } else if (
-    prompt.includes('order') ||
-    prompt.includes('sales') ||
-    prompt.includes('बिक्री') ||
-    prompt.includes('ऑर्डर') ||
-    prompt.includes('ಮಾರಾಟ')
+    prompt.includes('view') ||
+    prompt.includes('credential') ||
+    prompt.includes('प्रमाण') ||
+    prompt.includes('दस्तावेज़')
   ) {
-    scopes = ['view_order_history'];
-
-    if (lang === 'hi') {
-      explanation = `प्रतिनिधि को केवल दैनिक ऑर्डर और बिक्री इतिहास देखने की अनुमति दी जाएगी।`;
-      leastPrivilegeNotes = 'टैक्स फाइलिंग और बैंक खाते की जानकारी सुरक्षित रखी गई है।';
-    } else {
-      scopes = ['view_order_history'];
-      explanation = `Representative is granted read-only access to view order and shipment history.`;
-      leastPrivilegeNotes = 'Tax filing and business ownership modifications are strictly excluded.';
-    }
+    scopes = ['view_credentials'];
+    plainSummary = `Representative is granted read-only access to view verified business credentials.`;
+    excludedAndWhy = 'Tax filing, delegation management, and ownership transfer are strictly excluded.';
+  } else if (
+    prompt.includes('proof') ||
+    prompt.includes('loan') ||
+    prompt.includes('साझा')
+  ) {
+    scopes = ['generate_proof'];
+    plainSummary = `Representative is authorized to generate selective-disclosure proofs for specified recipients.`;
+    excludedAndWhy = 'Tax filing and ownership modification permissions are withheld.';
+  } else if (
+    prompt.includes('transfer') ||
+    prompt.includes('succession') ||
+    prompt.includes('हस्तांतरण')
+  ) {
+    scopes = ['transfer_ownership'];
+    plainSummary = `Ownership transfer permission granted for succession.`;
+    excludedAndWhy = 'All standard operational actions excluded.';
   } else {
-    // Default fallback to read-only compliance check
-    scopes = ['view_compliance'];
-    explanation = 'Minimal read-only access proposed.';
-    leastPrivilegeNotes = 'All modifying scopes withheld.';
+    scopes = ['view_credentials'];
+    plainSummary = 'Minimal read-only access proposed.';
+    excludedAndWhy = 'All state-modifying scopes withheld.';
   }
+
+  return {
+    proposed_scopes: scopes,
+    plain_summary: plainSummary,
+    excluded_and_why: excludedAndWhy,
+  };
+}
+
+export async function suggestDelegationScope(input: ScopeSuggestRequest): Promise<ScopingResult> {
+  const agentActionId = `agent-act-scope-${crypto.randomUUID().slice(0, 8)}`;
+  const fallbackData = heuristicFallback(input);
+
+  const extracted: any = await callAgent({
+    promptFile: 'scope_suggester.md',
+    userInput: {
+      business_id: input.business_id,
+      natural_language_prompt: input.natural_language_prompt,
+      delegate_info: input.delegate_info,
+      language: input.language,
+    },
+    fallback: () => fallbackData,
+  });
+
+  const rawScopes: string[] = Array.isArray(extracted.proposed_scopes)
+    ? extracted.proposed_scopes
+    : fallbackData.proposed_scopes;
+
+  // Unconditional runtime filtering against FIXED_DELEGATION_SCOPES from @openvyapar/shared
+  const validatedScopes = filterValidScopes(rawScopes);
+
+  const finalScopes: DelegationScope[] = validatedScopes.length > 0
+    ? validatedScopes
+    : fallbackData.proposed_scopes;
+
+  const plainSummary = extracted.plain_summary || extracted.explanation || fallbackData.plain_summary;
+  const excludedAndWhy = extracted.excluded_and_why || extracted.least_privilege_notes || fallbackData.excluded_and_why;
 
   return {
     success: true,
     agent_action_id: agentActionId,
-    proposed_scopes: scopes,
-    explanation,
-    least_privilege_notes: leastPrivilegeNotes,
+    proposed_scopes: finalScopes,
+    plain_summary: plainSummary,
+    excluded_and_why: excludedAndWhy,
+    explanation: plainSummary,
+    least_privilege_notes: excludedAndWhy,
   };
 }

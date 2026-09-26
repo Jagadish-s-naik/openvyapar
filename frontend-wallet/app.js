@@ -7,6 +7,40 @@ let loadedCredentials = [];
 let pendingScopingAction = null;
 let pendingConsentAction = null;
 
+// Human-friendly scope labels across languages
+const SCOPE_LABELS = {
+  file_returns: {
+    en: 'File Tax & GST Returns',
+    hi: 'टैक्स और जीएसटी रिटर्न दाखिल करें',
+    kn: 'ತೆರಿಗೆ ಮತ್ತು ಜಿಎಸ್‌ಟಿ ರಿಟರ್ನ್ಸ್ ಸಲ್ಲಿಸಿ',
+    desc_en: 'Draft and file GSTR-1 and GSTR-3B filings',
+  },
+  view_credentials: {
+    en: 'View Verified Credentials',
+    hi: 'सत्यापित साख पत्र देखें',
+    kn: 'ದೃಢೀಕೃತ ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
+    desc_en: 'Read-only access to view business credentials',
+  },
+  generate_proof: {
+    en: 'Generate Selective Proofs',
+    hi: 'चुनिंदा प्रमाण बनाएं',
+    kn: 'ಆಯ್ದ ಪುರಾವೆಗಳನ್ನು ರಚಿಸಿ',
+    desc_en: 'Generate selective-disclosure proofs for lenders/marketplaces',
+  },
+  manage_delegation: {
+    en: 'Manage Subordinate Delegations',
+    hi: 'प्रतिनिधि अधिकार प्रबंधित करें',
+    kn: 'ನಿಯೋಜಿತ ಹಕ್ಕುಗಳನ್ನು ನಿರ್ವಹಿಸಿ',
+    desc_en: 'Issue and manage delegation tokens for staff',
+  },
+  transfer_ownership: {
+    en: 'Transfer Business Ownership',
+    hi: 'व्यावसायिक स्वामित्व हस्तांतरित करें',
+    kn: 'ವ್ಯಾಪಾರ ಮಾಲೀಕತ್ವ ವರ್ಗಾಯಿಸಿ',
+    desc_en: 'Succession and transfer of primary business identity',
+  },
+};
+
 // Translation Dictionaries
 const I18N = {
   hi: {
@@ -18,7 +52,7 @@ const I18N = {
     delegationDesc: 'अपने सीए या मुनीम को न्यूनतम व प्रतिसंहरणीय अनुमति दें।',
     proposeScope: 'एआई: न्यूनतम अधिकार प्रस्तावित करें',
     audit: 'अपरिवर्तनीय ऑडिट लॉग',
-    confirm: 'स्वीकार करें और अनुमति दें',
+    confirmGrant: 'स्वीकार करें और अनुमति दें',
   },
   kn: {
     title: 'ಓಪನ್ ವ್ಯಾಪಾರ್ - ವ್ಯಾಪಾರ ಗುರುತು ವಾಲೆಟ್',
@@ -29,7 +63,7 @@ const I18N = {
     delegationDesc: 'ನಿಮ್ಮ ಸಿಎ ಅಥವಾ ವ್ಯವಸ್ಥಾಪಕರಿಗೆ ಕನಿಷ್ಠ ಹಕ್ಕುಗಳನ್ನು ನೀಡಿ.',
     proposeScope: 'ಎಐ: ಕನಿಷ್ಠ ವ್ಯಾಪ್ತಿ ಶಿಫಾರಸು',
     audit: 'ಆಡಿಟ್ ಇತಿಹಾಸ',
-    confirm: 'ದೃಢೀಕರಿಸಿ',
+    confirmGrant: 'ದೃಢೀಕರಿಸಿ ಮತ್ತು ಹಕ್ಕುಗಳನ್ನು ನೀಡಿ',
   },
   en: {
     title: 'OpenVyapar — Business Identity Wallet',
@@ -40,8 +74,8 @@ const I18N = {
     delegationDesc: 'Grant minimal, revocable access to your CA or manager using natural language.',
     proposeScope: 'AI: Propose Minimal Scopes',
     audit: 'Audit Log (Immutable Trail)',
-    confirm: 'Confirm & Grant',
-  }
+    confirmGrant: 'Confirm & Grant Access',
+  },
 };
 
 // Initialize
@@ -71,6 +105,12 @@ function applyTranslations() {
   document.getElementById('txtDelegationDesc').textContent = dict.delegationDesc;
   document.getElementById('txtProposeScopeBtn').textContent = dict.proposeScope;
   document.getElementById('txtAuditTitle').textContent = dict.audit;
+  const confirmBtn = document.getElementById('txtConfirmGrantBtn');
+  if (confirmBtn) confirmBtn.textContent = dict.confirmGrant;
+
+  if (pendingScopingAction) {
+    renderScopingProposal(pendingScopingAction);
+  }
 }
 
 async function refreshDashboard() {
@@ -153,24 +193,32 @@ async function fetchDelegations() {
       return;
     }
 
-    container.innerHTML = data.tokens.map((tok) => `
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <strong style="font-size: 0.85rem;">👤 ${tok.delegate?.name || tok.delegate_person_id}</strong>
-          <span style="font-size: 0.75rem; color: ${tok.status === 'active' ? '#34d399' : '#f87171'}; font-weight: 700;">
-            ${tok.status.toUpperCase()}
-          </span>
+    container.innerHTML = data.tokens.map((tok) => {
+      const scopeLabels = tok.scopes.map((s) => {
+        const item = SCOPE_LABELS[s];
+        const label = item ? item[currentLanguage] || item.en : s.replace(/_/g, ' ');
+        return `<span class="scope-pill">${label}</span>`;
+      }).join('');
+
+      return `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 0.85rem;">👤 ${tok.delegate?.name || tok.delegate_person_id}</strong>
+            <span style="font-size: 0.75rem; color: ${tok.status === 'active' ? '#34d399' : '#f87171'}; font-weight: 700;">
+              ${tok.status.toUpperCase()}
+            </span>
+          </div>
+          <div class="scope-pills" style="margin-bottom: 8px;">
+            ${scopeLabels}
+          </div>
+          ${tok.status === 'active' ? `
+            <button class="btn btn-danger btn-revoke-tok" data-token="${tok.token_id}" style="font-size: 0.75rem; padding: 4px 10px;">
+              Revoke Access
+            </button>
+          ` : ''}
         </div>
-        <div class="scope-pills" style="margin-bottom: 8px;">
-          ${tok.scopes.map((s) => `<span class="scope-pill">${s}</span>`).join('')}
-        </div>
-        ${tok.status === 'active' ? `
-          <button class="btn btn-danger btn-revoke-tok" data-token="${tok.token_id}" style="font-size: 0.75rem; padding: 4px 10px;">
-            Revoke Access
-          </button>
-        ` : ''}
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Attach revoke handlers
     document.querySelectorAll('.btn-revoke-tok').forEach((b) => {
@@ -205,6 +253,38 @@ async function fetchAuditTrail() {
   }
 }
 
+function renderScopingProposal(data) {
+  const box = document.getElementById('scopingProposalBox');
+  const summaryEl = document.getElementById('proposalSummary');
+  const excludedWhyEl = document.getElementById('proposalExcludedWhy');
+  const checklistContainer = document.getElementById('proposalScopesChecklist');
+
+  summaryEl.textContent = data.plain_summary || data.explanation || 'Minimal least-privilege scopes suggested for your representative.';
+  excludedWhyEl.textContent = data.excluded_and_why || data.least_privilege_notes || 'All sensitive and unrequested permissions withheld.';
+
+  // Render editable checklist (owner can UNCHECK, cannot ADD beyond proposed)
+  checklistContainer.innerHTML = data.proposed_scopes.map((scopeId) => {
+    const scopeMeta = SCOPE_LABELS[scopeId] || {
+      en: scopeId.replace(/_/g, ' '),
+      hi: scopeId,
+      kn: scopeId,
+    };
+    const label = scopeMeta[currentLanguage] || scopeMeta.en;
+    const desc = scopeMeta.desc_en ? ` — <span style="color: var(--text-dim); font-size: 0.74rem;">${scopeMeta.desc_en}</span>` : '';
+
+    return `
+      <label style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 7px 10px; border-radius: var(--radius-sm); cursor: pointer;">
+        <input type="checkbox" class="proposed-scope-checkbox" value="${scopeId}" checked style="accent-color: var(--emerald); width: 16px; height: 16px;">
+        <div style="font-size: 0.82rem; color: #fff;">
+          <strong>${label}</strong>${desc}
+        </div>
+      </label>
+    `;
+  }).join('');
+
+  box.style.display = 'block';
+}
+
 function setupEventListeners() {
   // Beat 2 Time-Skip Simulation
   document.getElementById('btnSimulateTimeSkip').addEventListener('click', async () => {
@@ -222,11 +302,27 @@ function setupEventListeners() {
 
   // AI Delegation Scoping Proposal
   document.getElementById('btnAskScopeAgent').addEventListener('click', async () => {
-    const prompt = document.getElementById('txtDelegationPrompt').value;
-    if (!prompt.trim()) {
-      alert('Please enter a delegation instruction (e.g. "I want my CA to file taxes")');
+    const promptInput = document.getElementById('txtDelegationPrompt');
+    const delegateNameInput = document.getElementById('txtDelegateName');
+    const errorBox = document.getElementById('scopingErrorBox');
+    const askBtn = document.getElementById('btnAskScopeAgent');
+    const proposalBox = document.getElementById('scopingProposalBox');
+
+    const promptText = promptInput.value.trim();
+    const delegateName = delegateNameInput ? delegateNameInput.value.trim() : 'Vikas Mehta (CA)';
+
+    errorBox.style.display = 'none';
+    errorBox.textContent = '';
+
+    if (!promptText) {
+      errorBox.textContent = 'Please enter a delegation request in plain language (e.g. "I want my CA to file my taxes").';
+      errorBox.style.display = 'block';
       return;
     }
+
+    // Loading state
+    askBtn.disabled = true;
+    askBtn.innerHTML = '<span>⏳</span> <span>Analyzing Least-Privilege Scope...</span>';
 
     try {
       const res = await fetch(`${AGENT_URL}/agent/scope-suggest`, {
@@ -234,52 +330,92 @@ function setupEventListeners() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           business_id: CURRENT_BIZ_ID,
-          natural_language_prompt: prompt,
-          delegate_info: { name: 'Vikas Mehta CA', phone: '+91 98111 22334' },
+          natural_language_prompt: promptText,
+          delegate_info: { name: delegateName },
           language: currentLanguage,
         }),
       });
+
       const data = await res.json();
-      if (data.success) {
-        pendingScopingAction = data;
-        const box = document.getElementById('scopingProposalBox');
-        document.getElementById('proposalScopes').innerHTML = data.proposed_scopes.map((s) => `<span class="scope-pill">${s}</span>`).join('');
-        document.getElementById('proposalExplanation').textContent = data.explanation;
-        document.getElementById('proposalWithheld').textContent = data.least_privilege_notes;
-        box.style.display = 'block';
+
+      if (!res.ok || !data.success) {
+        const errMsg = data.error?.message || data.error?.code || 'Failed to suggest scoping.';
+        errorBox.innerHTML = `⚠️ <strong>Scoping Error:</strong> ${errMsg}`;
+        errorBox.style.display = 'block';
+        proposalBox.style.display = 'none';
+        pendingScopingAction = null;
+        return;
       }
+
+      pendingScopingAction = data;
+      renderScopingProposal(data);
     } catch (err) {
-      alert('Agent service (Port 3002) unavailable.');
+      errorBox.innerHTML = '⚠️ <strong>Service Unavailable:</strong> Could not connect to OpenVyapar Agent Service on Port 3002.';
+      errorBox.style.display = 'block';
+      proposalBox.style.display = 'none';
+      pendingScopingAction = null;
+    } finally {
+      askBtn.disabled = false;
+      const dict = I18N[currentLanguage] || I18N.en;
+      askBtn.innerHTML = `<span>🤖</span> <span>${dict.proposeScope}</span>`;
     }
   });
 
-  // Confirm Delegation
+function slugifyPersonId(name) {
+  if (!name || typeof name !== 'string') return 'did:person:ca001';
+  const clean = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!clean) return 'did:person:ca001';
+  if (clean.includes('vikas') || clean === 'ca' || clean.includes('ca001')) return 'did:person:ca001';
+  if (clean.includes('priya')) return 'did:person:priya001';
+  if (clean.includes('ramesh')) return 'did:person:ramesh001';
+  if (clean.includes('aarav') || clean.includes('csc')) return 'did:person:csc001';
+  return `did:person:${clean}`;
+}
+
+  // Explicit Confirm & Grant Access (Guardrail 1: human confirmation)
   document.getElementById('btnConfirmDelegation').addEventListener('click', async () => {
     if (!pendingScopingAction) return;
+
+    const checkedBoxes = document.querySelectorAll('.proposed-scope-checkbox:checked');
+    const selectedScopes = Array.from(checkedBoxes).map((cb) => cb.value);
+
+    if (selectedScopes.length === 0) {
+      alert('Please check at least one scope to grant access.');
+      return;
+    }
+
+    const delegateNameInput = document.getElementById('txtDelegateName');
+    const delegateName = delegateNameInput ? delegateNameInput.value.trim() : 'Vikas Mehta CA';
+    const delegatePersonId = slugifyPersonId(delegateName);
+
     try {
       const res = await fetch(`${BACKEND_URL}/delegation/grant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           business_id: CURRENT_BIZ_ID,
-          delegate_person_id: 'did:person:ca001',
-          scopes: pendingScopingAction.proposed_scopes,
+          delegate_person_id: delegatePersonId,
+          scopes: selectedScopes,
           granted_by: 'did:person:ramesh001',
           agent_action_id: pendingScopingAction.agent_action_id,
         }),
       });
+
       const data = await res.json();
       if (data.success) {
         document.getElementById('scopingProposalBox').style.display = 'none';
         document.getElementById('txtDelegationPrompt').value = '';
         pendingScopingAction = null;
         await refreshDashboard();
+      } else {
+        alert(`Failed to grant delegation: ${data.error?.message || 'Server error'}`);
       }
     } catch (err) {
-      alert('Error confirming delegation.');
+      alert('Error connecting to backend server on Port 3001.');
     }
   });
 
+  // Dismiss proposal without granting
   document.getElementById('btnDismissScoping').addEventListener('click', () => {
     document.getElementById('scopingProposalBox').style.display = 'none';
     pendingScopingAction = null;
@@ -319,9 +455,11 @@ function setupEventListeners() {
       if (data.success) {
         pendingConsentAction = data;
         const box = document.getElementById('consentExplanationBox');
-        document.getElementById('consentPlainSummary').textContent = data.plain_language_explanation;
-        document.getElementById('consentSharedList').innerHTML = data.shared_data_summary.map((s) => `<li>${s}</li>`).join('');
-        document.getElementById('consentWithheldList').innerHTML = data.withheld_data_summary.map((w) => `<li>${w}</li>`).join('');
+        document.getElementById('consentPlainSummary').textContent = data.plain_summary || data.plain_language_explanation;
+        const shared = data.will_share || data.shared_data_summary || [];
+        const withheld = data.will_not_share || data.withheld_data_summary || [];
+        document.getElementById('consentSharedList').innerHTML = shared.map((s) => `<li>${s}</li>`).join('');
+        document.getElementById('consentWithheldList').innerHTML = withheld.map((w) => `<li>${w}</li>`).join('');
         box.style.display = 'block';
       }
     } catch (err) {

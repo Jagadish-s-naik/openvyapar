@@ -25,13 +25,13 @@
         ✍️ Zero-Footprint Business Onboarding (CSC Assisted)
       </h1>
       <p style="color: var(--text-muted); font-size: 0.95rem;">
-        Onboard micro/informal enterprises with zero initial digital trail using conversational AI extraction and agent-witnessed starter credentials.
+        Onboard micro and informal enterprises with zero initial paper trail using conversational AI extraction and agent-witnessed starter credentials.
       </p>
     </header>
 
     <div class="onboard-grid">
       
-      <!-- Left Column: Conversational Input -->
+      <!-- Left Column: Conversational Input & Raw Reference -->
       <div class="panel">
         <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
           <span>🎙️</span> Conversational Voice / Text Input
@@ -44,49 +44,175 @@
           <button class="sample-chip" data-sample="en-handloom">🌐 English: Banaras Silk Weaver</button>
         </div>
 
-        <textarea id="txtConversationalTranscript" class="input-textarea" rows="6" placeholder="Enter owner transcript in Hindi, Kannada, or English..."></textarea>
+        <textarea id="txtConversationalTranscript" class="input-textarea" rows="6" placeholder="Enter or paste unstructured voice transcript in Hindi, Kannada, or English..."></textarea>
 
         <button id="btnExtractOnboarding" class="btn btn-primary" style="width: 100%;">
           <span>🤖</span> Extract Structured Business & Starter Credential
         </button>
+
+        <!-- Extraction Error Box -->
+        <div id="extractionErrorBox" class="alert-box alert-error" style="display: none; margin-top: 14px;"></div>
+
+        <!-- Raw Transcript Reference Card (Visible after extraction) -->
+        <div id="transcriptReferenceCard" style="display: none; margin-top: 20px; padding: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+            Raw Input Reference (Audited)
+          </div>
+          <p id="lblRawTranscript" style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; font-style: italic;"></p>
+        </div>
       </div>
 
-      <!-- Right Column: AI Extraction Preview & Human Confirmation -->
+      <!-- Right Column: Structured Preview & Human Confirmation Guardrail -->
       <div class="panel">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-          <span>📋</span> AI Proposal (Requires Human Confirmation)
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 8px;"><span>📋</span> Structured Preview & Confirmation</span>
+          <span class="badge badge-confidence" id="badgeConfidence" style="display: none;">🤖 AI Proposed</span>
         </h3>
 
-        <div id="extractionPlaceholder" style="color: var(--text-dim); font-size: 0.88rem; padding: 40px 0; text-align: center;">
-          Enter or select a transcript on the left and click Extract to generate the structured onboarding proposal.
+        <!-- Initial Placeholder State -->
+        <div id="extractionPlaceholder" style="color: var(--text-dim); font-size: 0.88rem; padding: 60px 0; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🎙️ ➔ 📋</div>
+          Enter or select a transcript on the left and click <strong>Extract Structured Business</strong> to generate the verifiable proposal.
         </div>
 
+        <!-- Proposal Result Box -->
         <div id="proposalResultBox" style="display: none;">
-          <div style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #c084fc; text-transform: uppercase; margin-bottom: 6px;">
-              Proposed Business Identity
+          
+          <!-- Confidence & AI Notes Banner -->
+          <div id="confidenceBanner" class="alert-box alert-warning" style="margin-bottom: 16px; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.35); color: #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: #c084fc; font-size: 0.82rem; text-transform: uppercase;">AI Extraction Assessment</strong>
+              <span class="badge badge-confidence" id="lblConfidenceScore">94% Confidence</span>
             </div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: #fff;" id="lblBizName">Sharma General Store</div>
-            <div style="font-size: 0.85rem; color: #cbd5e1;" id="lblBizMeta">Sector: Retail • Location: Varanasi, UP</div>
-            <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 4px;" id="lblOwnerMeta">Proprietor: Ramesh Sharma • Phone: 9876543210</div>
+            <div id="lblConfidenceNotes" style="font-size: 0.82rem; color: #cbd5e1;"></div>
           </div>
 
-          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 6px;">
-              Starter Credential (Self-Attested + CSC Witnessed)
+          <!-- Missing Fields Highlight Alert -->
+          <div id="missingFieldsAlert" class="alert-box alert-warning" style="display: none; margin-bottom: 16px;">
+            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span>⚠️</span> <span>Action Needed: Missing or Uncertain Fields</span>
             </div>
-            <div id="lblCredClaim" style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;"></div>
+            <div id="missingFieldsList" style="font-size: 0.8rem;"></div>
           </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button id="btnConfirmOnboard" class="btn btn-success" style="flex: 1;">
-              ✅ Owner & Agent Confirm → Register Business
-            </button>
+          <!-- Structured Form (Editable before confirmation) -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #c084fc; text-transform: uppercase; margin-bottom: 10px;">
+              Business Profile (Editable)
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label" for="txtBizName">
+                  <span>Business Legal / Trade Name</span>
+                  <span id="badgeMissingName" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtBizName" class="form-input" placeholder="e.g. Sharma General Store">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="txtBizSector">
+                  <span>Sector / Industry</span>
+                  <span id="badgeMissingSector" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtBizSector" class="form-input" placeholder="e.g. Retail Grocery & Essentials">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="txtBizLocation">
+                  <span>Location</span>
+                  <span id="badgeMissingLocation" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtBizLocation" class="form-input" placeholder="e.g. Godowlia, Varanasi, UP">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="txtRevenueBracket">
+                  <span>Est. Monthly Revenue</span>
+                  <span id="badgeMissingRevenue" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtRevenueBracket" class="form-input" placeholder="e.g. INR 1.5 Lakh - 2.5 Lakh / month">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="selPrimaryLanguage">
+                  <span>Primary Language</span>
+                </label>
+                <select id="selPrimaryLanguage" class="form-select">
+                  <option value="hi">Hindi (हिन्दी)</option>
+                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="txtOwnerName">
+                  <span>Proprietor / Owner Name</span>
+                  <span id="badgeMissingOwner" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtOwnerName" class="form-input" placeholder="e.g. Ramesh Sharma">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="txtContactPhone">
+                  <span>Contact Phone</span>
+                  <span id="badgeMissingPhone" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="text" id="txtContactPhone" class="form-input" placeholder="e.g. 9876543210">
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label" for="txtEstablishedYear">
+                  <span>Established Year</span>
+                  <span id="badgeMissingYear" class="badge badge-missing" style="display: none;">Missing</span>
+                </label>
+                <input type="number" id="txtEstablishedYear" class="form-input" placeholder="e.g. 2018" style="max-width: 200px;">
+              </div>
+            </div>
           </div>
 
-          <div id="onboardSuccessMsg" style="display: none; margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: var(--radius-sm); font-size: 0.85rem; color: #34d399;">
-            🎉 Business successfully registered with persistent DID! <a href="http://localhost:5173" style="color: #60a5fa; font-weight: 700; text-decoration: underline;">Open in Owner Wallet →</a>
+          <!-- Starter Credential Card Preview -->
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #34d399; text-transform: uppercase;">
+                Starter Credential Preview (Self-Attested + CSC Witnessed)
+              </div>
+              <span style="font-size: 0.72rem; color: #34d399; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); padding: 2px 6px; border-radius: 4px;">HMAC Signed on Issuance</span>
+            </div>
+            <div id="lblCredClaim" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.5;"></div>
           </div>
+
+          <!-- Guardrail 1 Notice -->
+          <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <span>🛡️</span> <span><strong>Guardrail 1:</strong> AI only proposes. No database records are written until human confirmation below.</span>
+          </div>
+
+          <!-- Confirm Action -->
+          <button id="btnConfirmOnboard" class="btn btn-success" style="width: 100%;">
+            <span>✅</span> Confirm & Create Business Identity
+          </button>
+
+          <!-- Confirmation Error Box -->
+          <div id="confirmErrorBox" class="alert-box alert-error" style="display: none; margin-top: 14px;"></div>
+
+          <!-- Success State Banner -->
+          <div id="onboardSuccessMsg" class="alert-box alert-success" style="display: none; margin-top: 16px;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">
+              🎉 Business Identity Successfully Registered!
+            </div>
+            <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 8px;">
+              Persistent DID: <strong id="lblCreatedBizId" style="color: #6ee7b7; font-family: monospace;"></strong>
+            </div>
+            <div style="font-size: 0.82rem; color: #cbd5e1;">
+              Initial starter credential witnessed by CSC Agent has been HMAC-signed and saved to wallet.
+            </div>
+            <div style="margin-top: 10px;">
+              <a href="http://localhost:5173" target="_blank" class="btn btn-primary" style="font-size: 0.82rem; padding: 6px 14px; text-decoration: none; display: inline-flex;">
+                Open in Owner Wallet (Port 5173) →
+              </a>
+            </div>
+          </div>
+
         </div>
 
       </div>

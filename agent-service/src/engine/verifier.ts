@@ -1,10 +1,34 @@
 import crypto from 'node:crypto';
-import type { VerifierFlagRequest, VerifierFlagResponse } from '@openvyapar/shared';
+import type { VerifierFlagRequest } from '@openvyapar/shared';
+import { callAgent } from '../lib/callAgent.js';
 
-export function analyzeVerifierTrust(input: VerifierFlagRequest): VerifierFlagResponse {
+export interface VerifierFlagResult {
+  success: boolean;
+  agent_action_id: string;
+  // PRD top-level fields
+  anomaly_detected: boolean;
+  flag_summary: string;
+  severity: 'info' | 'warning' | 'alert';
+  // Detailed structure for frontend-verifier & audit
+  anomalies_detected: boolean;
+  narrative_summary: string;
+  overall_verdict: 'verified_clean' | 'attention_recommended' | 'high_risk';
+  flags: {
+    severity: 'info' | 'warning' | 'alert';
+    code: string;
+    message: string;
+  }[];
+}
+
+function heuristicFallback(input: VerifierFlagRequest): {
+  anomaly_detected: boolean;
+  flag_summary: string;
+  severity: 'info' | 'warning' | 'alert';
+  flags: { severity: 'info' | 'warning' | 'alert'; code: string; message: string }[];
+  overall_verdict: 'verified_clean' | 'attention_recommended' | 'high_risk';
+} {
   const flags: { severity: 'info' | 'warning' | 'alert'; code: string; message: string }[] = [];
   const creds = input.credentials || [];
-  const agentActionId = `agent-act-verify-${crypto.randomUUID().slice(0, 8)}`;
 
   // 1. Check business status
   if (input.business_status === 'frozen') {
@@ -45,13 +69,15 @@ export function analyzeVerifierTrust(input: VerifierFlagRequest): VerifierFlagRe
   const hasAlert = flags.some((f) => f.severity === 'alert');
   const hasWarning = flags.some((f) => f.severity === 'warning');
 
-  const overallVerdict = hasAlert
+  const overallVerdict: 'verified_clean' | 'attention_recommended' | 'high_risk' = hasAlert
     ? 'high_risk'
     : hasWarning
     ? 'attention_recommended'
     : 'verified_clean';
 
-  const narrative =
+  const severity: 'info' | 'warning' | 'alert' = hasAlert ? 'alert' : hasWarning ? 'warning' : 'info';
+
+  const flagSummary =
     overallVerdict === 'verified_clean'
       ? 'The business identity exhibits unbroken verified history across government and e-commerce channels with zero default flags.'
       : hasAlert
@@ -59,11 +85,49 @@ export function analyzeVerifierTrust(input: VerifierFlagRequest): VerifierFlagRe
       : 'Minor warnings noted (such as selective credential omission). Review requested.';
 
   return {
-    success: true,
-    agent_action_id: agentActionId,
-    anomalies_detected: hasAlert || hasWarning,
+    anomaly_detected: hasAlert || hasWarning,
+    flag_summary: flagSummary,
+    severity,
     flags,
     overall_verdict: overallVerdict,
-    narrative_summary: narrative,
+  };
+}
+
+export async function analyzeVerifierTrust(input: VerifierFlagRequest): Promise<VerifierFlagResult> {
+  const agentActionId = `agent-act-verify-${crypto.randomUUID().slice(0, 8)}`;
+  const fallbackData = heuristicFallback(input);
+
+  const extracted: any = await callAgent({
+    promptFile: 'verifier_flagger.md',
+    userInput: {
+      proof_id: input.proof_id,
+      business_id: input.business_id,
+      business_status: input.business_status,
+      credentials_summary: input.credentials?.map((c) => ({
+        type: c.type,
+        issuer: c.issuer,
+        issued_at: c.issued_at,
+        status: c.status,
+      })),
+    },
+    fallback: () => fallbackData,
+  });
+
+  const anomalyDetected = extracted.anomaly_detected ?? extracted.anomalies_detected ?? fallbackData.anomaly_detected;
+  const flagSummary = extracted.flag_summary || extracted.narrative_summary || fallbackData.flag_summary;
+  const severity = extracted.severity || fallbackData.severity;
+  const flags = extracted.flags || fallbackData.flags;
+  const overallVerdict = extracted.overall_verdict || fallbackData.overall_verdict;
+
+  return {
+    success: true,
+    agent_action_id: agentActionId,
+    anomaly_detected: anomalyDetected,
+    flag_summary: flagSummary,
+    severity,
+    anomalies_detected: anomalyDetected,
+    narrative_summary: flagSummary,
+    overall_verdict: overallVerdict,
+    flags,
   };
 }

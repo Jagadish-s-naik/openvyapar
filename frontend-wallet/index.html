@@ -78,9 +78,16 @@
             Grant minimal, revocable access to your CA or manager using natural language.
           </p>
 
+          <div class="input-group" style="margin-bottom: 8px;">
+            <input type="text" id="txtDelegateName" class="input-text" value="Vikas Mehta (CA)" placeholder="Delegate Name (e.g. Vikas Mehta CA)">
+          </div>
+
           <div class="input-group">
             <textarea id="txtDelegationPrompt" class="input-textarea" rows="2" placeholder="e.g. 'I want my CA Vikas Mehta to file my taxes and check returns'"></textarea>
           </div>
+
+          <!-- Error Alert Banner -->
+          <div id="scopingErrorBox" style="display: none; margin-bottom: 12px; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: var(--radius-sm); padding: 10px; color: #fda4af; font-size: 0.82rem;"></div>
 
           <button id="btnAskScopeAgent" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;">
             <span>🤖</span> <span id="txtProposeScopeBtn">AI: Propose Minimal Scopes</span>
@@ -88,13 +95,29 @@
 
           <!-- Agent Scoping Proposal Box (Hidden until proposed) -->
           <div id="scopingProposalBox" class="agent-proposal-box" style="display: none;">
-            <span class="agent-badge">Proposed by AI (Pending Confirmation)</span>
-            <div id="proposalScopes" class="scope-pills"></div>
-            <p id="proposalExplanation" style="font-size: 0.82rem; color: #e2e8f0; margin-bottom: 6px;"></p>
-            <p id="proposalWithheld" style="font-size: 0.78rem; color: #a5b4fc; margin-bottom: 12px;"></p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="agent-badge">Proposed by Scoping AI (Pending Confirmation)</span>
+            </div>
+            
+            <p id="proposalSummary" style="font-size: 0.85rem; color: #fff; margin-bottom: 12px; font-weight: 500; line-height: 1.4;"></p>
+
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+                Proposed Scopes (Uncheck to restrict further):
+              </label>
+              <div id="proposalScopesChecklist" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+
+            <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 4px; padding: 8px 10px; margin-bottom: 14px;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #818cf8; margin-bottom: 2px;">🔒 Excluded & Least-Privilege Protection:</div>
+              <p id="proposalExcludedWhy" style="font-size: 0.78rem; color: #c7d2fe; margin: 0;"></p>
+            </div>
+
             <div style="display: flex; gap: 8px;">
-              <button id="btnConfirmDelegation" class="btn btn-success" style="font-size: 0.8rem; padding: 6px 14px;">Confirm & Grant</button>
-              <button id="btnDismissScoping" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">Dismiss</button>
+              <button id="btnConfirmDelegation" class="btn btn-success" style="font-size: 0.82rem; padding: 7px 16px;">
+                <span>✅</span> <span id="txtConfirmGrantBtn">Confirm & Grant Access</span>
+              </button>
+              <button id="btnDismissScoping" class="btn btn-secondary" style="font-size: 0.82rem; padding: 7px 12px;">Dismiss</button>
             </div>
           </div>
 
