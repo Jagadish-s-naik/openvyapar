@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { db } from '../db/connection.js';
 import { config } from '../config.js';
+import { getMongoStatus, pingMongo } from '../db/mongo.js';
 
 export const healthRouter = Router();
 
@@ -8,10 +9,12 @@ export const healthRouter = Router();
  * GET /health
  * Comprehensive service diagnostic and telemetry probe
  */
-healthRouter.get('/', (_req: Request, res: Response) => {
+healthRouter.get('/', async (_req: Request, res: Response) => {
   const memUsage = process.memoryUsage();
   const dbStats = db.getStats();
   const snapshotCount = db.listSnapshots().length;
+  const mongoStatus = getMongoStatus();
+  const mongoPing = mongoStatus.connected ? await pingMongo() : undefined;
 
   res.json({
     status: 'healthy',
@@ -28,6 +31,10 @@ healthRouter.get('/', (_req: Request, res: Response) => {
       status: 'connected',
       record_counts: dbStats,
       snapshots_count: snapshotCount,
+      mongodb: {
+        ...mongoStatus,
+        ping: mongoPing,
+      },
     },
     subsystems: {
       gst_mock: {
