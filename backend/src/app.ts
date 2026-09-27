@@ -10,6 +10,8 @@ import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { healthRouter } from './routes/health.js';
 import { agentRouter } from './routes/agent/index.js';
+import { docsRouter } from './routes/docs.js';
+import { openApiSpec } from './docs/openapi.js';
 import { authContextMiddleware } from './middleware/auth.js';
 import { corsMiddleware, securityHeadersMiddleware } from './middleware/cors.js';
 
@@ -25,6 +27,18 @@ export function createApp(): Application {
   // Health and Readiness Probes
   app.use('/health', healthRouter);
 
+  // Root redirect to documentation
+  app.get('/', (_req, res) => {
+    res.redirect('/docs');
+  });
+
+  // OpenAPI Specification & Scalar Documentation
+  app.get('/openapi.json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(openApiSpec);
+  });
+  app.use('/docs', docsRouter);
+
   // API Routes matching PRD §8
   app.use('/auth', authRouter);
   app.use('/admin', adminRouter);
@@ -38,3 +52,4 @@ export function createApp(): Application {
 
   return app;
 }
+
