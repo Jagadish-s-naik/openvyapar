@@ -30,7 +30,7 @@ export const AppLayout = () => {
           <TopBar onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
           {/* Page Viewport */}
-          <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto animate-in fade-in duration-150">
+          <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-6xl w-full mx-auto animate-in fade-in duration-150 overflow-x-hidden">
             <Outlet />
           </main>
 
@@ -43,12 +43,12 @@ export const AppLayout = () => {
 
   // Simulated Android Smartphone Frame (₹7,000 Budget Device PWA)
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-none relative overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-none relative overflow-x-hidden">
       {/* Background Ambient Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none" />
 
       {/* Simulator Control Floating Pill */}
-      <div className="z-20 mb-3 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-800 shadow-xl max-w-[420px] w-full text-xs">
+      <div className="z-20 mb-3 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 backdrop-blur-md px-3.5 sm:px-4 py-2 rounded-2xl border border-slate-800 shadow-xl max-w-[400px] w-full text-xs">
         <div className="flex items-center gap-2">
           <span className="p-1 rounded-lg bg-amber-400 text-slate-950">
             <Smartphone className="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@ export const AppLayout = () => {
       </div>
 
       {/* Android Device Chassis Frame */}
-      <div className="w-full max-w-[400px] h-[860px] max-h-[88vh] bg-slate-900 rounded-[48px] p-2.5 shadow-2xl border-4 border-slate-700 flex flex-col relative overflow-hidden ring-1 ring-white/10 z-10 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-[400px] h-[860px] max-h-[88vh] max-h-[88dvh] bg-slate-900 rounded-[40px] sm:rounded-[48px] p-2 sm:p-2.5 shadow-2xl border-4 border-slate-700 flex flex-col relative overflow-hidden ring-1 ring-white/10 z-10 animate-in zoom-in-95 duration-200">
         {/* Device Top Bezel & Camera */}
         <div className="h-6 w-full flex items-center justify-between px-6 text-slate-400 text-[10px] font-mono shrink-0 select-none">
           <span>10:42</span>
@@ -86,7 +86,7 @@ export const AppLayout = () => {
         </div>
 
         {/* Inner Smartphone Screen Viewport */}
-        <div className="flex-1 bg-slate-50 text-slate-900 rounded-[36px] overflow-y-auto overflow-x-hidden relative flex flex-col scroll-smooth shadow-inner border border-slate-200/50">
+        <div className="flex-1 bg-slate-50 text-slate-900 rounded-[30px] sm:rounded-[36px] overflow-y-auto overflow-x-hidden relative flex flex-col scroll-smooth shadow-inner border border-slate-200/50 touch-scroll">
           {/* Sidebar Drawer inside phone */}
           <Sidebar
             isOpen={mobileMenuOpen}
@@ -97,7 +97,7 @@ export const AppLayout = () => {
           <TopBar onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
           {/* Page Content Viewport */}
-          <main className="flex-1 p-3 sm:p-4 w-full mx-auto animate-in fade-in duration-150">
+          <main className="flex-1 p-3 sm:p-4 w-full mx-auto animate-in fade-in duration-150 overflow-x-hidden">
             <Outlet />
           </main>
 
@@ -113,3 +113,4 @@ export const AppLayout = () => {
     </div>
   );
 };
+

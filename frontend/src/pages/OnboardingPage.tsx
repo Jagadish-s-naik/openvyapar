@@ -112,28 +112,28 @@ export const OnboardingPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-slate-900 text-white rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden">
+      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 {t.onboarding.agentBadge}
               </span>
               <span className="text-xs font-mono text-slate-400">Zero-Footprint Protocol (Beat 1)</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               {t.onboarding.title}
             </h1>
-            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
               {t.onboarding.subtitle}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700">
-              <User className="w-4 h-4 text-emerald-400" />
-              <span>Agent: Rajesh Kumar (CSC-UP-0842)</span>
+            <div className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700">
+              <User className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="truncate">Agent: Rajesh Kumar (CSC-UP-0842)</span>
             </div>
           </div>
         </div>
@@ -260,41 +260,41 @@ export const OnboardingPage = () => {
 
               {/* Business Entity Card */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-base font-bold text-slate-900">{proposal.proposed_business.name}</h3>
                   <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-800">
                     {proposal.proposed_business.sector || 'Retail'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{proposal.proposed_business.location || 'Varanasi, UP'}</span>
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{proposal.proposed_business.location || 'Varanasi, UP'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>{proposal.proposed_business.contact_phone || '9876543210'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Proprietor: {proposal.proposed_business.owner_name || 'Ramesh Sharma'}</span>
+                    <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">Proprietor: {proposal.proposed_business.owner_name || 'Ramesh Sharma'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Est. Revenue: {proposal.proposed_starter_credential?.claim?.approx_monthly_revenue || '₹25L - ₹50L'}</span>
+                    <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">Est. Revenue: {proposal.proposed_starter_credential?.claim?.approx_monthly_revenue || '₹25L - ₹50L'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Starter Credential Proposal */}
               <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-amber-950">
+                <div className="flex flex-wrap items-center justify-between gap-1 text-xs font-bold text-amber-950">
                   <span className="flex items-center gap-1.5">
-                    <Award className="w-4 h-4 text-amber-600" />
+                    <Award className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Proposed Starter Credential (Self-Attested)</span>
                   </span>
-                  <span className="text-[11px] font-mono text-amber-700">did:person:csc001</span>
+                  <span className="text-[11px] font-mono text-amber-700 break-all">did:person:csc001</span>
                 </div>
                 <div className="text-xs text-amber-900 space-y-1 font-mono bg-white p-2.5 rounded-lg border border-amber-200/60">
                   <div>• Nature: {proposal.proposed_starter_credential.claim.business_nature}</div>

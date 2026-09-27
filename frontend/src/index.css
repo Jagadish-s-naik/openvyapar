@@ -11,6 +11,8 @@
     font-family: var(--font-sans);
     color: #0f172a;
     background-color: #f8fafc;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -24,4 +26,18 @@
 
 .font-mono {
   font-family: var(--font-mono);
+}
+
+/* Custom scrollbar & responsive utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }

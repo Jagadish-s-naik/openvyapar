@@ -303,22 +303,22 @@ export const CredentialsPage = () => {
   };
 
   return (
-    <div className="space-y-8 sm:space-y-10">
+    <div className="space-y-6 sm:space-y-8 md:space-y-10">
       {/* Header with Selective Proof, Upload & Time-Skip Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {t.credentials.title}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             {t.credentials.subtitle}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl transition-all cursor-pointer shadow-xs"
             title="Upload document scan or certificate to anchor a new Verifiable Credential"
           >
             <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
@@ -327,7 +327,7 @@ export const CredentialsPage = () => {
 
           <button
             onClick={handleOpenProofModal}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs"
           >
             <Share2 className="w-3.5 h-3.5 text-slate-950" />
             <span>Generate Selective Proof</span>
@@ -336,9 +336,9 @@ export const CredentialsPage = () => {
       </div>
 
       {/* Credential Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {credentials.length === 0 ? (
-          <div className="col-span-2 bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+          <div className="col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3">
             <Award className="w-10 h-10 text-slate-400 mx-auto" />
             <h3 className="font-bold text-slate-900 text-base">No Verifiable Credentials Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -355,42 +355,42 @@ export const CredentialsPage = () => {
           credentials.map((cred) => (
             <div
               key={cred.credential_id}
-              className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-6 hover:border-slate-300 transition-all"
+              className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs flex flex-col justify-between space-y-5 sm:space-y-6 hover:border-slate-300 transition-all"
             >
               <div className="space-y-4">
                 {/* Header with Type & Status Badge */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-700 shrink-0">
-                      <Award className="w-6 h-6" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-700 shrink-0">
+                      <Award className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div>
-                      <h2 className="font-display text-lg font-bold text-slate-900 leading-snug">
+                    <div className="min-w-0">
+                      <h2 className="font-display text-base sm:text-lg font-bold text-slate-900 leading-snug break-words">
                         {formatCredType(cred.type)}
                       </h2>
-                      <span className="text-xs text-slate-500">{formatIssuer(cred.issuer)}</span>
+                      <span className="text-xs text-slate-500 block truncate">{formatIssuer(cred.issuer)}</span>
                     </div>
                   </div>
 
                   <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    {t.credentials.activeBadge}
+                    <span>{t.credentials.activeBadge}</span>
                   </span>
                 </div>
 
                 {/* Structured Claim Values */}
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs border border-slate-100">
+                <div className="bg-slate-50 rounded-xl p-3.5 sm:p-4 space-y-2 text-xs border border-slate-100">
                   {Object.entries(cred.claim).map(([k, v]) => (
-                    <div key={k} className="flex justify-between items-start gap-3">
-                      <span className="text-slate-500 uppercase text-[10px] font-mono tracking-wider shrink-0 min-w-[120px]">
+                    <div key={k} className="flex flex-col xs:flex-row xs:justify-between xs:items-start gap-0.5 xs:gap-3">
+                      <span className="text-slate-500 uppercase text-[10px] font-mono tracking-wider shrink-0 xs:min-w-[110px]">
                         {k.replace(/_/g, ' ')}:
                       </span>
-                      <span className="font-semibold text-slate-900 font-mono text-right break-words max-w-[70%]" title={typeof v === 'object' ? JSON.stringify(v) : String(v)}>
+                      <span className="font-semibold text-slate-900 font-mono text-left xs:text-right break-words max-w-full xs:max-w-[70%]" title={typeof v === 'object' ? JSON.stringify(v) : String(v)}>
                         {formatClaimValue(k, v)}
                       </span>
                     </div>
                   ))}
-                  <div className="pt-2 border-t border-slate-200/60 flex justify-between items-baseline text-[11px] text-slate-400 font-mono">
+                  <div className="pt-2 border-t border-slate-200/60 flex flex-wrap justify-between items-baseline text-[11px] text-slate-400 font-mono gap-1">
                     <span>Issued: {new Date(cred.issued_at).toLocaleDateString()}</span>
                     <span>Status: {cred.status}</span>
                   </div>
@@ -398,15 +398,15 @@ export const CredentialsPage = () => {
               </div>
 
               {/* Card Footer with HMAC Signature Status */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1.5 font-mono">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  HMAC-SHA256 Signed
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1.5 font-mono truncate">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>HMAC-SHA256 Signed</span>
                 </span>
 
                 <button
                   onClick={() => setSelectedCred(cred)}
-                  className="text-xs font-semibold text-amber-800 hover:text-amber-900 hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-amber-800 hover:text-amber-900 hover:underline cursor-pointer shrink-0"
                 >
                   Inspect Signature
                 </button>
@@ -419,15 +419,15 @@ export const CredentialsPage = () => {
       {/* SELECTIVE PROOF GENERATION MODAL (Beat 3) */}
       {isProofModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl border border-slate-200 space-y-5 sm:space-y-6 max-h-[90dvh] overflow-y-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3 sm:pb-4 gap-2">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
                   <Lock className="w-3 h-3 text-amber-700" />
-                  Beat 3: Zero-Knowledge Selective Proof
+                  <span>Beat 3: Zero-Knowledge Selective Proof</span>
                 </div>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 leading-snug">
                   Generate Cryptographic Proof Bundle
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -436,11 +436,12 @@ export const CredentialsPage = () => {
               </div>
               <button
                 onClick={() => setIsProofModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
 
             {!generatedProofResult ? (
               <div className="space-y-6">
@@ -562,10 +563,10 @@ export const CredentialsPage = () => {
                 </div>
 
                 {/* 3. AI Consent Explainer Section */}
-                <div className="p-4 rounded-xl bg-slate-900 text-white space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900 text-white space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                       <span className="text-xs font-bold text-amber-300">
                         AI Consent Explainer (Guardrail 1: Agent Proposes)
                       </span>
@@ -574,7 +575,7 @@ export const CredentialsPage = () => {
                     <button
                       onClick={handleExplainConsent}
                       disabled={isExplaining || selectedCredIds.length === 0}
-                      className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer disabled:opacity-50"
+                      className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer disabled:opacity-50 self-start sm:self-auto shrink-0"
                     >
                       {isExplaining ? 'Analyzing...' : '🤖 Explain Consent in Plain Language'}
                     </button>
@@ -593,7 +594,7 @@ export const CredentialsPage = () => {
                           </div>
                           <ul className="text-emerald-200 list-disc list-inside space-y-0.5">
                             {consentExplanation.shared_data_summary.map((item: string, idx: number) => (
-                              <li key={idx}>{item}</li>
+                              <li key={idx} className="break-words">{item}</li>
                             ))}
                           </ul>
                         </div>
@@ -604,7 +605,7 @@ export const CredentialsPage = () => {
                           </div>
                           <ul className="text-red-200 list-disc list-inside space-y-0.5">
                             {consentExplanation.withheld_data_summary.map((item: string, idx: number) => (
-                              <li key={idx}>{item}</li>
+                              <li key={idx} className="break-words">{item}</li>
                             ))}
                           </ul>
                         </div>
@@ -618,10 +619,10 @@ export const CredentialsPage = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
                   <button
                     onClick={() => setIsProofModalOpen(false)}
-                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                    className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl text-center"
                   >
                     Cancel
                   </button>
@@ -629,12 +630,13 @@ export const CredentialsPage = () => {
                   <button
                     onClick={handleGenerateProof}
                     disabled={isGeneratingProof || selectedCredIds.length === 0}
-                    className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
                     <span>{isGeneratingProof ? 'Minting Proof Bundle...' : 'Confirm & Generate Proof'}</span>
                   </button>
                 </div>
+
               </div>
             ) : (
               /* PROOF CREATED SUCCESS VIEW */
@@ -653,8 +655,8 @@ export const CredentialsPage = () => {
                 </div>
 
                 {/* ZERO-LINK DIRECT DESK HANDOFF CARD */}
-                <div className="p-4 rounded-xl bg-slate-900 text-white text-left space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900 text-white text-left space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="p-1 rounded-md bg-amber-500/20 text-amber-400 text-xs font-bold">🏢</span>
                       <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
@@ -692,23 +694,23 @@ export const CredentialsPage = () => {
                   {transmittedSuccessMsg && (
                     <div className="p-2.5 rounded-lg bg-emerald-950/80 border border-emerald-700/80 text-emerald-200 text-[11px] flex items-start gap-2 animate-in fade-in">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>{transmittedSuccessMsg}</span>
+                      <span className="break-words">{transmittedSuccessMsg}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-left space-y-2 text-xs">
+                <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-xl text-left space-y-2 text-xs">
                   <div className="text-slate-500 font-semibold">Alternative Fallback Link:</div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input
                       type="text"
                       readOnly
                       value={generatedProofResult.verifyUrl}
-                      className="w-full font-mono text-[11px] p-2 bg-white border border-slate-300 rounded-lg text-slate-700"
+                      className="w-full font-mono text-[11px] p-2 bg-white border border-slate-300 rounded-lg text-slate-700 truncate"
                     />
                     <button
                       onClick={handleCopyUrl}
-                      className="px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center gap-1 shrink-0"
+                      className="px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 shrink-0 cursor-pointer"
                     >
                       {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
@@ -716,7 +718,7 @@ export const CredentialsPage = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 pt-2">
                   <a
                     href={generatedProofResult.verifyUrl}
                     target="_blank"
@@ -729,7 +731,7 @@ export const CredentialsPage = () => {
 
                   <button
                     onClick={() => setIsProofModalOpen(false)}
-                    className="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-300"
+                    className="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-300 text-center"
                   >
                     Done
                   </button>
@@ -743,22 +745,22 @@ export const CredentialsPage = () => {
       {/* UPLOAD DOCUMENT & ATTESTATION MODAL */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 sm:space-y-5 max-h-[90dvh] overflow-y-auto animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <UploadCloud className="w-5 h-5 text-amber-600 shrink-0" />
-                <div>
-                  <h3 className="font-display text-base font-bold text-slate-900">
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-slate-900 truncate">
                     Upload &amp; Anchor Verifiable Credential
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 truncate">
                     Upload certificates or business documents to anchor verifiable DPI claims
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsUploadModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer shrink-0"
                 aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
@@ -766,13 +768,13 @@ export const CredentialsPage = () => {
             </div>
 
             {uploadSuccess ? (
-              <div className="py-8 text-center space-y-3 animate-in zoom-in-95">
+              <div className="py-6 sm:py-8 text-center space-y-3 animate-in zoom-in-95">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                   <Check className="w-6 h-6" />
                 </div>
                 <h4 className="font-bold text-slate-900 text-sm">Document Cryptographically Anchored!</h4>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                  Your document has been verified, hashed, and issued as a verifiable credential under Business DID <span className="font-mono text-amber-700 font-bold">{businessId}</span>.
+                  Your document has been verified, hashed, and issued as a verifiable credential under Business DID <span className="font-mono text-amber-700 font-bold break-all">{businessId}</span>.
                 </p>
               </div>
             ) : (
@@ -789,13 +791,13 @@ export const CredentialsPage = () => {
                     const picked = sampleFiles[Math.floor(Math.random() * sampleFiles.length)];
                     setUploadFileName(picked);
                   }}
-                  className="border-2 border-dashed border-slate-300 hover:border-amber-500 bg-slate-50/70 hover:bg-amber-50/30 p-6 rounded-2xl text-center cursor-pointer transition-all space-y-2 group"
+                  className="border-2 border-dashed border-slate-300 hover:border-amber-500 bg-slate-50/70 hover:bg-amber-50/30 p-4 sm:p-6 rounded-2xl text-center cursor-pointer transition-all space-y-2 group"
                 >
-                  <FileUp className="w-8 h-8 text-slate-400 group-hover:text-amber-600 mx-auto transition-colors" />
+                  <FileUp className="w-7 h-7 sm:w-8 sm:h-8 text-slate-400 group-hover:text-amber-600 mx-auto transition-colors" />
                   <div className="font-semibold text-slate-800 text-xs">
                     {uploadFileName ? (
-                      <span className="text-emerald-700 font-mono font-bold flex items-center justify-center gap-1.5">
-                        <FileText className="w-4 h-4" />
+                      <span className="text-emerald-700 font-mono font-bold flex items-center justify-center gap-1.5 break-all">
+                        <FileText className="w-4 h-4 shrink-0" />
                         {uploadFileName} (Selected)
                       </span>
                     ) : (
@@ -872,11 +874,11 @@ export const CredentialsPage = () => {
                 </div>
 
                 {/* Submit Action */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setIsUploadModalOpen(false)}
-                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer text-center"
                   >
                     Cancel
                   </button>
@@ -884,7 +886,7 @@ export const CredentialsPage = () => {
                   <button
                     type="submit"
                     disabled={isUploading}
-                    className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
                     <span>{isUploading ? 'Anchoring & Signing...' : 'Digitally Anchor & Issue VC'}</span>
@@ -899,24 +901,24 @@ export const CredentialsPage = () => {
       {/* SINGLE CREDENTIAL INSPECT MODAL */}
       {selectedCred && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90dvh] overflow-y-auto animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                <h3 className="font-display text-base font-bold text-slate-900">
+                <h3 className="font-display text-base font-bold text-slate-900 truncate">
                   Cryptographic Attestation & Signature
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedCred(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 font-mono">
+              <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 font-mono break-all text-[11px] sm:text-xs">
                 <div><strong>Type:</strong> {selectedCred.type}</div>
                 <div><strong>Credential ID:</strong> {selectedCred.credential_id}</div>
                 <div><strong>Issuer:</strong> {selectedCred.issuer}</div>
@@ -924,16 +926,16 @@ export const CredentialsPage = () => {
                 <div><strong>Signature:</strong> {selectedCred.signature}</div>
               </div>
 
-              <div className="bg-slate-950 text-slate-200 p-3.5 rounded-xl font-mono text-[11px] overflow-x-auto border border-slate-800">
+              <div className="bg-slate-950 text-slate-200 p-3 sm:p-3.5 rounded-xl font-mono text-[11px] overflow-x-auto border border-slate-800">
                 <div className="text-amber-400 font-bold mb-1">// Raw Claim Object</div>
-                <pre>{JSON.stringify(selectedCred.claim, null, 2)}</pre>
+                <pre className="whitespace-pre-wrap leading-tight">{JSON.stringify(selectedCred.claim, null, 2)}</pre>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedCred(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer text-center"
               >
                 Close
               </button>
@@ -944,3 +946,4 @@ export const CredentialsPage = () => {
     </div>
   );
 };
+

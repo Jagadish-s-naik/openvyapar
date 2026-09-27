@@ -52,13 +52,13 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
   const isOwnerWallet = !isOnboarding && !isVerifier;
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none">
+    <header className="h-14 sm:h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none">
       {/* LEFT: Mobile Menu + Enterprise Identity Pill + Live Node */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
         {onToggleMobileMenu && (
           <button
             onClick={onToggleMobileMenu}
-            className="p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 md:hidden cursor-pointer transition-colors shrink-0"
+            className="p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 md:hidden cursor-pointer transition-colors shrink-0"
             aria-label="Toggle navigation menu"
           >
             <Menu className="w-5 h-5" />
@@ -66,9 +66,9 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         )}
 
         {/* Enterprise Identity Badge */}
-        <div className="flex items-center gap-2 bg-slate-900 text-white px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 text-white px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs shrink-0 max-w-[150px] xs:max-w-[190px] sm:max-w-[240px]">
           <Shield className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="text-xs font-bold text-slate-100 truncate max-w-[160px] md:max-w-[220px] whitespace-nowrap">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-100 truncate">
             {businessName}
           </span>
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -137,12 +137,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
       </div>
 
       {/* RIGHT: Quick Actions & Controls */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {/* Time-Skip Button */}
         <button
           onClick={handleTimeSkip}
           disabled={isIssuingBatch}
-          className={`h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs border whitespace-nowrap shrink-0 ${
+          className={`h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs border whitespace-nowrap shrink-0 ${
             batchSuccess
               ? 'bg-emerald-600 text-white border-emerald-700'
               : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500/50'
@@ -150,8 +150,11 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           title="Simulate 1 year of verified GST, Bank & ONDC credentials"
         >
           <Zap className={`w-3.5 h-3.5 ${isIssuingBatch ? 'animate-spin' : ''}`} />
-          <span>
-            {batchSuccess ? '✓ Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip (Issue Batch)'}
+          <span className="hidden xs:inline">
+            {batchSuccess ? '✓ Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip'}
+          </span>
+          <span className="hidden md:inline">
+            {!batchSuccess && !isIssuingBatch ? ' (Issue Batch)' : ''}
           </span>
         </button>
 
@@ -159,17 +162,17 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         <button
           onClick={() => loadAllData()}
           disabled={isSyncing}
-          className="h-9 w-9 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 shrink-0"
+          className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 shrink-0"
           title="Refresh Data from Backend"
           aria-label="Refresh Data from Backend"
         >
-          <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
         </button>
 
         {/* Mobile Device Simulator Toggle */}
         <button
           onClick={toggleMobileSimulator}
-          className={`h-9 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
+          className={`h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
             isMobileSimulator
               ? 'bg-slate-900 text-amber-400 border-slate-800 shadow-xs'
               : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80'
@@ -190,14 +193,14 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         </button>
 
         {/* Language Selector */}
-        <div className="h-9 flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200 shrink-0">
-          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1.5 mr-0.5" />
+        <div className="h-8 sm:h-9 flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200 shrink-0">
+          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1 sm:ml-1.5 mr-0.5 hidden xs:block" />
           <div className="flex gap-0.5">
             {languages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setLanguage(lang.code)}
-                className={`px-2 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
                   language === lang.code
                     ? 'bg-white text-slate-950 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
@@ -214,19 +217,19 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         <div className="relative shrink-0">
           <button
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors border border-slate-200/80 cursor-pointer relative"
+            className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors border border-slate-200/80 cursor-pointer relative"
             title="Notifications & Inbound Owner Dispatches"
             aria-label="Toggle notifications"
           >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-amber-500 text-slate-950 font-bold text-[9px] rounded-full flex items-center justify-center font-mono ring-2 ring-white">
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-3.5 h-3.5 bg-amber-500 text-slate-950 font-bold text-[9px] rounded-full flex items-center justify-center font-mono ring-2 ring-white">
               {activeCount || 2}
             </span>
           </button>
 
           {/* Notification Popover Dropdown */}
           {isNotificationOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] xs:w-80 sm:w-96 max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-3.5 sm:p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="p-1.5 rounded-lg bg-amber-50 text-amber-700">
@@ -245,7 +248,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                 </button>
               </div>
 
-              <div className="space-y-2.5 max-h-80 overflow-y-auto">
+              <div className="space-y-2.5 max-h-72 sm:max-h-80 overflow-y-auto">
                 {/* 1. Owner to Employee Delegation Notification */}
                 <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -326,5 +329,6 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         </div>
       </div>
     </header>
+
   );
 };

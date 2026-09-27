@@ -163,21 +163,21 @@ export const ConsentPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Scoped Access & Delegations
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Grant least-privilege, revocable cryptographic permissions to accountants and staff without sharing passwords.
           </p>
         </div>
 
         <button
           onClick={() => setActiveTab('grant')}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+          className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Scoped Delegation (Beat 4)</span>
@@ -185,10 +185,10 @@ export const ConsentPage = () => {
       </div>
 
       {/* Clean 4-Tab Navigation Bar */}
-      <div className="flex border-b border-slate-200 gap-3 sm:gap-6 text-xs sm:text-sm font-medium overflow-x-auto whitespace-nowrap pb-px">
+      <div className="flex border-b border-slate-200 gap-2 sm:gap-6 text-xs sm:text-sm font-medium overflow-x-auto whitespace-nowrap pb-px no-scrollbar touch-scroll">
         <button
           onClick={() => setActiveTab('active')}
-          className={`pb-3 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
+          className={`pb-3 px-1 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
             activeTab === 'active'
               ? 'text-amber-900 font-bold border-b-2 border-amber-500'
               : 'text-slate-500 hover:text-slate-900'
@@ -202,7 +202,7 @@ export const ConsentPage = () => {
 
         <button
           onClick={() => setActiveTab('inbound')}
-          className={`pb-3 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
+          className={`pb-3 px-1 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
             activeTab === 'inbound'
               ? 'text-amber-900 font-bold border-b-2 border-amber-500'
               : 'text-slate-500 hover:text-slate-900'
@@ -214,7 +214,7 @@ export const ConsentPage = () => {
 
         <button
           onClick={() => setActiveTab('grant')}
-          className={`pb-3 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
+          className={`pb-3 px-1 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
             activeTab === 'grant'
               ? 'text-amber-900 font-bold border-b-2 border-amber-500'
               : 'text-slate-500 hover:text-slate-900'
@@ -226,7 +226,7 @@ export const ConsentPage = () => {
 
         <button
           onClick={() => setActiveTab('history')}
-          className={`pb-3 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
+          className={`pb-3 px-1 relative flex items-center gap-2 cursor-pointer transition-colors shrink-0 ${
             activeTab === 'history'
               ? 'text-amber-900 font-bold border-b-2 border-amber-500'
               : 'text-slate-500 hover:text-slate-900'
@@ -235,6 +235,7 @@ export const ConsentPage = () => {
           <span>Revoked History ({historyList.length})</span>
         </button>
       </div>
+
 
       {/* Tab Panels */}
       <div className="space-y-4">
@@ -323,16 +324,16 @@ export const ConsentPage = () => {
 
         {/* TAB 2: INBOUND WORK DESK (EMPLOYEE / CA VIEW) */}
         {activeTab === 'inbound' && (
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {/* Executive Status Header */}
-            <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-7 border border-slate-800 shadow-sm space-y-4">
+            <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 md:p-7 border border-slate-800 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0">
                     <Briefcase className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
                         DELEGATED WORK DESK
                       </span>
@@ -341,8 +342,8 @@ export const ConsentPage = () => {
                         SESSION ACTIVE
                       </span>
                     </div>
-                    <h2 className="text-lg sm:text-xl font-bold font-display text-white mt-0.5">
-                      Vikas Mehta, CA <span className="text-slate-400 font-normal text-sm font-sans">(Chartered Accountant)</span>
+                    <h2 className="text-base sm:text-xl font-bold font-display text-white mt-0.5">
+                      Vikas Mehta, CA <span className="text-slate-400 font-normal text-xs sm:text-sm font-sans block xs:inline">(Chartered Accountant)</span>
                     </h2>
                   </div>
                 </div>
@@ -354,33 +355,33 @@ export const ConsentPage = () => {
               </div>
 
               {/* Target Enterprise Metadata Line */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
                 <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
                   <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider">Enterprise Principal</span>
                   <span className="text-white font-semibold mt-0.5 block font-display">Sharma General Store</span>
-                  <span className="text-amber-400/90 font-mono text-[11px]">did:biz:sharma001</span>
+                  <span className="text-amber-400/90 font-mono text-[11px] truncate block">did:biz:sharma001</span>
                 </div>
 
                 <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
                   <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider">Active Token ID</span>
-                  <span className="text-white font-semibold mt-0.5 block font-mono text-xs">did:token:del-001</span>
-                  <span className="text-emerald-400 font-mono text-[11px]">Ed25519 Signature Verified</span>
+                  <span className="text-white font-semibold mt-0.5 block font-mono text-xs truncate">did:token:del-001</span>
+                  <span className="text-emerald-400 font-mono text-[11px] block">Ed25519 Verified</span>
                 </div>
 
                 <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
                   <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider">Zero-Password Protocol</span>
                   <span className="text-emerald-400 font-semibold mt-0.5 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> No Master Credentials Needed
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> No Password Needed
                   </span>
-                  <span className="text-slate-400 text-[11px]">Least-Privilege Cryptography</span>
+                  <span className="text-slate-400 text-[11px] block">Least-Privilege Cryptography</span>
                 </div>
               </div>
             </div>
 
             {/* 3 Structured Boundary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
               {/* Card 1: Permitted Scopes */}
-              <div className="bg-white rounded-2xl border-2 border-emerald-500/30 p-5 shadow-xs space-y-3">
+              <div className="bg-white rounded-2xl border-2 border-emerald-500/30 p-4 sm:p-5 shadow-xs space-y-3">
                 <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
                   <UserCheck className="w-4 h-4" />
                   <span>Permitted Scopes</span>
@@ -402,7 +403,7 @@ export const ConsentPage = () => {
               </div>
 
               {/* Card 2: Cryptographic Guardrails */}
-              <div className="bg-white rounded-2xl border-2 border-red-500/30 p-5 shadow-xs space-y-3">
+              <div className="bg-white rounded-2xl border-2 border-red-500/30 p-4 sm:p-5 shadow-xs space-y-3">
                 <div className="flex items-center gap-2 text-red-700 font-bold text-sm">
                   <ShieldAlert className="w-4 h-4" />
                   <span>Strict Guardrails (Blocked)</span>
@@ -424,7 +425,7 @@ export const ConsentPage = () => {
               </div>
 
               {/* Card 3: Cryptographic Proof */}
-              <div className="bg-white rounded-2xl border-2 border-indigo-500/30 p-5 shadow-xs space-y-3">
+              <div className="bg-white rounded-2xl border-2 border-indigo-500/30 p-4 sm:p-5 shadow-xs space-y-3">
                 <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
                   <KeyRound className="w-4 h-4" />
                   <span>Security & Proof Details</span>
@@ -432,28 +433,29 @@ export const ConsentPage = () => {
                 <div className="space-y-2.5 text-xs text-slate-600">
                   <div className="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100">
                     <span className="text-[10px] text-indigo-900 uppercase font-mono font-semibold block">Issuer Identity</span>
-                    <span className="font-mono text-[11px] text-slate-800">did:biz:sharma001</span>
+                    <span className="font-mono text-[11px] text-slate-800 truncate block">did:biz:sharma001</span>
                   </div>
                   <div className="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100">
                     <span className="text-[10px] text-indigo-900 uppercase font-mono font-semibold block">Verification Method</span>
-                    <span className="font-mono text-[11px] text-slate-800">HMAC-SHA256 / Ed25519 VC</span>
+                    <span className="font-mono text-[11px] text-slate-800 block">HMAC-SHA256 / Ed25519</span>
                   </div>
                   <div className="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100">
                     <span className="text-[10px] text-indigo-900 uppercase font-mono font-semibold block">Revocation Heartbeat</span>
-                    <span className="font-mono text-[11px] text-emerald-700 font-semibold">Active · 3s Polling</span>
+                    <span className="font-mono text-[11px] text-emerald-700 font-semibold block">Active · 3s Polling</span>
                   </div>
                 </div>
               </div>
             </div>
 
+
             {/* Interactive Execution Box */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-5">
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-7 shadow-xs space-y-4 sm:space-y-5">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
                   <FileCheck className="w-3.5 h-3.5 text-amber-600" />
-                  Authorized Execution Console
+                  <span>Authorized Execution Console</span>
                 </div>
-                <h3 className="text-lg font-bold font-display text-slate-900">
+                <h3 className="text-base sm:text-lg font-bold font-display text-slate-900">
                   Perform Delegated Task on Behalf of Enterprise
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -462,11 +464,11 @@ export const ConsentPage = () => {
               </div>
 
               {/* Task Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setInboundSelectedTask('gstr3b')}
-                  className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
+                  className={`p-3.5 sm:p-4 rounded-xl border text-left cursor-pointer transition-all ${
                     inboundSelectedTask === 'gstr3b'
                       ? 'bg-amber-50/80 border-amber-500 shadow-xs'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
@@ -484,7 +486,7 @@ export const ConsentPage = () => {
                 <button
                   type="button"
                   onClick={() => setInboundSelectedTask('gstr1')}
-                  className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
+                  className={`p-3.5 sm:p-4 rounded-xl border text-left cursor-pointer transition-all ${
                     inboundSelectedTask === 'gstr1'
                       ? 'bg-amber-50/80 border-amber-500 shadow-xs'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
@@ -502,7 +504,7 @@ export const ConsentPage = () => {
                 <button
                   type="button"
                   onClick={() => setInboundSelectedTask('itc')}
-                  className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
+                  className={`p-3.5 sm:p-4 rounded-xl border text-left cursor-pointer transition-all ${
                     inboundSelectedTask === 'itc'
                       ? 'bg-amber-50/80 border-amber-500 shadow-xs'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
@@ -520,16 +522,16 @@ export const ConsentPage = () => {
 
               {/* Execution Feedback / Banner */}
               {inboundExecutionLog && (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1.5 animate-in fade-in">
-                  <div className="flex items-center gap-2 font-bold text-xs">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1.5 animate-in fade-in">
+                  <div className="flex flex-wrap items-center gap-2 font-bold text-xs">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Cryptographic Delegated Execution Completed</span>
                     <span className="ml-auto text-[10px] font-mono text-emerald-700">{inboundExecutionLog.timestamp}</span>
                   </div>
-                  <p className="text-xs text-emerald-800">
+                  <p className="text-xs text-emerald-800 leading-relaxed">
                     {inboundExecutionLog.message}
                   </p>
-                  <div className="text-[11px] font-mono text-emerald-700 pt-1">
+                  <div className="text-[11px] font-mono text-emerald-700 pt-1 truncate">
                     Tx ID: {inboundExecutionLog.txId} · Signed by: did:person:ca001
                   </div>
                 </div>
@@ -538,7 +540,7 @@ export const ConsentPage = () => {
               {/* Action Trigger Button */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                  <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                   <span>Delegation token signed by business private key. Password sharing eliminated.</span>
                 </div>
 
@@ -546,7 +548,7 @@ export const ConsentPage = () => {
                   type="button"
                   onClick={handleExecuteInboundAction}
                   disabled={isInboundExecuting}
-                  className="flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
                 >
                   <Sparkles className="w-4 h-4 text-slate-950" />
                   <span>{isInboundExecuting ? 'Executing Signed Task...' : '⚡ Execute Delegated Task'}</span>
@@ -558,13 +560,13 @@ export const ConsentPage = () => {
 
         {/* AI DELEGATION BUILDER TAB (Beat 4) */}
         {activeTab === 'grant' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-xs space-y-5 sm:space-y-6">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                Beat 4: Scoped AI Delegation with Least-Privilege
+                <span>Beat 4: Scoped AI Delegation with Least-Privilege</span>
               </div>
-              <h2 className="text-xl font-bold font-display text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold font-display text-slate-900">
                 Grant Task-Specific Permissions
               </h2>
               <p className="text-xs text-slate-500">
@@ -573,8 +575,8 @@ export const ConsentPage = () => {
             </div>
 
             {grantSuccessMsg && (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{grantSuccessMsg}</span>
               </div>
             )}
@@ -584,7 +586,7 @@ export const ConsentPage = () => {
               <span className="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
                 Quick Demo Presets
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {samplePrompts.map((p, idx) => (
                   <button
                     key={idx}
@@ -604,14 +606,14 @@ export const ConsentPage = () => {
 
             {/* Inputs */}
             <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
                   <label className="font-semibold text-slate-700">Delegate Name / Role</label>
                   <input
                     type="text"
                     value={delegateName}
                     onChange={(e) => setDelegateName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 text-slate-900"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -620,7 +622,7 @@ export const ConsentPage = () => {
                     type="text"
                     value={delegatePersonId}
                     onChange={(e) => setDelegatePersonId(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono focus:outline-none focus:border-amber-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono focus:outline-none focus:border-amber-500 text-slate-900"
                   />
                 </div>
               </div>
@@ -633,30 +635,31 @@ export const ConsentPage = () => {
                   rows={2}
                   value={naturalPrompt}
                   onChange={(e) => setNaturalPrompt(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 text-xs"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 text-xs text-slate-900"
                 />
               </div>
 
               <button
                 onClick={handleSuggestScopes}
                 disabled={isSuggesting || !naturalPrompt.trim()}
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <span>{isSuggesting ? 'Analyzing Intent...' : '🤖 AI: Propose Minimal Scopes'}</span>
               </button>
             </div>
 
+
             {/* AI Scoping Proposal Result */}
             {scopeSuggestion && (
-              <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-4 animate-in fade-in">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 text-white space-y-4 animate-in fade-in">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4" />
-                      Least-Privilege Scoping Recommendation
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Least-Privilege Scoping Recommendation</span>
                     </div>
-                    <p className="text-xs text-slate-200">
+                    <p className="text-xs text-slate-200 leading-relaxed">
                       {scopeSuggestion.explanation}
                     </p>
                   </div>
@@ -680,17 +683,17 @@ export const ConsentPage = () => {
                               : 'bg-slate-800/60 border-slate-700/60 text-slate-400'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
                             <input
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => handleToggleScope(scope)}
-                              className="rounded text-amber-500 focus:ring-amber-500"
+                              className="rounded text-amber-500 focus:ring-amber-500 shrink-0"
                             />
-                            <span className="font-mono text-xs">{scope}</span>
+                            <span className="font-mono text-xs truncate">{scope}</span>
                           </div>
                           {isHighRisk && (
-                            <span className="text-[10px] text-red-400 font-bold bg-red-950 px-1.5 py-0.5 rounded border border-red-800">
+                            <span className="text-[10px] text-red-400 font-bold bg-red-950 px-1.5 py-0.5 rounded border border-red-800 shrink-0">
                               HIGH RISK
                             </span>
                           )}
@@ -701,8 +704,8 @@ export const ConsentPage = () => {
                 </div>
 
                 {/* Explicit Guardrail Callout */}
-                <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-center gap-2 text-[11px] text-amber-300">
-                  <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start sm:items-center gap-2 text-[11px] text-amber-300">
+                  <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
                   <span>
                     <strong>Least-Privilege Protection:</strong> Bank account statements and loan permissions are excluded.
                   </span>
@@ -713,7 +716,7 @@ export const ConsentPage = () => {
                   <button
                     onClick={handleGrantDelegation}
                     disabled={isGranting || selectedScopes.length === 0}
-                    className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
                     <span>{isGranting ? 'Signing Token...' : 'Confirm & Grant Delegation'}</span>
@@ -728,28 +731,28 @@ export const ConsentPage = () => {
         {activeTab === 'history' && (
           <div className="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-200 shadow-xs">
             {historyList.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500">
+              <div className="p-8 sm:p-12 text-center text-xs text-slate-500">
                 No revoked or expired delegation records.
               </div>
             ) : (
               historyList.map((token) => (
                 <div
                   key={token.token_id}
-                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-900 text-sm">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-slate-900 text-sm truncate">
                         {token.delegate_person_id}
                       </span>
                       <span className="font-semibold uppercase tracking-wider px-2 py-0.5 rounded font-mono text-[10px] bg-red-100 text-red-800 border border-red-200">
                         {token.status}
                       </span>
                     </div>
-                    <div className="text-slate-600 font-mono">
+                    <div className="text-slate-600 font-mono break-all">
                       Scopes: {token.scopes.join(', ')}
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono">
+                    <div className="text-[11px] text-slate-400 font-mono truncate">
                       Token ID: {token.token_id} · Revoked
                     </div>
                   </div>
@@ -766,3 +769,4 @@ export const ConsentPage = () => {
     </div>
   );
 };
+

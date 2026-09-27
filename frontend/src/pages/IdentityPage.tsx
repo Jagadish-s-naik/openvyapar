@@ -109,10 +109,10 @@ export const IdentityPage = () => {
       )}
 
       {/* Primary: Business Name, Business ID, and QR Code */}
-      <section className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-10 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+      <section className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-8 md:p-10 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-10">
           {/* Identity Information */}
-          <div className="space-y-6 flex-1">
+          <div className="space-y-5 sm:space-y-6 flex-1 min-w-0">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -121,23 +121,23 @@ export const IdentityPage = () => {
               <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 {businessName}
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 Operating in <span className="font-semibold text-slate-900">{typeof business?.metadata?.location === 'string' ? business.metadata.location : 'Varanasi, UP'}</span> · {typeof business?.metadata?.sector === 'string' ? business.metadata.sector : 'Retail Grocery & Essentials'}
               </p>
             </div>
 
             {/* Business ID Badge & Copy */}
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <div className="flex items-center justify-between sm:justify-start gap-3 bg-slate-900 text-white px-4 py-2.5 rounded-xl border border-slate-800 shadow-xs w-full sm:w-auto">
-                <span className="text-xs uppercase tracking-wider text-slate-400 font-mono">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
+              <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 bg-slate-900 text-white px-3.5 sm:px-4 py-2.5 rounded-xl border border-slate-800 shadow-xs w-full sm:w-auto">
+                <span className="text-xs uppercase tracking-wider text-slate-400 font-mono shrink-0">
                   {t.identity.businessId}
                 </span>
-                <span className="font-mono text-base font-bold text-amber-400 tracking-wide">
+                <span className="font-mono text-sm sm:text-base font-bold text-amber-400 tracking-wide break-all">
                   {businessId}
                 </span>
                 <button
                   onClick={handleCopy}
-                  className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
                   title="Copy Business ID"
                   aria-label="Copy Business ID"
                 >
@@ -171,8 +171,8 @@ export const IdentityPage = () => {
 
             {/* Sovereign Registry Attributes */}
             <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-slate-600">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 font-mono text-slate-600">
+                <div className="truncate">
                   <span className="text-slate-400 font-sans">Primary Owner:</span>{' '}
                   <span className="text-slate-800 font-bold">{ownerPersonId}</span>
                 </div>
@@ -185,19 +185,20 @@ export const IdentityPage = () => {
           </div>
 
           {/* QR Code Anchor */}
-          <div className="flex flex-col items-center p-5 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center shrink-0 w-full sm:w-64 max-w-xs mx-auto lg:mx-0 shadow-md">
+          <div className="flex flex-col items-center p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center shrink-0 w-full sm:w-64 max-w-xs mx-auto lg:mx-0 shadow-md">
             <div className="p-1 rounded-2xl bg-white/5 border border-white/10 shadow-inner max-w-full">
               <BusinessQRCode size={180} showLogo={true} />
             </div>
-            <div className="mt-4 text-xs font-mono font-bold text-amber-400 tracking-wider">
+            <div className="mt-3.5 sm:mt-4 text-xs font-mono font-bold text-amber-400 tracking-wider">
               {t.identity.scanForProof}
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5 font-mono">
+            <div className="text-[11px] text-slate-400 mt-0.5 font-mono truncate max-w-full">
               {businessId}
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Verification Sources */}
       <section className="space-y-3">
@@ -242,14 +243,14 @@ export const IdentityPage = () => {
       {/* OWNERSHIP SUCCESSION MODAL (Beat 5) */}
       {isTransferModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-7 shadow-2xl border border-slate-200 space-y-4 sm:space-y-5 max-h-[90dvh] overflow-y-auto animate-in zoom-in-95 duration-150">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  Beat 5: Unbroken Business Identity Across Generations
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Beat 5: Continuous Identity Across Generations</span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-slate-900">
+                <h3 className="font-display text-base sm:text-lg font-bold text-slate-900">
                   Transfer Business Ownership
                 </h3>
               </div>
@@ -288,10 +289,10 @@ export const IdentityPage = () => {
 
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] space-y-1">
                 <div className="font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
+                  <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
                   Continuous Reputation Guarantee
                 </div>
-                <div>
+                <div className="truncate">
                   • Business DID: <span className="font-mono font-semibold">{businessId}</span> (Unchanged)
                 </div>
                 <div>
@@ -300,10 +301,10 @@ export const IdentityPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
               <button
                 onClick={() => setIsTransferModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl text-center"
               >
                 Cancel
               </button>
@@ -311,7 +312,7 @@ export const IdentityPage = () => {
               <button
                 onClick={handleTransferSuccession}
                 disabled={isTransferring}
-                className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
                 <span>{isTransferring ? 'Recording Succession...' : 'Confirm Ownership Transfer'}</span>
@@ -320,6 +321,7 @@ export const IdentityPage = () => {
           </div>
         </div>
       )}
+
 
       {/* Sovereign Vyapar Pass Modal */}
       <SovereignPassModal
