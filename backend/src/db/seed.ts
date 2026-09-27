@@ -7,10 +7,11 @@ import {
   mockAuditLogs,
   type BusinessRole,
 } from '@openvyapar/shared';
-import { db } from './connection.js';
+import { db, initDatabase } from './connection.js';
 import { signCredential } from '../utils/crypto.js';
 
 export async function seedDatabase(): Promise<void> {
+  await initDatabase();
   console.log('🌱 Seeding OpenVyapar Database...');
   await db.reset();
 
@@ -90,8 +91,13 @@ export async function seedDatabase(): Promise<void> {
 
 // If run directly via node/tsx
 if (process.argv[1]?.includes('seed')) {
-  seedDatabase().catch((err) => {
-    console.error('❌ Seeding failed:', err);
-    process.exit(1);
-  });
+  seedDatabase()
+    .then(async () => {
+      await db.disconnect();
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('❌ Seeding failed:', err);
+      process.exit(1);
+    });
 }
