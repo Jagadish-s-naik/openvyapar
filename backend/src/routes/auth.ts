@@ -7,8 +7,8 @@ export const authRouter = Router();
  * GET /auth/personas
  * List all available personas for fast demo persona switching
  */
-authRouter.get('/personas', (_req: Request, res: Response) => {
-  const persons = db.getAllPersons();
+authRouter.get('/personas', async (_req: Request, res: Response) => {
+  const persons = await db.getAllPersons();
   res.json({
     success: true,
     count: persons.length,

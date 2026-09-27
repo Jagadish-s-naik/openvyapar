@@ -11,7 +11,6 @@ import { db } from '../db/connection.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
-
 import { requireOwner, requireRole } from '../middleware/auth.js';
 
 export const delegationRouter = Router();
@@ -20,7 +19,7 @@ export const delegationRouter = Router();
  * POST /delegation/grant
  * Issue a scoped delegation token to an authorized delegate (e.g. CA or manager)
  */
-delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (req: Request<{}, {}, GrantDelegationRequest>, res: Response) => {
+delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), async (req: Request<{}, {}, GrantDelegationRequest>, res: Response) => {
   try {
     const { business_id, delegate_person_id, scopes, expires_at = null, agent_action_id } = req.body;
     const granted_by = req.body.granted_by || req.actor?.actorId;
@@ -29,13 +28,13 @@ delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (r
       return sendError(res, 400, 'Missing required fields: business_id, delegate_person_id, scopes (array), granted_by');
     }
 
-    const business = db.getBusiness(business_id);
+    const business = await db.getBusiness(business_id);
     if (!business) {
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
     // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
-    const proposalCheck = validateAgentProposal(agent_action_id);
+    const proposalCheck = await validateAgentProposal(agent_action_id);
     if (!proposalCheck.valid) {
       return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
@@ -54,14 +53,14 @@ delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (r
       expires_at: expires_at || null,
     };
 
-    db.setDelegationToken(newToken);
+    await db.setDelegationToken(newToken);
 
     // Update agent action if proposed by delegation scoping agent
     if (proposalCheck.proposal) {
-      confirmAgentProposal(proposalCheck.proposal, tokenId, createdAt);
+      await confirmAgentProposal(proposalCheck.proposal, tokenId, createdAt);
     }
 
-    recordAuditLog(
+    await recordAuditLog(
       business_id,
       'owner',
       granted_by,
@@ -92,7 +91,7 @@ delegationRouter.post('/grant', requireOwner((req) => req.body?.business_id), (r
  * POST /delegation/revoke
  * Instantly revoke a delegation token
  */
-delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, RevokeDelegationRequest>, res: Response) => {
+delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), async (req: Request<{}, {}, RevokeDelegationRequest>, res: Response) => {
   try {
     const { business_id, token_id } = req.body;
     const revoked_by = req.body.revoked_by || req.actor?.actorId;
@@ -101,16 +100,16 @@ delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req
       return sendError(res, 400, 'Missing required fields: business_id, token_id, revoked_by');
     }
 
-    const token = db.getDelegationById(token_id);
+    const token = await db.getDelegationById(token_id);
     if (!token || token.business_id !== business_id) {
       return sendError(res, 404, `Delegation token with id ${token_id} not found for business`);
     }
 
     const previousStatus = token.status;
     token.status = 'revoked';
-    db.setDelegationToken(token);
+    await db.setDelegationToken(token);
 
-    recordAuditLog(
+    await recordAuditLog(
       business_id,
       'owner',
       revoked_by,
@@ -140,18 +139,20 @@ delegationRouter.post('/revoke', requireRole(['owner', 'delegate'], (req) => req
  * GET /delegation/:business_id
  * List all active and revoked delegation tokens
  */
-delegationRouter.get('/:business_id', (req: Request<{ business_id: string }>, res: Response) => {
+delegationRouter.get('/:business_id', async (req: Request<{ business_id: string }>, res: Response) => {
   const businessId = req.params.business_id;
-  const business = db.getBusiness(businessId);
+  const business = await db.getBusiness(businessId);
   if (!business) {
     return sendError(res, 404, `Business with id ${businessId} not found`);
   }
 
-  const rawTokens = db.getDelegationsForBusiness(businessId);
-  const tokensWithDelegate = rawTokens.map((t) => ({
-    ...t,
-    delegate: db.getPerson(t.delegate_person_id) || undefined,
-  }));
+  const rawTokens = await db.getDelegationsForBusiness(businessId);
+  const tokensWithDelegate = await Promise.all(
+    rawTokens.map(async (t: DelegationToken) => ({
+      ...t,
+      delegate: (await db.getPerson(t.delegate_person_id)) || undefined,
+    }))
+  );
 
   const responsePayload: GetDelegationsResponse = {
     success: true,

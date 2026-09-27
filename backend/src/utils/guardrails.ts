@@ -15,16 +15,16 @@ export interface ProposalValidationResult {
  * - Prevents re-executing already confirmed proposals (Idempotency Protection)
  * - Prevents executing rejected proposals
  */
-export function validateAgentProposal(
+export async function validateAgentProposal(
   agentActionId?: string,
   businessIdFallback: string = 'pending_proposal',
   agentTypeFallback: AgentType = 'onboarding'
-): ProposalValidationResult {
+): Promise<ProposalValidationResult> {
   if (!agentActionId) {
     return { valid: true };
   }
 
-  let proposal = db.getAgentAction(agentActionId);
+  let proposal = await db.getAgentAction(agentActionId);
   if (!proposal) {
     // Automatically register pending proposal so it is tracked and protected against duplicate confirmation
     proposal = {
@@ -36,7 +36,7 @@ export function validateAgentProposal(
       human_decision: 'pending',
       created_at: new Date().toISOString(),
     };
-    db.setAgentAction(proposal);
+    await db.setAgentAction(proposal);
   }
 
   if (proposal.human_decision === 'confirmed') {
@@ -61,19 +61,20 @@ export function validateAgentProposal(
 /**
  * Atomically marks an agent proposal as confirmed and binds it to the created resource ID.
  */
-export function confirmAgentProposal(
+export async function confirmAgentProposal(
   proposal: AgentAction,
   targetActionRef: string,
   businessId?: string,
   decidedAt?: string
-): AgentAction {
+): Promise<AgentAction> {
   proposal.human_decision = 'confirmed';
   proposal.decided_at = decidedAt || new Date().toISOString();
   proposal.target_action_ref = targetActionRef;
   if (businessId && (proposal.business_id === 'pending_proposal' || proposal.business_id === 'pending_onboarding')) {
     proposal.business_id = businessId;
   }
-  db.setAgentAction(proposal);
+  await db.setAgentAction(proposal);
   return proposal;
 }
+
 

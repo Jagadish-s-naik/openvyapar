@@ -1,18 +1,18 @@
 import type { TimelineEvent } from '@openvyapar/shared';
 import { db } from '../db/connection.js';
 
-export function buildBusinessTimeline(
+export async function buildBusinessTimeline(
   businessId: string,
   sortOrder: 'asc' | 'desc' = 'desc'
-): TimelineEvent[] {
-  const auditLogs = db.getAuditLogsForBusiness(businessId);
-  const agentActions = db.getAgentActionsForBusiness(businessId);
+): Promise<TimelineEvent[]> {
+  const auditLogs = await db.getAuditLogsForBusiness(businessId);
+  const agentActions = await db.getAgentActionsForBusiness(businessId);
 
   const events: TimelineEvent[] = [];
 
   // 1. Process Audit Logs
   for (const log of auditLogs) {
-    const person = db.getPerson(log.actor_id);
+    const person = await db.getPerson(log.actor_id);
     const actorName = person ? person.name : log.actor_id;
 
     let category: TimelineEvent['category'] = 'governance';

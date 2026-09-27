@@ -10,18 +10,18 @@ import {
 import { db } from './connection.js';
 import { signCredential } from '../utils/crypto.js';
 
-export function seedDatabase(): void {
+export async function seedDatabase(): Promise<void> {
   console.log('🌱 Seeding OpenVyapar Database...');
-  db.reset();
+  await db.reset();
 
   // Seed Personas
   for (const person of mockPersonas) {
-    db.setPerson(person);
+    await db.setPerson(person);
   }
 
   // Seed Businesses
   for (const business of mockBusinesses) {
-    db.setBusiness(business);
+    await db.setBusiness(business);
   }
 
   // Seed Default Owner Roles
@@ -34,7 +34,7 @@ export function seedDatabase(): void {
     granted_at: '2024-03-15T08:30:00.000Z',
     revoked_at: null,
   };
-  db.setBusinessRole(rameshOwnerRole);
+  await db.setBusinessRole(rameshOwnerRole);
 
   const priyaSuccessorRole: BusinessRole = {
     role_id: 'role-successor-sharma001',
@@ -45,7 +45,7 @@ export function seedDatabase(): void {
     granted_at: '2024-03-15T08:30:00.000Z',
     revoked_at: null,
   };
-  db.setBusinessRole(priyaSuccessorRole);
+  await db.setBusinessRole(priyaSuccessorRole);
 
   const vikasDelegateRole: BusinessRole = {
     role_id: 'role-delegate-sharma001',
@@ -56,7 +56,7 @@ export function seedDatabase(): void {
     granted_at: '2024-07-01T10:00:00.000Z',
     revoked_at: null,
   };
-  db.setBusinessRole(vikasDelegateRole);
+  await db.setBusinessRole(vikasDelegateRole);
 
   // Seed Credentials with authentic HMAC-SHA256 signatures
   for (const credential of mockCredentials) {
@@ -67,22 +67,22 @@ export function seedDatabase(): void {
       credential.claim,
       credential.issued_at
     );
-    db.setCredential({ ...credential, signature });
+    await db.setCredential({ ...credential, signature });
   }
 
   // Seed Delegation Tokens
   for (const token of mockDelegationTokens) {
-    db.setDelegationToken(token);
+    await db.setDelegationToken(token);
   }
 
   // Seed Proof Shares
   for (const proof of mockProofShares) {
-    db.setProofShare(proof);
+    await db.setProofShare(proof);
   }
 
   // Seed Audit Logs
   for (const log of mockAuditLogs) {
-    db.addAuditLog(log);
+    await db.addAuditLog(log);
   }
 
   console.log('✅ Database seeded successfully with baseline mock fixtures.');
@@ -90,5 +90,8 @@ export function seedDatabase(): void {
 
 // If run directly via node/tsx
 if (process.argv[1]?.includes('seed')) {
-  seedDatabase();
+  seedDatabase().catch((err) => {
+    console.error('❌ Seeding failed:', err);
+    process.exit(1);
+  });
 }

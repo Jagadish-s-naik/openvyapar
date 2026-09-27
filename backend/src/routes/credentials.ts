@@ -18,7 +18,7 @@ export const credentialsRouter = Router();
  * POST /credentials/issue
  * Issue a signed credential to a business (called by mock issuers or onboarding agent)
  */
-credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, res: Response) => {
+credentialsRouter.post('/issue', async (req: Request<{}, {}, IssueCredentialRequest>, res: Response) => {
   try {
     const { business_id, issuer, type, claim, expires_at = null, agent_action_id } = req.body;
 
@@ -26,13 +26,13 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
       return sendError(res, 400, 'Missing required fields: business_id, issuer, type, claim');
     }
 
-    const business = db.getBusiness(business_id);
+    const business = await db.getBusiness(business_id);
     if (!business) {
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
     // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
-    const proposalCheck = validateAgentProposal(agent_action_id);
+    const proposalCheck = await validateAgentProposal(agent_action_id);
     if (!proposalCheck.valid) {
       return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
@@ -54,14 +54,14 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
       status: 'valid',
     };
 
-    db.setCredential(newCredential);
+    await db.setCredential(newCredential);
 
     // Update agent action if originated from proposal
     if (proposalCheck.proposal) {
-      confirmAgentProposal(proposalCheck.proposal, credentialId, issuedAt);
+      await confirmAgentProposal(proposalCheck.proposal, credentialId, issuedAt);
     }
 
-    recordAuditLog(
+    await recordAuditLog(
       business_id,
       'issuer',
       issuer,
@@ -91,17 +91,17 @@ credentialsRouter.post('/issue', (req: Request<{}, {}, IssueCredentialRequest>, 
  * GET /credentials/:business_id
  * Retrieve all credentials issued to a business (with signature verification check)
  */
-credentialsRouter.get('/:business_id', (req: Request<{ business_id: string }>, res: Response) => {
+credentialsRouter.get('/:business_id', async (req: Request<{ business_id: string }>, res: Response) => {
   const businessId = req.params.business_id;
-  const business = db.getBusiness(businessId);
+  const business = await db.getBusiness(businessId);
   if (!business) {
     return sendError(res, 404, `Business with id ${businessId} not found`);
   }
 
-  const credentials = db.getCredentialsForBusiness(businessId);
+  const credentials = await db.getCredentialsForBusiness(businessId);
 
   // Validate HMAC signatures on retrieval
-  const checkedCredentials = credentials.map((cred) => {
+  const checkedCredentials = credentials.map((cred: Credential) => {
     const check = verifyCredentialSignature(cred);
     return {
       ...cred,

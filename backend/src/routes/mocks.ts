@@ -22,18 +22,13 @@ export const mocksRouter = Router();
  * POST /mocks/issue-batch/:business_id
  * Simulates Beat 2 Time-skip: GST, Bank, and Marketplace issuers each issue
  * signed credentials to the specified business based on selected profile template.
- *
- * Supported templates:
- * - standard_healthy (default): 100% compliance, high orders, tier 1 balance
- * - gst_defaulter: Missed returns, active compliance score 42, tier 3 balance
- * - high_growth_merchant: >5,000 orders on ONDC, 4.9 rating, 100% compliance
  */
 mocksRouter.post(
   '/issue-batch/:business_id',
-  (req: Request<{ business_id: string }, IssueMockBatchResponse | { success: false }, IssueMockBatchRequest, { template?: string }>, res: Response) => {
+  async (req: Request<{ business_id: string }, IssueMockBatchResponse | { success: false }, IssueMockBatchRequest, { template?: string }>, res: Response) => {
     try {
       const businessId = req.params.business_id;
-      const business = db.getBusiness(businessId);
+      const business = await db.getBusiness(businessId);
 
       if (!business) {
         return sendError(res, 404, `Business with id ${businessId} not found`);
@@ -59,19 +54,19 @@ mocksRouter.post(
       const bankCred = issueMockBankCredential(businessId, bankOverrides);
       const mktCred = issueMockMarketplaceCredential(businessId, mktOverrides);
 
-      db.setCredential(gstCred);
-      db.setCredential(bankCred);
-      db.setCredential(mktCred);
+      await db.setCredential(gstCred);
+      await db.setCredential(bankCred);
+      await db.setCredential(mktCred);
 
-      recordAuditLog(businessId, 'issuer', 'gst_mock', 'issue_credential', true, {
+      await recordAuditLog(businessId, 'issuer', 'gst_mock', 'issue_credential', true, {
         credential_id: gstCred.credential_id,
         template: templateParam,
       });
-      recordAuditLog(businessId, 'issuer', 'bank_mock', 'issue_credential', true, {
+      await recordAuditLog(businessId, 'issuer', 'bank_mock', 'issue_credential', true, {
         credential_id: bankCred.credential_id,
         template: templateParam,
       });
-      recordAuditLog(businessId, 'issuer', 'marketplace_mock', 'issue_credential', true, {
+      await recordAuditLog(businessId, 'issuer', 'marketplace_mock', 'issue_credential', true, {
         credential_id: mktCred.credential_id,
         template: templateParam,
       });
@@ -99,7 +94,7 @@ mocksRouter.post(
  */
 mocksRouter.post(
   '/csc-witness',
-  (req: Request<Record<string, string>, IssueCscWitnessResponse | { success: false }, IssueCscWitnessRequest>, res: Response) => {
+  async (req: Request<Record<string, string>, IssueCscWitnessResponse | { success: false }, IssueCscWitnessRequest>, res: Response) => {
     try {
       const {
         business_id,
@@ -115,7 +110,7 @@ mocksRouter.post(
         return sendError(res, 400, 'Missing required field: business_id');
       }
 
-      const business = db.getBusiness(business_id);
+      const business = await db.getBusiness(business_id);
       if (!business) {
         return sendError(res, 404, `Business with id ${business_id} not found`);
       }
@@ -129,18 +124,18 @@ mocksRouter.post(
         agent_action_id,
       });
 
-      db.setCredential(cscCred);
+      await db.setCredential(cscCred);
 
       if (agent_action_id) {
-        const action = db.getAgentAction(agent_action_id);
+        const action = await db.getAgentAction(agent_action_id);
         if (action && action.human_decision === 'pending') {
           action.human_decision = 'confirmed';
-          db.setAgentAction(action);
+          await db.setAgentAction(action);
         }
       }
 
       const claim = cscCred.claim as SelfAttestedClaimPayload;
-      recordAuditLog(business_id, 'field_agent', claim.witnessed_by_csc_agent_id || 'did:person:csc001', 'issue_credential', true, {
+      await recordAuditLog(business_id, 'field_agent', claim.witnessed_by_csc_agent_id || 'did:person:csc001', 'issue_credential', true, {
         credential_id: cscCred.credential_id,
         type: 'self_attested',
         csc_center_id: claim.csc_center_id,

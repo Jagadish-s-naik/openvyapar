@@ -24,7 +24,7 @@ declare global {
  * Extracts simulation actor from headers (x-openvyapar-actor-id), query parameters, or body.
  * Auto-hydrates person and role metadata.
  */
-export function authContextMiddleware(req: Request, _res: Response, next: NextFunction): void {
+export async function authContextMiddleware(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const headerActorId = (req.headers['x-openvyapar-actor-id'] as string) || undefined;
   const queryActorId = (req.query.actor_id as string) || undefined;
   const bodyActorId = (req.body?.granted_by ||
@@ -38,8 +38,8 @@ export function authContextMiddleware(req: Request, _res: Response, next: NextFu
   let roles: BusinessRole[] = [];
 
   if (actorId) {
-    person = db.getPerson(actorId);
-    roles = db.getRolesForPerson(actorId);
+    person = await db.getPerson(actorId);
+    roles = await db.getRolesForPerson(actorId);
   }
 
   req.actor = {

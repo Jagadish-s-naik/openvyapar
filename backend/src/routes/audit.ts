@@ -4,6 +4,7 @@ import type { AgentAction, AgentType, HumanDecision, GetBusinessTimelineResponse
 import { db } from '../db/connection.js';
 import { sendError } from '../utils/errors.js';
 import { buildBusinessTimeline } from '../utils/timeline.js';
+import { recordAuditLog } from '../utils/audit.js';
 
 export const auditRouter = Router();
 
@@ -11,15 +12,15 @@ export const auditRouter = Router();
  * GET /audit/:business_id
  * Returns immutable audit log trail for a business
  */
-auditRouter.get('/:business_id', (req: Request<{ business_id: string }>, res: Response) => {
+auditRouter.get('/:business_id', async (req: Request<{ business_id: string }>, res: Response) => {
   const businessId = req.params.business_id;
-  const business = db.getBusiness(businessId);
+  const business = await db.getBusiness(businessId);
   if (!business) {
     return sendError(res, 404, `Business with id ${businessId} not found`);
   }
 
-  const logs = db.getAuditLogsForBusiness(businessId);
-  const agentActions = db.getAgentActionsForBusiness(businessId);
+  const logs = await db.getAuditLogsForBusiness(businessId);
+  const agentActions = await db.getAgentActionsForBusiness(businessId);
 
   res.json({
     success: true,
@@ -33,15 +34,15 @@ auditRouter.get('/:business_id', (req: Request<{ business_id: string }>, res: Re
  * GET /audit/:business_id/timeline
  * Returns enriched chronological timeline of all human mutations and AI agent interactions
  */
-auditRouter.get('/:business_id/timeline', (req: Request<{ business_id: string }, {}, {}, { sort?: 'asc' | 'desc'; category?: string }>, res: Response) => {
+auditRouter.get('/:business_id/timeline', async (req: Request<{ business_id: string }, {}, {}, { sort?: 'asc' | 'desc'; category?: string }>, res: Response) => {
   const businessId = req.params.business_id;
-  const business = db.getBusiness(businessId);
+  const business = await db.getBusiness(businessId);
   if (!business) {
     return sendError(res, 404, `Business with id ${businessId} not found`);
   }
 
   const sortOrder = req.query.sort === 'asc' ? 'asc' : 'desc';
-  let timeline = buildBusinessTimeline(businessId, sortOrder);
+  let timeline = await buildBusinessTimeline(businessId, sortOrder);
 
   if (req.query.category) {
     timeline = timeline.filter((t) => t.category === req.query.category);
@@ -61,7 +62,7 @@ auditRouter.get('/:business_id/timeline', (req: Request<{ business_id: string },
  * POST /audit/agent-action
  * Records or updates an agent proposal (proposed vs. confirmed)
  */
-auditRouter.post('/agent-action', (req: Request<{}, {}, {
+auditRouter.post('/agent-action', async (req: Request<{}, {}, {
   agent_action_id?: string;
   business_id: string;
   agent_type: AgentType;
@@ -92,7 +93,7 @@ auditRouter.post('/agent-action', (req: Request<{}, {}, {
       created_at: createdAt,
     };
 
-    db.setAgentAction(agentAction);
+    await db.setAgentAction(agentAction);
 
     res.status(201).json({
       success: true,
@@ -107,7 +108,7 @@ auditRouter.post('/agent-action', (req: Request<{}, {}, {
  * POST /audit/agent-action/:id/decision
  * Record human decision on an agent proposal (e.g. reject, edit, or manual confirm)
  */
-auditRouter.post('/agent-action/:id/decision', (req: Request<{ id: string }, {}, {
+auditRouter.post('/agent-action/:id/decision', async (req: Request<{ id: string }, {}, {
   human_decision: HumanDecision;
   decided_by?: string;
   notes?: string;
@@ -118,7 +119,7 @@ auditRouter.post('/agent-action/:id/decision', (req: Request<{ id: string }, {},
     const { human_decision, notes, edited_payload } = req.body;
     const decided_by = req.body.decided_by || req.actor?.actorId || 'did:person:owner';
 
-    const agentAction = db.getAgentAction(actionId);
+    const agentAction = await db.getAgentAction(actionId);
     if (!agentAction) {
       return sendError(res, 404, `Agent action with id ${actionId} not found`);
     }
@@ -131,26 +132,24 @@ auditRouter.post('/agent-action/:id/decision', (req: Request<{ id: string }, {},
       agentAction.proposed_action = { ...agentAction.proposed_action, ...edited_payload };
     }
 
-    db.setAgentAction(agentAction);
+    await db.setAgentAction(agentAction);
 
     // Record in audit log if rejected or edited
     if (agentAction.business_id && agentAction.business_id !== 'pending_onboarding' && agentAction.business_id !== 'pending_proposal') {
-      import('../utils/audit.js').then(({ recordAuditLog }) => {
-        recordAuditLog(
-          agentAction.business_id,
-          'owner',
-          decided_by,
-          `agent_proposal_${human_decision}`,
-          true,
-          {
-            req,
-            diff: {
-              human_decision: { before: previousDecision, after: human_decision },
-            },
-            metadata: { agent_action_id: actionId, notes },
-          }
-        );
-      });
+      await recordAuditLog(
+        agentAction.business_id,
+        'owner',
+        decided_by,
+        `agent_proposal_${human_decision}`,
+        true,
+        {
+          req,
+          diff: {
+            human_decision: { before: previousDecision, after: human_decision },
+          },
+          metadata: { agent_action_id: actionId, notes },
+        }
+      );
     }
 
     res.json({

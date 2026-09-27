@@ -14,7 +14,6 @@ import { verifyCredentialSignature, createRedactedClaim, signCredential } from '
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
-
 import { requireRole } from '../middleware/auth.js';
 
 export interface DeskSession {
@@ -83,14 +82,14 @@ proofRouter.post('/session/create', (req: Request<{}, {}, { bank_name?: string; 
  * POST /proof/session/dispatch
  * Wallet transmits an encrypted proof bundle directly to a bank desk session
  */
-proofRouter.post('/session/dispatch', (req: Request<{}, {}, { session_code: string; proof_id: string; business_id?: string }>, res: Response) => {
+proofRouter.post('/session/dispatch', async (req: Request<{}, {}, { session_code: string; proof_id: string; business_id?: string }>, res: Response) => {
   const { session_code, proof_id } = req.body;
   const session = deskSessions.get(session_code);
   if (!session) {
     return sendError(res, 404, `Bank Desk Session ${session_code} not found or expired.`);
   }
 
-  const proof = db.getProofShare(proof_id);
+  const proof = await db.getProofShare(proof_id);
   if (!proof) {
     return sendError(res, 404, `Proof with ID ${proof_id} not found.`);
   }
@@ -101,7 +100,7 @@ proofRouter.post('/session/dispatch', (req: Request<{}, {}, { session_code: stri
 
   // Record audit log
   if (proof.business_id) {
-    recordAuditLog(
+    await recordAuditLog(
       proof.business_id,
       'owner',
       req.actor?.actorId || 'did:person:owner',
@@ -143,7 +142,7 @@ proofRouter.get('/session/:code', (req: Request<{ code: string }>, res: Response
  * POST /proof/generate
  * Generate selective-disclosure proof share (supports whole-credential and granular attribute-level redactions)
  */
-proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
+proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.body?.business_id), async (req: Request<{}, {}, GenerateProofRequest>, res: Response) => {
   try {
     const {
       business_id,
@@ -174,7 +173,7 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       }
     }
 
-    const business = db.getBusiness(business_id);
+    const business = await db.getBusiness(business_id);
     if (!business) {
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
@@ -187,7 +186,7 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
         if (!disclosed_credential_ids.includes(credId)) {
           return sendError(res, 400, `Credential ${credId} in disclosed_attributes is not in disclosed_credential_ids`);
         }
-        const cred = db.getCredentialById(credId);
+        const cred = await db.getCredentialById(credId);
         if (!cred) {
           return sendError(res, 404, `Disclosed credential ${credId} not found`);
         }
@@ -206,7 +205,7 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
     }
 
     // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
-    const proposalCheck = validateAgentProposal(agent_action_id);
+    const proposalCheck = await validateAgentProposal(agent_action_id);
     if (!proposalCheck.valid) {
       return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
@@ -231,13 +230,13 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
       redaction_manifest: redactionManifest && Object.keys(redactionManifest).length > 0 ? redactionManifest : undefined,
     };
 
-    db.setProofShare(newProof);
+    await db.setProofShare(newProof);
 
     if (proposalCheck.proposal) {
-      confirmAgentProposal(proposalCheck.proposal, proofId, generatedAt);
+      await confirmAgentProposal(proposalCheck.proposal, proofId, generatedAt);
     }
 
-    recordAuditLog(
+    await recordAuditLog(
       business_id,
       'owner',
       generated_by,
@@ -276,19 +275,19 @@ proofRouter.post('/generate', requireRole(['owner', 'delegate'], (req) => req.bo
  * GET /proof/:proof_id
  * Retrieves raw proof details with disclosed credentials
  */
-proofRouter.get('/:proof_id', (req: Request<{ proof_id: string }>, res: Response) => {
+proofRouter.get('/:proof_id', async (req: Request<{ proof_id: string }>, res: Response) => {
   const inputId = req.params.proof_id;
   const session = deskSessions.get(inputId);
   const proofId = session?.proof_id || inputId;
-  const proof = db.getProofShare(proofId);
+  const proof = await db.getProofShare(proofId);
 
   if (!proof) {
     return sendError(res, 404, `Proof with id ${inputId} not found`);
   }
 
-  const resolvedCredentials = proof.disclosed_credential_ids
-    .map((cId) => db.getCredentialById(cId))
-    .filter(Boolean) as Credential[];
+  const resolvedCredentials = (
+    await Promise.all(proof.disclosed_credential_ids.map((cId: string) => db.getCredentialById(cId)))
+  ).filter(Boolean) as Credential[];
 
   res.json({
     success: true,
@@ -303,7 +302,7 @@ proofRouter.get('/:proof_id', (req: Request<{ proof_id: string }>, res: Response
  * POST /proof/verify
  * Verifier Portal: Inspects and cryptographically verifies proof
  */
-proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_id?: string; simulate_tamper?: boolean }>, res: Response) => {
+proofRouter.post('/verify', async (req: Request<{}, {}, { proof_id: string; verifier_id?: string; simulate_tamper?: boolean }>, res: Response) => {
   const { proof_id, verifier_id, simulate_tamper } = req.body;
   const inputId = proof_id;
   if (!inputId) {
@@ -312,7 +311,7 @@ proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_i
 
   const session = deskSessions.get(inputId);
   const targetProofId = session?.proof_id || inputId;
-  const proof = db.getProofShare(targetProofId);
+  const proof = await db.getProofShare(targetProofId);
 
   if (!proof) {
     if (session) {
@@ -321,14 +320,14 @@ proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_i
     return sendError(res, 404, `Proof with id ${inputId} not found`);
   }
 
-  const business = db.getBusiness(proof.business_id);
+  const business = await db.getBusiness(proof.business_id);
   if (!business) {
     return sendError(res, 404, `Associated business ${proof.business_id} not found`);
   }
 
   // Atomically increment use count
   proof.use_count = (proof.use_count || 0) + 1;
-  db.setProofShare(proof);
+  await db.setProofShare(proof);
 
   const isExpired = !!(proof.expires_at && new Date(proof.expires_at).getTime() < Date.now());
   const isMaxUsesExceeded = !!(proof.max_uses && proof.use_count > proof.max_uses);
@@ -342,7 +341,7 @@ proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_i
   }
 
   for (const credId of proof.disclosed_credential_ids) {
-    const cred = db.getCredentialById(credId);
+    const cred = await db.getCredentialById(credId);
     if (cred) {
       const manifest = proof.redaction_manifest?.[credId];
       if (manifest && manifest.redacted_fields.length > 0) {
@@ -394,7 +393,7 @@ proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_i
   const isValid = verificationStatus === 'valid';
   const trustScore = isValid ? Math.min(100, (hasGst ? 40 : 0) + (hasBank ? 30 : 0) + (hasMarketplace ? 30 : 20)) : 0;
 
-  recordAuditLog(
+  await recordAuditLog(
     proof.business_id,
     'admin',
     verifier_id || 'did:org:sbi_bank',
@@ -436,11 +435,11 @@ proofRouter.post('/verify', (req: Request<{}, {}, { proof_id: string; verifier_i
  * GET /proof/verify/:proof_id
  * Verifier Portal: Inspects selective-disclosure credentials and computes cryptographic verification
  */
-proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: Response) => {
+proofRouter.get('/verify/:proof_id', async (req: Request<{ proof_id: string }>, res: Response) => {
   const inputId = req.params.proof_id;
   const session = deskSessions.get(inputId);
   const proofId = session?.proof_id || inputId;
-  const proof = db.getProofShare(proofId);
+  const proof = await db.getProofShare(proofId);
 
   if (!proof) {
     if (session) {
@@ -449,14 +448,14 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
     return sendError(res, 404, `Proof with id ${inputId} not found`);
   }
 
-  const business = db.getBusiness(proof.business_id);
+  const business = await db.getBusiness(proof.business_id);
   if (!business) {
     return sendError(res, 404, `Associated business ${proof.business_id} not found`);
   }
 
   // Atomically increment use count for this verification attempt
   proof.use_count = (proof.use_count || 0) + 1;
-  db.setProofShare(proof);
+  await db.setProofShare(proof);
 
   // Check expiration & max-uses constraints
   const isExpired = !!(proof.expires_at && new Date(proof.expires_at).getTime() < Date.now());
@@ -467,7 +466,7 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
   let isAnyTampered = false;
 
   for (const credId of proof.disclosed_credential_ids) {
-    const cred = db.getCredentialById(credId);
+    const cred = await db.getCredentialById(credId);
     if (cred) {
       const manifest = proof.redaction_manifest?.[credId];
       if (manifest && manifest.redacted_fields.length > 0) {
@@ -520,7 +519,7 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
   // Persist status change if transitioned
   if (proof.verification_status !== verificationStatus) {
     proof.verification_status = verificationStatus;
-    db.setProofShare(proof);
+    await db.setProofShare(proof);
   }
 
   // Compute baseline trust assessment for Verifier
@@ -588,13 +587,13 @@ proofRouter.get('/verify/:proof_id', (req: Request<{ proof_id: string }>, res: R
  * Live Demonstration API: Allows corrupting signature bytes or claim values on the fly,
  * or restoring authentic state, to witness real-time verifier alerts and cryptographic rejections.
  */
-proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string }, {}, import('@openvyapar/shared').SimulateTamperRequest>, res: Response) => {
+proofRouter.post('/simulate-tamper/:proof_id', async (req: Request<{ proof_id: string }, {}, import('@openvyapar/shared').SimulateTamperRequest>, res: Response) => {
   try {
     const proofId = req.params.proof_id;
     const mode = req.body?.mode || 'corrupt_signature';
     const targetCredentialId = req.body?.target_credential_id;
 
-    const proof = db.getProofShare(proofId);
+    const proof = await db.getProofShare(proofId);
     if (!proof) {
       return sendError(res, 404, `Proof with id ${proofId} not found`);
     }
@@ -606,13 +605,13 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
     const affectedIds: string[] = [];
 
     for (const credId of targetCredIds) {
-      const cred = db.getCredentialById(credId);
+      const cred = await db.getCredentialById(credId);
       if (!cred) continue;
 
       if (mode === 'corrupt_signature') {
         // Invert/corrupt the signature bytes
         cred.signature = `tampered_${crypto.randomUUID().slice(0, 8)}_${cred.signature.slice(16)}`;
-        db.setCredential(cred);
+        await db.setCredential(cred);
         affectedIds.push(credId);
       } else if (mode === 'corrupt_claim_payload') {
         // Alter claim data without regenerating signature
@@ -627,7 +626,7 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
           claimObj.unauthorized_tampered_flag = true;
         }
         cred.claim = claimObj as unknown as CredentialClaim;
-        db.setCredential(cred);
+        await db.setCredential(cred);
         affectedIds.push(credId);
       } else if (mode === 'restore') {
         // Recompute authentic HMAC signature
@@ -638,7 +637,7 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
           cred.claim,
           cred.issued_at
         );
-        db.setCredential(cred);
+        await db.setCredential(cred);
         affectedIds.push(credId);
       }
     }
@@ -646,10 +645,10 @@ proofRouter.post('/simulate-tamper/:proof_id', (req: Request<{ proof_id: string 
     // Update proof status if restored
     if (mode === 'restore') {
       proof.verification_status = 'valid';
-      db.setProofShare(proof);
+      await db.setProofShare(proof);
     }
 
-    recordAuditLog(
+    await recordAuditLog(
       proof.business_id,
       'admin',
       req.actor?.actorId || 'system_tamper_simulator',

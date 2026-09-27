@@ -19,7 +19,7 @@ export async function recordProposalToBackend(
       human_decision: humanDecision,
       created_at: new Date().toISOString(),
     };
-    db.setAgentAction(agentAction);
+    await db.setAgentAction(agentAction);
   } catch (_err) {
     // Gracefully continue if DB record fails
   }

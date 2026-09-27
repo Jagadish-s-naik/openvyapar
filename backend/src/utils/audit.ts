@@ -12,14 +12,14 @@ export interface AuditLogOptions {
   metadata?: Record<string, unknown>;
 }
 
-export function recordAuditLog(
+export async function recordAuditLog(
   businessId: string,
   actorType: AuditActorType,
   actorId: string,
   action: string,
   confirmedByHuman: boolean,
   optionsOrMetadata?: AuditLogOptions | Record<string, unknown>
-): AuditLog {
+): Promise<AuditLog> {
   let ipAddress: string | undefined;
   let origin: string | undefined;
   let actorRole: string | undefined;
@@ -79,6 +79,7 @@ export function recordAuditLog(
     metadata: metadata,
   };
 
-  db.addAuditLog(logEntry);
+  await db.addAuditLog(logEntry);
   return logEntry;
 }
+

@@ -14,7 +14,6 @@ import { db } from '../db/connection.js';
 import { recordAuditLog } from '../utils/audit.js';
 import { sendError } from '../utils/errors.js';
 import { validateAgentProposal, confirmAgentProposal } from '../utils/guardrails.js';
-
 import { requireOwner } from '../middleware/auth.js';
 
 export const businessRouter = Router();
@@ -23,7 +22,7 @@ export const businessRouter = Router();
  * POST /business
  * Create a new business identity (did:biz:...) and assign initial owner role
  */
-businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Response) => {
+businessRouter.post('/', async (req: Request<{}, {}, CreateBusinessRequest>, res: Response) => {
   try {
     const { name, primary_language = 'hi', metadata = {}, owner_person_id, agent_action_id } = req.body;
 
@@ -32,7 +31,7 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
     }
 
     // Validate agent proposal guardrail & idempotency if agent_action_id is supplied
-    const proposalCheck = validateAgentProposal(agent_action_id);
+    const proposalCheck = await validateAgentProposal(agent_action_id);
     if (!proposalCheck.valid) {
       return sendError(res, proposalCheck.statusCode || 400, proposalCheck.errorMessage || 'Invalid agent proposal');
     }
@@ -53,7 +52,7 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
       },
     };
 
-    db.setBusiness(newBusiness);
+    await db.setBusiness(newBusiness);
 
     // Create Owner Role
     const ownerRole: BusinessRole = {
@@ -66,15 +65,15 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
       revoked_at: null,
     };
 
-    db.setBusinessRole(ownerRole);
+    await db.setBusinessRole(ownerRole);
 
     // If originated from agent onboarding proposal, update agent_action status atomically
     if (proposalCheck.proposal) {
-      confirmAgentProposal(proposalCheck.proposal, businessId, businessId, createdAt);
+      await confirmAgentProposal(proposalCheck.proposal, businessId, businessId, createdAt);
     }
 
     // Record Immutable Audit Log
-    recordAuditLog(
+    await recordAuditLog(
       businessId,
       'owner',
       owner_person_id,
@@ -106,8 +105,8 @@ businessRouter.post('/', (req: Request<{}, {}, CreateBusinessRequest>, res: Resp
  * GET /business
  * List all registered businesses (helpful for demo context switching)
  */
-businessRouter.get('/', (_req: Request, res: Response) => {
-  const businesses = db.getAllBusinesses();
+businessRouter.get('/', async (_req: Request, res: Response) => {
+  const businesses = await db.getAllBusinesses();
   res.json({ success: true, count: businesses.length, businesses });
 });
 
@@ -115,13 +114,13 @@ businessRouter.get('/', (_req: Request, res: Response) => {
  * GET /business/:id
  * Fetch business profile and active roles
  */
-businessRouter.get('/:id', (req: Request<{ id: string }>, res: Response) => {
-  const business = db.getBusiness(req.params.id);
+businessRouter.get('/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const business = await db.getBusiness(req.params.id);
   if (!business) {
     return sendError(res, 404, `Business with id ${req.params.id} not found`);
   }
 
-  const roles = db.getRolesForBusiness(req.params.id);
+  const roles = await db.getRolesForBusiness(req.params.id);
   const responsePayload: GetBusinessResponse = {
     success: true,
     business,
@@ -135,13 +134,13 @@ businessRouter.get('/:id', (req: Request<{ id: string }>, res: Response) => {
  * POST /business/:id/roles
  * Grant or transfer a role (owner, partner, successor, delegate)
  */
-businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Request<{ id: string }, {}, AssignRoleRequest>, res: Response) => {
+businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), async (req: Request<{ id: string }, {}, AssignRoleRequest>, res: Response) => {
   try {
     const businessId = req.params.id;
     const { person_id, role_type } = req.body;
     const granted_by = req.body.granted_by || req.actor?.actorId;
 
-    const business = db.getBusiness(businessId);
+    const business = await db.getBusiness(businessId);
     if (!business) {
       return sendError(res, 404, `Business with id ${businessId} not found`);
     }
@@ -153,13 +152,13 @@ businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Re
     // If transferring primary ownership (Beat 5 narrative), demote existing owner to former
     let previousOwnerPersonId: string | undefined;
     if (role_type === 'owner') {
-      const existingRoles = db.getRolesForBusiness(businessId);
+      const existingRoles = await db.getRolesForBusiness(businessId);
       for (const role of existingRoles) {
         if (role.role_type === 'owner') {
           previousOwnerPersonId = role.person_id;
           role.status = 'former';
           role.revoked_at = new Date().toISOString();
-          db.setBusinessRole(role);
+          await db.setBusinessRole(role);
         }
       }
     }
@@ -174,9 +173,9 @@ businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Re
       revoked_at: null,
     };
 
-    db.setBusinessRole(newRole);
+    await db.setBusinessRole(newRole);
 
-    recordAuditLog(
+    await recordAuditLog(
       businessId,
       'owner',
       granted_by,
@@ -206,26 +205,26 @@ businessRouter.post('/:id/roles', requireOwner((req) => req.params.id), (req: Re
  * POST /business/transfer-ownership
  * Convenience endpoint for Beat 5 Succession Planning
  */
-businessRouter.post('/transfer-ownership', (req: Request, res: Response) => {
+businessRouter.post('/transfer-ownership', async (req: Request, res: Response) => {
   try {
     const { business_id, new_owner_person_id, granted_by = 'did:person:ramesh001' } = req.body;
     if (!business_id || !new_owner_person_id) {
       return sendError(res, 400, 'Missing required fields: business_id, new_owner_person_id');
     }
 
-    const business = db.getBusiness(business_id);
+    const business = await db.getBusiness(business_id);
     if (!business) {
       return sendError(res, 404, `Business with id ${business_id} not found`);
     }
 
     let previousOwnerPersonId: string | undefined;
-    const existingRoles = db.getRolesForBusiness(business_id);
+    const existingRoles = await db.getRolesForBusiness(business_id);
     for (const role of existingRoles) {
       if (role.role_type === 'owner') {
         previousOwnerPersonId = role.person_id;
         role.status = 'former';
         role.revoked_at = new Date().toISOString();
-        db.setBusinessRole(role);
+        await db.setBusinessRole(role);
       }
     }
 
@@ -239,9 +238,9 @@ businessRouter.post('/transfer-ownership', (req: Request, res: Response) => {
       revoked_at: null,
     };
 
-    db.setBusinessRole(newRole);
+    await db.setBusinessRole(newRole);
 
-    recordAuditLog(
+    await recordAuditLog(
       business_id,
       'owner',
       granted_by,
@@ -272,18 +271,20 @@ businessRouter.post('/transfer-ownership', (req: Request, res: Response) => {
  * GET /business/:id/roles
  * Get all role holders with hydrated person info
  */
-businessRouter.get('/:id/roles', (req: Request<{ id: string }>, res: Response) => {
+businessRouter.get('/:id/roles', async (req: Request<{ id: string }>, res: Response) => {
   const businessId = req.params.id;
-  const business = db.getBusiness(businessId);
+  const business = await db.getBusiness(businessId);
   if (!business) {
     return sendError(res, 404, `Business with id ${businessId} not found`);
   }
 
-  const rawRoles = db.getAllRolesForBusiness(businessId);
-  const rolesWithPerson = rawRoles.map((r) => ({
-    ...r,
-    person: db.getPerson(r.person_id) || undefined,
-  }));
+  const rawRoles = await db.getAllRolesForBusiness(businessId);
+  const rolesWithPerson = await Promise.all(
+    rawRoles.map(async (r: BusinessRole) => ({
+      ...r,
+      person: (await db.getPerson(r.person_id)) || undefined,
+    }))
+  );
 
   const responsePayload: GetBusinessRolesResponse = {
     success: true,
