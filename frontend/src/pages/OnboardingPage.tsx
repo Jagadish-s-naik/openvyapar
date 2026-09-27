@@ -147,9 +147,9 @@ export const OnboardingPage = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4 text-amber-500" />
-                <h2 className="text-sm font-bold text-slate-900">Conversational Voice & Audio Transcript</h2>
+                <h2 className="text-sm font-bold text-slate-900">{t.onboarding.speechToTextHeader}</h2>
               </div>
-              <span className="text-xs font-mono text-slate-400">Speech-to-Text Input</span>
+              <span className="text-xs font-mono text-slate-400">{t.onboarding.speechToTextInput}</span>
             </div>
 
             {/* Sample Chips */}
@@ -179,7 +179,7 @@ export const OnboardingPage = () => {
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
                 rows={5}
-                placeholder="Type or paste unstructured dialogue spoken in Hindi, Kannada, or English..."
+                placeholder={t.onboarding.transcriptPlaceholder}
                 className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 focus:outline-hidden focus:border-amber-500 focus:bg-white transition-colors"
               />
             </div>
@@ -215,25 +215,25 @@ export const OnboardingPage = () => {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-emerald-900">Sovereign Business Registered!</h3>
+                  <h3 className="text-base font-bold text-emerald-900">{t.onboarding.successTitle}</h3>
                   <p className="text-xs text-emerald-700">
-                    Sovereign DID issued and starter credential cryptographically signed by CSC Agent.
+                    {t.onboarding.successSubtitle}
                   </p>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-white border border-emerald-200 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Business Name:</span>
+                  <span className="text-slate-500">{t.onboarding.businessNameLabel}</span>
                   <span className="font-bold text-slate-900">{createdResult.business.name}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Issued Sovereign DID:</span>
+                  <span className="text-slate-500">{t.onboarding.issuedDidLabel}</span>
                   <span className="font-mono font-bold text-amber-700">{createdResult.business.business_id}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Starter Credential:</span>
-                  <span className="text-emerald-700 font-semibold">Self-Attested (CSC Witnessed)</span>
+                  <span className="text-slate-500">{t.onboarding.starterCredLabel}</span>
+                  <span className="text-emerald-700 font-semibold">{t.onboarding.selfAttestedWitness}</span>
                 </div>
               </div>
 
@@ -241,7 +241,7 @@ export const OnboardingPage = () => {
                 onClick={() => navigate('/')}
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
               >
-                <span>Open in Business Owner Wallet</span>
+                <span>{t.onboarding.openWallet}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -251,10 +251,10 @@ export const OnboardingPage = () => {
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <h2 className="text-sm font-bold text-slate-900">Structured Claims Preview</h2>
+                  <h2 className="text-sm font-bold text-slate-900">{t.onboarding.claimsPreview}</h2>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                  Guardrail 1: Pending Human Confirmation
+                  {t.onboarding.pendingHuman}
                 </span>
               </div>
 
@@ -292,7 +292,7 @@ export const OnboardingPage = () => {
                 <div className="flex flex-wrap items-center justify-between gap-1 text-xs font-bold text-amber-950">
                   <span className="flex items-center gap-1.5">
                     <Award className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span>Proposed Starter Credential (Self-Attested)</span>
+                    <span>{t.onboarding.starterCredTitle}</span>
                   </span>
                   <span className="text-[11px] font-mono text-amber-700 break-all">did:person:csc001</span>
                 </div>
@@ -314,12 +314,12 @@ export const OnboardingPage = () => {
                   {isRegistering ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Creating Sovereign Business DID...</span>
+                      <span>{t.onboarding.creatingBusiness}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Confirm & Register Business (Human Sign-off)</span>
+                      <span>{t.onboarding.confirmButton}</span>
                     </>
                   )}
                 </button>
@@ -332,9 +332,9 @@ export const OnboardingPage = () => {
                 <Building2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800">No Claims Extracted Yet</h3>
+                <h3 className="text-sm font-bold text-slate-800">{t.onboarding.noClaimsYetTitle}</h3>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  Select a sample transcript on the left or type spoken shop details, then click "Extract Structured Business Claims" to see AI extraction.
+                  {t.onboarding.noClaimsYetDesc}
                 </p>
               </div>
             </div>

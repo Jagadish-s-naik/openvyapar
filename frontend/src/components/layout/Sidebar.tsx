@@ -101,7 +101,7 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           })}
 
           <div className="pt-4 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            DPI Portals
+            {t.nav.dpiPortals}
           </div>
 
           <NavLink
@@ -117,10 +117,10 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           >
             <div className="flex items-center gap-3">
               <Award className="w-4 h-4 text-amber-400" />
-              <span>Verifier Portal</span>
+              <span>{t.nav.verifierPortal}</span>
             </div>
             <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300">
-              Lender
+              {t.nav.roleLender}
             </span>
           </NavLink>
 
@@ -137,10 +137,10 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           >
             <div className="flex items-center gap-3">
               <Fingerprint className="w-4 h-4 text-emerald-400" />
-              <span>CSC Onboarding</span>
+              <span>{t.nav.cscOnboarding}</span>
             </div>
             <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300">
-              Agent
+              {t.nav.roleAgent}
             </span>
           </NavLink>
         </nav>

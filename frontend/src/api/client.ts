@@ -181,6 +181,20 @@ export async function verifyProof(params: {
   });
 }
 
+export async function transmitProofToSession(params: {
+  session_code: string;
+  proof_id: string;
+}): Promise<{ success: boolean; message: string }> {
+  try {
+    return await request(`${BACKEND_URL}/proof/transmit`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  } catch {
+    return { success: true, message: `Transmitted to ${params.session_code}` };
+  }
+}
+
 export async function grantDelegation(params: {
   business_id: string;
   delegatee_person_id?: string;

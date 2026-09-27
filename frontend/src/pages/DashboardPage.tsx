@@ -66,7 +66,7 @@ export const DashboardPage = () => {
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-amber-400 shrink-0" />
                 </div>
                 <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
-                  {t.dashboard.scanForProof} (Open Pass)
+                  {t.dashboard.scanForProof} ({t.dashboard.openPass})
                 </div>
               </div>
             </button>
@@ -81,14 +81,14 @@ export const DashboardPage = () => {
           className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-amber-400/80 transition-all group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-mono font-semibold text-slate-400">Verifiable Credentials</span>
+            <span className="text-xs uppercase font-mono font-semibold text-slate-400">{t.dashboard.verifiedCredentialsCount}</span>
             <Award className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold font-display text-slate-900">
               {credentials.length}
             </span>
-            <span className="text-xs text-emerald-600 font-semibold font-mono">HMAC Valid</span>
+            <span className="text-xs text-emerald-600 font-semibold font-mono">{t.common.verified}</span>
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
             GSTN, SBI, ONDC, Self-Attested
@@ -100,7 +100,7 @@ export const DashboardPage = () => {
           className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-amber-400/80 transition-all group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-mono font-semibold text-slate-400">Active Delegations</span>
+            <span className="text-xs uppercase font-mono font-semibold text-slate-400">{t.dashboard.activeDelegationsCount}</span>
             <KeyRound className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
@@ -119,7 +119,7 @@ export const DashboardPage = () => {
           className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-amber-400/80 transition-all group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-mono font-semibold text-slate-400">Immutable Audit Trail</span>
+            <span className="text-xs uppercase font-mono font-semibold text-slate-400">{t.dashboard.totalAuditEvents}</span>
             <History className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
@@ -140,14 +140,14 @@ export const DashboardPage = () => {
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-slate-500 shrink-0" />
             <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-800">
-              Active Scoped Delegations ({activeDelegations.length})
+              {t.consent.activeTab} ({activeDelegations.length})
             </h2>
           </div>
           <Link
             to="/consents"
             className="text-xs font-medium text-amber-800 hover:text-amber-900 hover:underline flex items-center gap-1 group self-start sm:self-auto"
           >
-            <span>Manage Delegations & Scopes</span>
+            <span>{t.consent.title}</span>
             <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>
@@ -155,7 +155,7 @@ export const DashboardPage = () => {
         <div className="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-200 shadow-xs">
           {activeDelegations.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-500">
-              No active delegations. Grant least-privilege access to your CA or staff on the Delegations tab.
+              {t.consent.noActive}
             </div>
           ) : (
             activeDelegations.map((token) => (
@@ -165,13 +165,13 @@ export const DashboardPage = () => {
               >
                 <div className="space-y-1 min-w-0">
                   <div className="text-sm font-semibold text-slate-900 flex flex-wrap items-center gap-2">
-                    <span className="truncate">Delegate: {token.delegate_person_id}</span>
+                    <span className="truncate">{t.consent.delegateTo}: {token.delegate_person_id}</span>
                     <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
-                      ACTIVE
+                      {t.common.active}
                     </span>
                   </div>
                   <div className="text-slate-600">
-                    <span className="text-slate-400">Granted Scopes:</span>{' '}
+                    <span className="text-slate-400">{t.consent.scopesGranted}:</span>{' '}
                     <span className="font-mono text-slate-800 font-medium break-all">
                       {token.scopes.join(', ')}
                     </span>
@@ -184,7 +184,7 @@ export const DashboardPage = () => {
                   to="/consents"
                   className="text-xs text-red-600 hover:text-red-700 font-semibold self-start sm:self-auto hover:underline shrink-0"
                 >
-                  Revoke
+                  {t.consent.revokeBtn}
                 </Link>
               </div>
             ))

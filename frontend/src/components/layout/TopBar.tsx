@@ -18,7 +18,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
     loadAllData,
     isSyncing,
   } = useAppStore();
-  const { language, setLanguage } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const [isIssuingBatch, setIsIssuingBatch] = useState(false);
   const [batchSuccess, setBatchSuccess] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -82,12 +82,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
               ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
-          title="Step 1: Rural Assisted Voice Onboarding in CSC Center"
+          title={t.topbar.step1Title}
         >
           <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
             isOnboarding ? 'bg-slate-950 text-emerald-300' : 'bg-slate-200 text-slate-700'
           }`}>1</span>
-          <span>CSC Kiosk</span>
+          <span>{t.topbar.step1Label}</span>
         </Link>
 
         <span className="text-slate-300 font-mono px-1">→</span>
@@ -99,12 +99,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
               ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
-          title="Step 2: Business Owner Credential Wallet"
+          title={t.topbar.step2Title}
         >
           <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
             isOwnerWallet ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
           }`}>2</span>
-          <span>Owner Wallet</span>
+          <span>{t.topbar.step2Label}</span>
         </Link>
 
         <span className="text-slate-300 font-mono px-1">→</span>
@@ -116,12 +116,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
               ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
-          title="Step 3: Bank Officer Zero-Knowledge Desk Handoff"
+          title={t.topbar.step3Title}
         >
           <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
             isVerifier ? 'bg-slate-950 text-amber-300' : 'bg-slate-200 text-slate-700'
           }`}>3</span>
-          <span>Bank Desk</span>
+          <span>{t.topbar.step3Label}</span>
         </Link>
       </div>
 
@@ -136,14 +136,14 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
               ? 'bg-emerald-600 text-white border-emerald-700'
               : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500/50'
           } disabled:opacity-50`}
-          title="Simulate 1 year of verified GST, Bank & ONDC credentials"
+          title={t.topbar.timeSkipTitle}
         >
           <Zap className={`w-3.5 h-3.5 ${isIssuingBatch ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">
-            {batchSuccess ? '✓ Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip'}
+            {batchSuccess ? t.topbar.timeSkipIssued : isIssuingBatch ? t.topbar.timeSkipIssuing : t.topbar.timeSkipBtn}
           </span>
           <span className="hidden md:inline">
-            {!batchSuccess && !isIssuingBatch ? ' (Issue Batch)' : ''}
+            {!batchSuccess && !isIssuingBatch ? t.topbar.timeSkipIssueBatch : ''}
           </span>
         </button>
 
@@ -152,8 +152,8 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           onClick={() => loadAllData()}
           disabled={isSyncing}
           className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80 shrink-0"
-          title="Refresh Data from Backend"
-          aria-label="Refresh Data from Backend"
+          title={t.topbar.refreshTitle}
+          aria-label={t.topbar.refreshTitle}
         >
           <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
         </button>
@@ -184,8 +184,8 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           <button
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
             className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors border border-slate-200/80 cursor-pointer relative"
-            title="Notifications & Inbound Owner Dispatches"
-            aria-label="Toggle notifications"
+            title={t.topbar.notificationsTitle}
+            aria-label={t.topbar.notificationsTitle}
           >
             <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-3.5 h-3.5 bg-amber-500 text-slate-950 font-bold text-[9px] rounded-full flex items-center justify-center font-mono ring-2 ring-white">
@@ -202,8 +202,8 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                     <Bell className="w-4 h-4" />
                   </span>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">Inbound Notifications & Dispatches</h4>
-                    <p className="text-[10px] text-slate-500">From Business Owner & Institutional Issuers</p>
+                    <h4 className="text-xs font-bold text-slate-900">{t.topbar.inboundNotifications}</h4>
+                    <p className="text-[10px] text-slate-500">{t.topbar.fromOwnerAndIssuers}</p>
                   </div>
                 </div>
                 <button
@@ -220,15 +220,15 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
                       <span>📩</span>
-                      <span>Owner Scoped Delegation</span>
+                      <span>{t.topbar.ownerDelegationTag}</span>
                     </span>
-                    <span className="text-[9px] font-mono text-amber-700 font-semibold">Just now</span>
+                    <span className="text-[9px] font-mono text-amber-700 font-semibold">{t.topbar.justNow}</span>
                   </div>
                   <p className="text-xs font-semibold text-slate-900">
-                    Ramesh Sharma (Owner) sent you a Scoped Token
+                    {t.topbar.ownerDelegationTitle}
                   </p>
                   <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Granted authority: <span className="font-mono font-bold text-slate-800">file_returns</span> (GST Returns Filing). Restricted to ₹50,000 invoice limit.
+                    {t.topbar.ownerDelegationDesc}
                   </p>
                   <div className="pt-1 flex items-center gap-2">
                     <Link
@@ -236,7 +236,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                       onClick={() => setIsNotificationOpen(false)}
                       className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-bold rounded-md transition-all shadow-xs"
                     >
-                      Accept & View Scope
+                      {t.topbar.acceptViewScope}
                     </Link>
                     <span className="text-[10px] text-slate-500 font-mono">did:token:del-001</span>
                   </div>
@@ -247,22 +247,22 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1">
                       <span>⚡</span>
-                      <span>Institutional Credit</span>
+                      <span>{t.topbar.creditTag}</span>
                     </span>
                     <span className="text-[9px] font-mono text-emerald-700 font-semibold">10m ago</span>
                   </div>
                   <p className="text-xs font-semibold text-slate-900">
-                    SBI Sahay: ₹5,00,000 Working Capital Pre-Approved
+                    {t.topbar.ocenApprovalTitle}
                   </p>
                   <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Cryptographic compliance check verified. Ready for zero-knowledge desk handoff.
+                    {t.topbar.ocenApprovalDesc}
                   </p>
                   <Link
-                    to="/credentials"
+                    to="/verifier"
                     onClick={() => setIsNotificationOpen(false)}
                     className="inline-block text-[10px] font-bold text-emerald-700 hover:underline pt-0.5"
                   >
-                    Open Selective Proof Builder →
+                    {t.topbar.inspectOffer} →
                   </Link>
                 </div>
 

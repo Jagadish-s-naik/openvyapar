@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
+import { useTranslation } from '../i18n/useTranslation';
 import {
   ShieldCheck,
   Filter,
@@ -21,6 +22,7 @@ import { formatAuditTimestamp } from '../utils/formatters';
 
 export const AuditLogPage = () => {
   const { timeline, businessId, credentials, delegations } = useAppStore();
+  const { t } = useTranslation();
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
@@ -57,13 +59,13 @@ export const AuditLogPage = () => {
   }, [timeline, categoryFilter, sortOrder, searchQuery]);
 
   const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'credential', label: 'Credentials' },
-    { value: 'delegation', label: 'Delegations' },
-    { value: 'proof', label: 'Proof Shares' },
-    { value: 'identity', label: 'Identity' },
-    { value: 'governance', label: 'Governance' },
-    { value: 'agent', label: 'Agent Proposals' },
+    { value: 'all', label: t.audit.allCategories },
+    { value: 'credential', label: t.audit.catCredentials },
+    { value: 'delegation', label: t.audit.catDelegations },
+    { value: 'proof', label: t.audit.catProofs },
+    { value: 'identity', label: t.audit.catIdentity },
+    { value: 'governance', label: t.audit.catGovernance },
+    { value: 'agent', label: t.audit.catAgent },
   ];
 
   const toggleExpand = (id: string) => {
@@ -102,25 +104,25 @@ export const AuditLogPage = () => {
           <div>
             <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
               <History className="w-7 h-7 text-amber-500" />
-              <span>Immutable Audit Trail</span>
+              <span>{t.audit.title}</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Cryptographically verified, ACID-persisted ledger of all business identity mutations, credentials, proofs, and human authorizations.
+              {t.audit.subtitle}
             </p>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono bg-slate-900 text-amber-300 px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs self-start sm:self-auto shrink-0">
             <Lock className="w-3.5 h-3.5 text-amber-400" />
-            <span>ACID SQLite Ledger</span>
+            <span>{t.audit.sqliteLedger}</span>
           </div>
         </div>
 
-        {/* 4 Metrics Metric Cards */}
+        {/* 4 Metrics Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
             <div className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Verified Events</span>
+              <span>{t.audit.verifiedEvents}</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {timeline.length}
@@ -130,7 +132,7 @@ export const AuditLogPage = () => {
           <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
             <div className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5 text-purple-600" />
-              <span>Active Credentials</span>
+              <span>{t.audit.activeCredentials}</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {credentials.length}
@@ -140,7 +142,7 @@ export const AuditLogPage = () => {
           <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
             <div className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <KeyRound className="w-3.5 h-3.5 text-blue-600" />
-              <span>Active Delegations</span>
+              <span>{t.audit.activeDelegations}</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {delegations.filter((d) => d.status === 'active').length}
@@ -150,10 +152,10 @@ export const AuditLogPage = () => {
           <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
             <div className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-amber-600" />
-              <span>Human Guardrail</span>
+              <span>{t.audit.humanGuardrail}</span>
             </div>
             <div className="text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block border border-emerald-200/60 mt-1">
-              100% Non-Repudiable
+              {t.audit.nonRepudiable}
             </div>
           </div>
         </div>
@@ -166,7 +168,7 @@ export const AuditLogPage = () => {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
-            placeholder="Search by actor, action description, or log reference ID..."
+            placeholder={t.audit.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-amber-500 transition-all"
@@ -195,10 +197,10 @@ export const AuditLogPage = () => {
           <button
             onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
             className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-            title={`Sort: ${sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}`}
+            title={`${sortOrder === 'desc' ? t.audit.sortNewest : t.audit.sortOldest}`}
           >
             <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
-            <span>{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
+            <span>{sortOrder === 'desc' ? t.audit.sortNewest : t.audit.sortOldest}</span>
           </button>
         </div>
       </div>
@@ -209,10 +211,10 @@ export const AuditLogPage = () => {
           <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
               <tr className="bg-[#0a1424] text-slate-200 uppercase tracking-wider font-mono text-[11px] border-b border-slate-800 select-none">
-                <th className="py-3.5 px-5 font-bold w-44">Timestamp</th>
-                <th className="py-3.5 px-5 font-bold w-56">Actor & Scope</th>
-                <th className="py-3.5 px-5 font-bold">Action Details</th>
-                <th className="py-3.5 px-5 font-bold text-right w-44">Audit Log Ref</th>
+                <th className="py-3.5 px-5 font-bold w-44">{t.audit.colTimestamp}</th>
+                <th className="py-3.5 px-5 font-bold w-56">{t.audit.colActor}</th>
+                <th className="py-3.5 px-5 font-bold">{t.audit.colAction}</th>
+                <th className="py-3.5 px-5 font-bold text-right w-44">{t.audit.colRef}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -220,7 +222,7 @@ export const AuditLogPage = () => {
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
                     <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    No matching audit records found.
+                    {t.audit.noRecords}
                   </td>
                 </tr>
               ) : (
@@ -376,7 +378,7 @@ export const AuditLogPage = () => {
                           </button>
                         </div>
                         <div className="text-[10px] text-slate-400 font-mono">
-                          <span>HMAC Verified</span>
+                          <span>{t.audit.detailsChained}</span>
                         </div>
                       </td>
                     </tr>

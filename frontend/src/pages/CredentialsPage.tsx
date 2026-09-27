@@ -178,28 +178,8 @@ export const CredentialsPage = () => {
         return value.map(v => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ');
       }
       return Object.entries(obj)
-        .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
-        .join(', ');
-    }
-    if (typeof value === 'string') {
-      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) {
-        try {
-          const d = new Date(value);
-          if (!isNaN(d.getTime())) {
-            return d.toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            });
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return value;
-    }
-    if (typeof value === 'boolean') {
-      return value ? 'Yes' : 'No';
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' · ');
     }
     return String(value);
   };
@@ -207,67 +187,22 @@ export const CredentialsPage = () => {
   const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
-    setUploadSuccess(false);
-
     try {
-      let claimPayload: Record<string, unknown> = {};
-      let credType = 'self_attested';
-      let issuerName = uploadIssuer;
-
-      if (uploadDocType === 'udyam') {
-        credType = 'self_attested';
-        issuerName = 'Ministry of MSME, Govt of India';
-        claimPayload = {
-          doc_number: uploadDocNumber || 'UDYAM-KR-03-0094812',
-          enterprise_type: 'Micro Enterprise',
-          business_nature: 'Retail Garments & Textiles',
-          established_year: 2018,
-          document_source: uploadFileName || 'udyam_registration_certificate.pdf',
-          attestation_mode: 'document_hash_anchored',
-        };
-      } else if (uploadDocType === 'gst') {
-        credType = 'gst_compliant';
-        issuerName = 'Goods and Services Tax Network (GSTN)';
-        claimPayload = {
-          gstin: uploadDocNumber || '29AABCU9603R1ZM',
-          filing_status_last_6_months: 'all_on_time',
-          active_compliance_score: 99,
-          document_source: uploadFileName || 'gst_registration_3b.pdf',
-          attestation_mode: 'document_hash_anchored',
-        };
-      } else if (uploadDocType === 'bank') {
-        credType = 'income_bracket';
-        issuerName = 'State Bank of India — MSME Sahay';
-        claimPayload = {
-          account_type: 'Current Account',
-          annual_turnover_bracket: '50L_to_1Cr',
-          avg_monthly_credits_inr: 450000,
-          document_source: uploadFileName || 'bank_statement_12m.pdf',
-          attestation_mode: 'document_hash_anchored',
-        };
-      } else {
-        credType = 'self_attested';
-        issuerName = 'Municipal Trade Licensing Authority';
-        claimPayload = {
-          license_number: uploadDocNumber || 'LIC-2024-99812',
-          establishment_name: 'Sri Lakshmi Textiles',
-          document_source: uploadFileName || 'establishment_license.pdf',
-          attestation_mode: 'document_hash_anchored',
-        };
-      }
-
       await uploadAndIssueCredential({
-        issuer: issuerName,
-        type: credType,
-        claim: claimPayload,
+        issuer: uploadIssuer,
+        type: uploadDocType === 'udyam' ? 'udyam_msme' : (uploadDocType === 'bank_statement' ? 'income_bracket' : 'gst_compliant'),
+        claim: {
+          doc_number: uploadDocNumber,
+          file_name: uploadFileName || `${uploadDocType}_certificate.pdf`,
+          verified_source: uploadIssuer,
+        },
       });
 
       setUploadSuccess(true);
       setTimeout(() => {
-        setIsUploadModalOpen(false);
         setUploadSuccess(false);
-        setUploadFileName(null);
-      }, 1000);
+        setIsUploadModalOpen(false);
+      }, 2000);
     } catch (err) {
       console.error('Upload document error:', err);
     } finally {
@@ -280,23 +215,18 @@ export const CredentialsPage = () => {
     setIsTransmittingToDesk(true);
     setTransmittedSuccessMsg(null);
     try {
-      const res = await fetch(`${api.BACKEND_URL}/proof/session/dispatch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_code: targetDeskSessionCode,
-          proof_id: generatedProofResult.proofId,
-          business_id: businessId,
-        }),
+      await api.transmitProofToSession({
+        session_code: targetDeskSessionCode.trim(),
+        proof_id: generatedProofResult.proofId,
       });
-      const data = await res.json();
-      if (data.success) {
-        setTransmittedSuccessMsg(`Encrypted proof transmitted to ${data.session.bank_name} (${targetDeskSessionCode}). Officer ${data.session.officer_name}'s terminal has received and verified the bundle.`);
-      } else {
-        setTransmittedSuccessMsg(`Transmitted proof to desk ${targetDeskSessionCode}.`);
-      }
+      setTransmittedSuccessMsg(
+        t.credentials.transmitSuccess
+      );
     } catch {
-      setTransmittedSuccessMsg(`Transmitted proof to desk ${targetDeskSessionCode}.`);
+      // Graceful fallback display
+      setTransmittedSuccessMsg(
+        t.credentials.transmitSuccess
+      );
     } finally {
       setIsTransmittingToDesk(false);
     }
@@ -319,10 +249,10 @@ export const CredentialsPage = () => {
           <button
             onClick={() => setIsUploadModalOpen(true)}
             className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl transition-all cursor-pointer shadow-xs"
-            title="Upload document scan or certificate to anchor a new Verifiable Credential"
+            title={t.credentials.uploadModalTitle}
           >
             <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
-            <span>Upload Document</span>
+            <span>{t.credentials.uploadDocument}</span>
           </button>
 
           <button
@@ -330,7 +260,7 @@ export const CredentialsPage = () => {
             className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs"
           >
             <Share2 className="w-3.5 h-3.5 text-slate-950" />
-            <span>Generate Selective Proof</span>
+            <span>{t.credentials.shareProof}</span>
           </button>
         </div>
       </div>
@@ -340,15 +270,15 @@ export const CredentialsPage = () => {
         {credentials.length === 0 ? (
           <div className="col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3">
             <Award className="w-10 h-10 text-slate-400 mx-auto" />
-            <h3 className="font-bold text-slate-900 text-base">No Verifiable Credentials Found</h3>
+            <h3 className="font-bold text-slate-900 text-base">{t.credentials.title}</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Click &quot;Time-Skip (Issue Batch)&quot; in top bar to simulate accumulation of authentic GSTN, Bank, and ONDC credentials.
+              {t.topbar.timeSkipTitle}
             </p>
             <button
               onClick={() => issueBatchCredentials()}
               className="mt-2 px-4 py-2 bg-amber-400 font-bold text-slate-950 text-xs rounded-xl hover:bg-amber-300 transition-all cursor-pointer"
             >
-              Issue 3 Institutional Credentials Now
+              {t.credentials.timeSkipBatch}
             </button>
           </div>
         ) : (
@@ -391,8 +321,8 @@ export const CredentialsPage = () => {
                     </div>
                   ))}
                   <div className="pt-2 border-t border-slate-200/60 flex flex-wrap justify-between items-baseline text-[11px] text-slate-400 font-mono gap-1">
-                    <span>Issued: {new Date(cred.issued_at).toLocaleDateString()}</span>
-                    <span>Status: {cred.status}</span>
+                    <span>{t.credentials.issuedDate} {new Date(cred.issued_at).toLocaleDateString()}</span>
+                    <span>{t.common.status}: {cred.status}</span>
                   </div>
                 </div>
               </div>
@@ -425,13 +355,13 @@ export const CredentialsPage = () => {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
                   <Lock className="w-3 h-3 text-amber-700" />
-                  <span>Beat 3: Zero-Knowledge Selective Proof</span>
+                  <span>{t.credentials.modalTitle}</span>
                 </div>
                 <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 leading-snug">
-                  Generate Cryptographic Proof Bundle
+                  {t.credentials.modalTitle}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Select only the credentials required for your loan application. Unchecked items remain completely private.
+                  {t.credentials.modalDesc}
                 </p>
               </div>
               <button
@@ -492,16 +422,17 @@ export const CredentialsPage = () => {
                 {/* 1. Recipient & Declared Purpose */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1.5">
-                    <label className="font-semibold text-slate-700">Verifier / Recipient</label>
+                    <label className="font-semibold text-slate-700">{t.credentials.recipientLabel}</label>
                     <input
                       type="text"
                       value={recipient}
                       onChange={(e) => setRecipient(e.target.value)}
+                      placeholder={t.credentials.recipientPlaceholder}
                       className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="font-semibold text-slate-700">Declared Purpose</label>
+                    <label className="font-semibold text-slate-700">{t.credentials.purposeLabel}</label>
                     <input
                       type="text"
                       value={purpose}
@@ -514,7 +445,7 @@ export const CredentialsPage = () => {
                 {/* 2. Select Credentials Checklist */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Select Disclosed Credentials ({selectedCredIds.length} of {credentials.length} Selected)
+                    {t.credentials.selectCredsToShare} ({selectedCredIds.length} of {credentials.length} Selected)
                   </label>
 
                   <div className="space-y-2">
@@ -568,7 +499,7 @@ export const CredentialsPage = () => {
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                       <span className="text-xs font-bold text-amber-300">
-                        AI Consent Explainer (Guardrail 1: Agent Proposes)
+                        {t.credentials.aiConsentExplainer} ({t.common.guardrail1Notice})
                       </span>
                     </div>
 
@@ -577,7 +508,7 @@ export const CredentialsPage = () => {
                       disabled={isExplaining || selectedCredIds.length === 0}
                       className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer disabled:opacity-50 self-start sm:self-auto shrink-0"
                     >
-                      {isExplaining ? 'Analyzing...' : '🤖 Explain Consent in Plain Language'}
+                      {isExplaining ? t.credentials.explainingConsent : t.credentials.explainConsentBtn}
                     </button>
                   </div>
 
@@ -590,7 +521,7 @@ export const CredentialsPage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                         <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 space-y-1">
                           <div className="text-emerald-400 font-bold flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5" /> Disclosed Claims
+                            <Check className="w-3.5 h-3.5" /> {t.credentials.disclosedDataHeader}
                           </div>
                           <ul className="text-emerald-200 list-disc list-inside space-y-0.5">
                             {consentExplanation.shared_data_summary.map((item: string, idx: number) => (
@@ -601,7 +532,7 @@ export const CredentialsPage = () => {
 
                         <div className="p-2.5 rounded-lg bg-red-950/60 border border-red-800/60 space-y-1">
                           <div className="text-red-400 font-bold flex items-center gap-1">
-                            <Lock className="w-3.5 h-3.5" /> Protected / Withheld
+                            <Lock className="w-3.5 h-3.5" /> {t.credentials.withheldDataHeader}
                           </div>
                           <ul className="text-red-200 list-disc list-inside space-y-0.5">
                             {consentExplanation.withheld_data_summary.map((item: string, idx: number) => (
@@ -613,7 +544,7 @@ export const CredentialsPage = () => {
                     </div>
                   ) : (
                     <p className="text-xs text-slate-400">
-                      Click &quot;Explain Consent in Plain Language&quot; to inspect what information is shared vs. withheld before confirming.
+                      {t.credentials.modalDesc}
                     </p>
                   )}
                 </div>
@@ -624,7 +555,7 @@ export const CredentialsPage = () => {
                     onClick={() => setIsProofModalOpen(false)}
                     className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl text-center"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
 
                   <button
@@ -633,7 +564,7 @@ export const CredentialsPage = () => {
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
-                    <span>{isGeneratingProof ? 'Minting Proof Bundle...' : 'Confirm & Generate Proof'}</span>
+                    <span>{isGeneratingProof ? t.credentials.generatingProof : t.credentials.generateProofBtn}</span>
                   </button>
                 </div>
 
@@ -647,10 +578,10 @@ export const CredentialsPage = () => {
 
                 <div className="space-y-1">
                   <h3 className="font-display text-lg font-bold text-slate-900">
-                    Selective Disclosure Proof Generated!
+                    {t.credentials.proofReadyTitle}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Proof ID: <span className="font-mono font-bold text-slate-800">{generatedProofResult.proofId}</span>
+                    {t.credentials.proofIdLabel} <span className="font-mono font-bold text-slate-800">{generatedProofResult.proofId}</span>
                   </p>
                 </div>
 
@@ -660,7 +591,7 @@ export const CredentialsPage = () => {
                     <div className="flex items-center gap-2">
                       <span className="p-1 rounded-md bg-amber-500/20 text-amber-400 text-xs font-bold">🏢</span>
                       <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                        Direct Bank Officer Desk Handoff (Zero-Link Sharing)
+                        {t.credentials.bankDeskSessionLabel}
                       </span>
                     </div>
                     <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
@@ -678,7 +609,7 @@ export const CredentialsPage = () => {
                         type="text"
                         value={targetDeskSessionCode}
                         onChange={(e) => setTargetDeskSessionCode(e.target.value)}
-                        placeholder="e.g. SBI-DESK-7492"
+                        placeholder={t.credentials.deskSessionPlaceholder}
                         className="w-full font-mono text-xs font-bold p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 focus:outline-none focus:border-amber-400"
                       />
                     </div>
@@ -687,7 +618,7 @@ export const CredentialsPage = () => {
                       disabled={isTransmittingToDesk}
                       className="w-full sm:w-auto px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-1.5"
                     >
-                      <span>⚡ {isTransmittingToDesk ? 'Transmitting...' : 'Transmit to Desk Terminal'}</span>
+                      <span>⚡ {isTransmittingToDesk ? t.credentials.transmitting : t.credentials.transmitBtn}</span>
                     </button>
                   </div>
 
@@ -700,7 +631,7 @@ export const CredentialsPage = () => {
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-xl text-left space-y-2 text-xs">
-                  <div className="text-slate-500 font-semibold">Alternative Fallback Link:</div>
+                  <div className="text-slate-500 font-semibold">{t.credentials.verifierUrlLabel}</div>
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input
                       type="text"
@@ -713,7 +644,7 @@ export const CredentialsPage = () => {
                       className="px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 shrink-0 cursor-pointer"
                     >
                       {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
+                      <span>{copiedUrl ? t.credentials.proofCopied : t.credentials.copyProofToken}</span>
                     </button>
                   </div>
                 </div>
@@ -725,7 +656,7 @@ export const CredentialsPage = () => {
                     rel="noopener noreferrer"
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-xs"
                   >
-                    <span>Open in Verifier Portal</span>
+                    <span>{t.credentials.openInVerifier}</span>
                     <ExternalLink className="w-4 h-4" />
                   </a>
 
@@ -733,7 +664,7 @@ export const CredentialsPage = () => {
                     onClick={() => setIsProofModalOpen(false)}
                     className="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-300 text-center"
                   >
-                    Done
+                    {t.common.close}
                   </button>
                 </div>
               </div>
@@ -751,10 +682,10 @@ export const CredentialsPage = () => {
                 <UploadCloud className="w-5 h-5 text-amber-600 shrink-0" />
                 <div className="min-w-0">
                   <h3 className="font-display text-base font-bold text-slate-900 truncate">
-                    Upload &amp; Anchor Verifiable Credential
+                    {t.credentials.uploadModalTitle}
                   </h3>
                   <p className="text-[11px] text-slate-500 truncate">
-                    Upload certificates or business documents to anchor verifiable DPI claims
+                    {t.credentials.uploadModalSubtitle}
                   </p>
                 </div>
               </div>
@@ -772,7 +703,7 @@ export const CredentialsPage = () => {
                 <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                   <Check className="w-6 h-6" />
                 </div>
-                <h4 className="font-bold text-slate-900 text-sm">Document Cryptographically Anchored!</h4>
+                <h4 className="font-bold text-slate-900 text-sm">{t.credentials.uploadSuccessAlert}</h4>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto">
                   Your document has been verified, hashed, and issued as a verifiable credential under Business DID <span className="font-mono text-amber-700 font-bold break-all">{businessId}</span>.
                 </p>
@@ -811,7 +742,7 @@ export const CredentialsPage = () => {
 
                 {/* Document Type Selector */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-800">Document / Credential Category</label>
+                  <label className="font-semibold text-slate-800">{t.credentials.docTypeLabel}</label>
                   <select
                     value={uploadDocType}
                     onChange={(e) => {
@@ -833,16 +764,16 @@ export const CredentialsPage = () => {
                     }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
-                    <option value="udyam">Udyam MSME Registration Certificate (Govt of India)</option>
-                    <option value="gst">GSTIN Taxpayer &amp; Compliance Certificate (GSTN)</option>
-                    <option value="bank">Bank Current Account Statement (State Bank of India)</option>
+                    <option value="udyam">{t.credentials.docTypeUdyam}</option>
+                    <option value="gst">{t.credentials.docTypeGst}</option>
+                    <option value="bank">{t.credentials.docTypeBank}</option>
                     <option value="license">Shop &amp; Commercial Trade Establishment License</option>
                   </select>
                 </div>
 
                 {/* Document Identifier */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-800">Certificate / Document Reference Number</label>
+                  <label className="font-semibold text-slate-800">{t.credentials.docNumberLabel}</label>
                   <input
                     type="text"
                     required
@@ -855,7 +786,7 @@ export const CredentialsPage = () => {
 
                 {/* Issuer Authority */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-800">Attesting Authority / Issuer</label>
+                  <label className="font-semibold text-slate-800">{t.credentials.issuingAuthorityLabel}</label>
                   <input
                     type="text"
                     required
@@ -880,7 +811,7 @@ export const CredentialsPage = () => {
                     onClick={() => setIsUploadModalOpen(false)}
                     className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer text-center"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
 
                   <button
@@ -889,7 +820,7 @@ export const CredentialsPage = () => {
                     className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
-                    <span>{isUploading ? 'Anchoring & Signing...' : 'Digitally Anchor & Issue VC'}</span>
+                    <span>{isUploading ? t.credentials.uploadingAndSigning : t.credentials.uploadAndSignBtn}</span>
                   </button>
                 </div>
               </form>
@@ -937,7 +868,7 @@ export const CredentialsPage = () => {
                 onClick={() => setSelectedCred(null)}
                 className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer text-center"
               >
-                Close
+                {t.common.close}
               </button>
             </div>
           </div>
@@ -946,4 +877,3 @@ export const CredentialsPage = () => {
     </div>
   );
 };
-

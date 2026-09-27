@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { BusinessQRCode } from '../ui/BusinessQRCode';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface SovereignPassModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface SovereignPassModalProps {
 
 export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps) => {
   const { businessId, businessName, business, ownerPersonId, credentials } = useAppStore();
+  const { t } = useTranslation();
   const [passFormat, setPassFormat] = useState<'standee' | 'pvc'>('standee');
   const [copiedLink, setCopiedLink] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -124,14 +126,14 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-display font-extrabold text-base sm:text-lg text-white">
-                  OpenVyapar Sovereign Enterprise Pass
+                  {t.pass.modalTitle}
                 </h3>
                 <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400 text-slate-950">
                   OFFICIAL DPI ARTIFACT
                 </span>
               </div>
               <p className="text-xs text-slate-300">
-                Printable laminated counter standee & PVC identity card for offline cryptographic verification
+                {t.pass.modalSubtitle}
               </p>
             </div>
           </div>
@@ -158,7 +160,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Standee (A4)</span>
+              <span>{t.pass.formatStandee}</span>
             </button>
             <button
               onClick={() => setPassFormat('pvc')}
@@ -169,7 +171,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
               }`}
             >
               <Award className="w-3.5 h-3.5" />
-              <span>PVC Smart Card</span>
+              <span>{t.pass.formatPvc}</span>
             </button>
           </div>
 
@@ -180,7 +182,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer shadow-xs"
             >
               {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-              <span>{copiedLink ? 'Copied' : 'Copy URL'}</span>
+              <span>{copiedLink ? t.common.copied : t.pass.copyLinkBtn}</span>
             </button>
 
             <button
@@ -188,7 +190,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer shadow-xs"
             >
               <Download className="w-3.5 h-3.5 text-slate-500" />
-              <span>{downloadSuccess ? 'Downloaded!' : 'JSON'}</span>
+              <span>{downloadSuccess ? t.pass.passDownloaded : t.pass.downloadJsonBtn}</span>
             </button>
 
             <button
@@ -196,7 +198,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
               className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print Standee</span>
+              <span>{t.pass.printBtn}</span>
             </button>
           </div>
         </div>
@@ -401,21 +403,21 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
         {/* Modal Footer */}
         <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0 no-print">
           <div className="text-xs text-slate-500 hidden sm:block">
-            Tip: Laminate and mount this pass at your shop billing counter.
+            {t.pass.scannedInstructions}
           </div>
           <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
-              Close
+              {t.common.close}
             </button>
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Print Sovereign Pass</span>
+              <span>{t.pass.printBtn}</span>
             </button>
           </div>
         </div>
