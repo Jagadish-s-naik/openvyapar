@@ -15,6 +15,8 @@
     "test": "node shared/test-shared.mjs && npm --workspace=backend run test",
     "test:demo": "node demo/run-demo-flow.mjs",
     "seed": "node demo/seed-demo.js",
+    "db:migrate": "npm --workspace=backend run db:migrate",
+    "db:seed": "npm --workspace=backend run seed",
     "start:backend": "npm --workspace=backend start",
     "start:frontend": "npm --workspace=frontend dev",
     "start:wallet": "npm --workspace=frontend dev",

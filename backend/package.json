@@ -9,6 +9,7 @@
     "start": "node dist/src/server.js",
     "dev": "tsc -w & node --watch dist/src/server.js",
     "seed": "node dist/src/db/seed.js",
+    "db:migrate": "tsc && node dist/src/db/migrate-to-mongo.js",
     "test": "tsc && node dist/test/scoping-validation.test.js && node dist/test/agent.test.js && node dist/test/api.test.js"
   },
   "keywords": [
