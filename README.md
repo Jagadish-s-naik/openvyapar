@@ -35,12 +35,12 @@ npm run test
 
 ---
 
-### 🐳 Docker Compose (Backend + Internal MongoDB)
+### 🐳 Docker Compose (Full Stack: Frontend + Backend + MongoDB)
 
-You can launch the containerized backend and internal database stack with a single command:
+You can launch the complete containerized stack with a single command:
 
 ```bash
-# Start Backend (Port 3000) and Internal MongoDB
+# Start Frontend (5173), Backend (3000), and Internal MongoDB
 npm run docker:up
 
 # View real-time container logs
@@ -53,10 +53,11 @@ npm run docker:seed
 npm run docker:down
 ```
 
-| Container                | Host Port         | Internal Network Address             | Description                      |
-| ------------------------ | ----------------- | ------------------------------------ | -------------------------------- |
-| **`openvyapar-backend`** | `3000`            | `http://localhost:3000/health`       | Publicly exposed API & AI Agents |
-| **`openvyapar-mongodb`** | _(Internal only)_ | `mongodb://mongodb:27017/openvyapar` | Isolated database instance       |
+| Container | Host Port | Internal Network Address | Description |
+|---|---|---|---|
+| **`openvyapar-frontend`** | `5173` | `http://localhost:5173` | Unified React SPA (Nginx) |
+| **`openvyapar-backend`** | `3000` | `http://localhost:3000/health` | Express API & AI Agents |
+| **`openvyapar-mongodb`** | _(Internal only)_ | `mongodb://mongodb:27017/openvyapar` | Isolated database instance |
 
 #### Database Management via HTTP API:
 
