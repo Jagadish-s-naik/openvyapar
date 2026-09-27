@@ -4,11 +4,10 @@
  */
 
 import type { Business, BusinessMetadata, BusinessStatus, Person } from './business.js';
-import type { BusinessRole, RoleStatus, RoleType } from './role.js';
+import type { BusinessRole, RoleType } from './role.js';
 import type { Credential, CredentialClaim, CredentialType, IssuerType, GstClaimPayload, BankIncomeClaimPayload, MarketplaceClaimPayload, SelfAttestedClaimPayload } from './credential.js';
 import type { DelegationScope, DelegationToken } from './delegation.js';
 import type { ProofPurpose, ProofShare, VerificationStatus } from './proof.js';
-import type { AgentAction, AgentType, HumanDecision } from './audit.js';
 
 // -------------------------------------------------------------
 // 1. Business Endpoints (/business, /business/:id/roles)

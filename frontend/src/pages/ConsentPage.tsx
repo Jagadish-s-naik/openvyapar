@@ -287,7 +287,7 @@ export const ConsentPage = () => {
                       Authorized Scopes
                     </span>
                     <div className="flex flex-wrap gap-2">
-                      {token.scopes.map((scope, idx) => (
+                      {token.scopes.map((scope: string, idx: number) => (
                         <span
                           key={idx}
                           className="px-3 py-1 bg-amber-50 text-amber-900 font-medium rounded-lg text-xs border border-amber-200/80 font-mono"

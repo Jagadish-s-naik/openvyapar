@@ -15,6 +15,11 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@openvyapar/shared": ["../shared/src/index.ts"],
+      "@openvyapar/shared/*": ["../shared/src/*"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,
@@ -22,5 +27,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "../shared/src"]
 }
