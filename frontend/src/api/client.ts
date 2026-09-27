@@ -76,7 +76,7 @@ export async function getAuditTimeline(
 }
 
 export async function getPersonas(): Promise<{ success: boolean; personas: Person[] }> {
-  return request(`${BACKEND_URL}/admin/personas`);
+  return request(`${BACKEND_URL}/auth/personas`);
 }
 
 export async function triggerMockIssuance(
