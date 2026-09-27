@@ -11,8 +11,9 @@ export const healthRouter = Router();
  */
 healthRouter.get('/', async (_req: Request, res: Response) => {
   const memUsage = process.memoryUsage();
-  const dbStats = db.getStats();
-  const snapshotCount = db.listSnapshots().length;
+  const dbStats = await db.getStats();
+  const snapshots = await db.listSnapshots();
+  const snapshotCount = snapshots.length;
   const mongoStatus = getMongoStatus();
   const mongoPing = mongoStatus.connected ? await pingMongo() : undefined;
 

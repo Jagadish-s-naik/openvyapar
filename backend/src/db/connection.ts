@@ -55,7 +55,7 @@ export function getActiveEngine(): 'mongo' | 'memory' {
 
 /**
  * Universal Database Proxy.
- * Provides unified interface delegating to the active adapter.
+ * Delegates cleanly to the active adapter instance (MongoDB or Memory/JSON).
  */
 class UniversalDatabaseProxy implements IDatabaseAdapter {
   private get activeAdapter(): IDatabaseAdapter {
@@ -74,8 +74,8 @@ class UniversalDatabaseProxy implements IDatabaseAdapter {
     return this.activeAdapter.reset();
   }
 
-  public getStats(): Record<string, number> {
-    return memoryInstance.getStats();
+  public getStats(): Record<string, number> | Promise<Record<string, number>> {
+    return this.activeAdapter.getStats();
   }
 
   public getState(): Promise<DatabaseState> | DatabaseState {
@@ -87,126 +87,126 @@ class UniversalDatabaseProxy implements IDatabaseAdapter {
   }
 
   // Snapshots
-  public createSnapshot(name?: string, description?: string): SnapshotMetadata {
-    return (memoryInstance as any).createSnapshot(name, description);
+  public createSnapshot(name?: string, description?: string): Promise<SnapshotMetadata> | SnapshotMetadata {
+    return this.activeAdapter.createSnapshot(name, description);
   }
 
-  public listSnapshots(): SnapshotMetadata[] {
-    return memoryInstance.listSnapshots();
+  public listSnapshots(): SnapshotMetadata[] | Promise<SnapshotMetadata[]> {
+    return this.activeAdapter.listSnapshots();
   }
 
   public restoreSnapshot(
     snapshotIdOrName: string
-  ): { success: boolean; snapshot?: SnapshotMetadata; error?: string } {
-    return (memoryInstance as any).restoreSnapshot(snapshotIdOrName);
+  ): Promise<{ success: boolean; snapshot?: SnapshotMetadata; error?: string }> | { success: boolean; snapshot?: SnapshotMetadata; error?: string } {
+    return this.activeAdapter.restoreSnapshot(snapshotIdOrName);
   }
 
-  public deleteSnapshot(snapshotIdOrName: string): boolean {
-    return (memoryInstance as any).deleteSnapshot(snapshotIdOrName);
+  public deleteSnapshot(snapshotIdOrName: string): Promise<boolean> | boolean {
+    return this.activeAdapter.deleteSnapshot(snapshotIdOrName);
   }
 
   // Businesses
-  public getBusiness(businessId: string): Business | null {
-    return (memoryInstance as any).getBusiness(businessId);
+  public getBusiness(businessId: string): Promise<Business | null> | Business | null {
+    return this.activeAdapter.getBusiness(businessId);
   }
 
-  public getAllBusinesses(): Business[] {
-    return (memoryInstance as any).getAllBusinesses();
+  public getAllBusinesses(): Promise<Business[]> | Business[] {
+    return this.activeAdapter.getAllBusinesses();
   }
 
-  public setBusiness(business: Business): Business {
-    return (memoryInstance as any).setBusiness(business);
+  public setBusiness(business: Business): Promise<Business> | Business {
+    return this.activeAdapter.setBusiness(business);
   }
 
   // Persons
-  public getPerson(personId: string): Person | null {
-    return (memoryInstance as any).getPerson(personId);
+  public getPerson(personId: string): Promise<Person | null> | Person | null {
+    return this.activeAdapter.getPerson(personId);
   }
 
-  public getAllPersons(): Person[] {
-    return (memoryInstance as any).getAllPersons();
+  public getAllPersons(): Promise<Person[]> | Person[] {
+    return this.activeAdapter.getAllPersons();
   }
 
-  public setPerson(person: Person): Person {
-    return (memoryInstance as any).setPerson(person);
+  public setPerson(person: Person): Promise<Person> | Person {
+    return this.activeAdapter.setPerson(person);
   }
 
   // Business Roles
-  public getRolesForBusiness(businessId: string): BusinessRole[] {
-    return (memoryInstance as any).getRolesForBusiness(businessId);
+  public getRolesForBusiness(businessId: string): Promise<BusinessRole[]> | BusinessRole[] {
+    return this.activeAdapter.getRolesForBusiness(businessId);
   }
 
-  public getAllRolesForBusiness(businessId: string): BusinessRole[] {
-    return (memoryInstance as any).getAllRolesForBusiness(businessId);
+  public getAllRolesForBusiness(businessId: string): Promise<BusinessRole[]> | BusinessRole[] {
+    return this.activeAdapter.getAllRolesForBusiness(businessId);
   }
 
-  public getRolesForPerson(personId: string): BusinessRole[] {
-    return (memoryInstance as any).getRolesForPerson(personId);
+  public getRolesForPerson(personId: string): Promise<BusinessRole[]> | BusinessRole[] {
+    return this.activeAdapter.getRolesForPerson(personId);
   }
 
-  public setBusinessRole(role: BusinessRole): BusinessRole {
-    return (memoryInstance as any).setBusinessRole(role);
+  public setBusinessRole(role: BusinessRole): Promise<BusinessRole> | BusinessRole {
+    return this.activeAdapter.setBusinessRole(role);
   }
 
   // Credentials
-  public getCredentialsForBusiness(businessId: string): Credential[] {
-    return (memoryInstance as any).getCredentialsForBusiness(businessId);
+  public getCredentialsForBusiness(businessId: string): Promise<Credential[]> | Credential[] {
+    return this.activeAdapter.getCredentialsForBusiness(businessId);
   }
 
-  public getCredentialById(credentialId: string): Credential | null {
-    return (memoryInstance as any).getCredentialById(credentialId);
+  public getCredentialById(credentialId: string): Promise<Credential | null> | Credential | null {
+    return this.activeAdapter.getCredentialById(credentialId);
   }
 
-  public setCredential(credential: Credential): Credential {
-    return (memoryInstance as any).setCredential(credential);
+  public setCredential(credential: Credential): Promise<Credential> | Credential {
+    return this.activeAdapter.setCredential(credential);
   }
 
   // Delegation Tokens
-  public getDelegationsForBusiness(businessId: string): DelegationToken[] {
-    return (memoryInstance as any).getDelegationsForBusiness(businessId);
+  public getDelegationsForBusiness(businessId: string): Promise<DelegationToken[]> | DelegationToken[] {
+    return this.activeAdapter.getDelegationsForBusiness(businessId);
   }
 
-  public getActiveDelegation(businessId: string, delegatePersonId: string): DelegationToken | null {
-    return (memoryInstance as any).getActiveDelegation(businessId, delegatePersonId);
+  public getActiveDelegation(businessId: string, delegatePersonId: string): Promise<DelegationToken | null> | DelegationToken | null {
+    return this.activeAdapter.getActiveDelegation(businessId, delegatePersonId);
   }
 
-  public getDelegationById(tokenId: string): DelegationToken | null {
-    return (memoryInstance as any).getDelegationById(tokenId);
+  public getDelegationById(tokenId: string): Promise<DelegationToken | null> | DelegationToken | null {
+    return this.activeAdapter.getDelegationById(tokenId);
   }
 
-  public setDelegationToken(token: DelegationToken): DelegationToken {
-    return (memoryInstance as any).setDelegationToken(token);
+  public setDelegationToken(token: DelegationToken): Promise<DelegationToken> | DelegationToken {
+    return this.activeAdapter.setDelegationToken(token);
   }
 
   // Proof Shares
-  public getProofShare(proofId: string): ProofShare | null {
-    return (memoryInstance as any).getProofShare(proofId);
+  public getProofShare(proofId: string): Promise<ProofShare | null> | ProofShare | null {
+    return this.activeAdapter.getProofShare(proofId);
   }
 
-  public setProofShare(proof: ProofShare): ProofShare {
-    return (memoryInstance as any).setProofShare(proof);
+  public setProofShare(proof: ProofShare): Promise<ProofShare> | ProofShare {
+    return this.activeAdapter.setProofShare(proof);
   }
 
   // Audit Logs
-  public getAuditLogsForBusiness(businessId: string): AuditLog[] {
-    return (memoryInstance as any).getAuditLogsForBusiness(businessId);
+  public getAuditLogsForBusiness(businessId: string): Promise<AuditLog[]> | AuditLog[] {
+    return this.activeAdapter.getAuditLogsForBusiness(businessId);
   }
 
-  public addAuditLog(log: AuditLog): AuditLog {
-    return (memoryInstance as any).addAuditLog(log);
+  public addAuditLog(log: AuditLog): Promise<AuditLog> | AuditLog {
+    return this.activeAdapter.addAuditLog(log);
   }
 
   // Agent Actions
-  public getAgentAction(actionId: string): AgentAction | null {
-    return (memoryInstance as any).getAgentAction(actionId);
+  public getAgentAction(actionId: string): Promise<AgentAction | null> | AgentAction | null {
+    return this.activeAdapter.getAgentAction(actionId);
   }
 
-  public getAgentActionsForBusiness(businessId: string): AgentAction[] {
-    return (memoryInstance as any).getAgentActionsForBusiness(businessId);
+  public getAgentActionsForBusiness(businessId: string): Promise<AgentAction[]> | AgentAction[] {
+    return this.activeAdapter.getAgentActionsForBusiness(businessId);
   }
 
-  public setAgentAction(action: AgentAction): AgentAction {
-    return (memoryInstance as any).setAgentAction(action);
+  public setAgentAction(action: AgentAction): Promise<AgentAction> | AgentAction {
+    return this.activeAdapter.setAgentAction(action);
   }
 }
 
