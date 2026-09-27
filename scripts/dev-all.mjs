@@ -21,7 +21,7 @@ console.log(`  🌐 Frontend App:    http://localhost:5173`);
 console.log(`     ├── 💼 Owner Wallet:     http://localhost:5173/`);
 console.log(`     ├── 🔍 Verifier Portal:  http://localhost:5173/verifier`);
 console.log(`     └── 🚀 CSC Onboarding:   http://localhost:5173/onboarding`);
-console.log(`  ⚙️ Backend API:     http://localhost:3001`);
+console.log(`  ⚙️ Backend API:     http://localhost:3000`);
 console.log(`\nPress Ctrl+C to stop all services.\n${'-'.repeat(60)}\n`);
 
 const processes = [];

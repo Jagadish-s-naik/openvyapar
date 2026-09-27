@@ -11,7 +11,7 @@
 | Workspace | Directory | Port | Primary Purpose & Tech |
 |---|---|---|---|
 | `@openvyapar/shared` | [`shared/`](file:///home/shamblonaut/dev/openvyapar/shared/) | — | **Single Source of Truth**: TypeScript schemas, DTOs, constants, and demo fixtures. |
-| `@openvyapar/backend` | [`backend/`](file:///home/shamblonaut/dev/openvyapar/backend/) | `3001` | Express API, SQLite persistence, HMAC crypto signing, Mock Issuers (GSTN, Bank, ONDC), and AI Agents (`/agent/*`). |
+| `@openvyapar/backend` | [`backend/`](file:///home/shamblonaut/dev/openvyapar/backend/) | `3000` | Express API, MongoDB persistence, HMAC crypto signing, Mock Issuers (GSTN, Bank, ONDC), and AI Agents (`/agent/*`). |
 | `@openvyapar/frontend` | [`frontend/`](file:///home/shamblonaut/dev/openvyapar/frontend/) | `5173` | Unified React SPA: Owner Wallet (`/`), Verifier Portal (`/verifier`), and CSC AI Onboarding (`/onboarding`). |
 | `demo` | [`demo/`](file:///home/shamblonaut/dev/openvyapar/demo/) | — | 5-Beat demo rehearsal script, state seeders, and automated narrative CLI runner. |
 
@@ -94,7 +94,7 @@ npm run seed
 npm run dev
 
 # 6. Start Individual Tiers
-npm run start:backend      # Port 3001 (Backend API + AI Agents)
+npm run start:backend      # Port 3000 (Backend API + AI Agents)
 npm run start:frontend     # Port 5173 (Unified React Frontend)
 ```
 

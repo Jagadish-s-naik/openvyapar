@@ -727,7 +727,18 @@ async function runApiTests() {
     console.assert(onboardingCorsRes.status === 204, 'Onboarding CORS preflight should return 204');
     console.assert(onboardingCorsRes.headers.get('access-control-allow-origin') === 'http://localhost:5175', 'Allow-Origin mismatch for Onboarding');
 
-    // 19d. Test Security Headers & Request ID Tracing
+    // 19d. Test Vercel origin preflight
+    const vercelCorsRes = await fetch(`${baseUrl}/business/did:biz:sharma001`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://openvyapar-preview-branch.vercel.app',
+        'Access-Control-Request-Method': 'GET',
+      },
+    });
+    console.assert(vercelCorsRes.status === 204, 'Vercel CORS preflight should return 204');
+    console.assert(vercelCorsRes.headers.get('access-control-allow-origin') === 'https://openvyapar-preview-branch.vercel.app', 'Allow-Origin mismatch for Vercel');
+
+    // 19e. Test Security Headers & Request ID Tracing
     const secHeadersRes = await fetch(`${baseUrl}/health`, {
       headers: { 'Origin': 'http://localhost:5173', 'x-request-id': 'test-trace-999' },
     });
@@ -735,7 +746,7 @@ async function runApiTests() {
     console.assert(secHeadersRes.headers.get('x-frame-options') === 'SAMEORIGIN', 'Missing X-Frame-Options: SAMEORIGIN');
     console.assert(secHeadersRes.headers.get('x-request-id') === 'test-trace-999', 'x-request-id tracing header missing or mismatched');
 
-    console.log('✅ 19. CORS & Multi-Port Environment Hardening PASSED');
+    console.log('✅ 19. CORS & Multi-Port Environment Hardening PASSED (including Vercel support)');
 
     // 20. Test End-to-End Health Diagnostics & Readiness Probes (Phase 5 Task 3)
     // 20a. Comprehensive Health Probe
@@ -750,7 +761,7 @@ async function runApiTests() {
     console.assert(deepHealthJson.subsystems.marketplace_mock.status === 'active', 'Marketplace mock subsystem not active');
     console.assert(deepHealthJson.subsystems.csc_witness.status === 'active', 'CSC witness subsystem not active');
     console.assert(parseFloat(deepHealthJson.memory.heap_used_mb) > 0, 'Memory telemetry missing');
-    console.assert(deepHealthJson.environment.port === 3001 || typeof deepHealthJson.environment.port === 'number', 'Port missing');
+    console.assert(deepHealthJson.environment.port === 3000 || typeof deepHealthJson.environment.port === 'number', 'Port missing');
 
     // 20b. Readiness & Liveness Probes
     const readyRes = await fetch(`${baseUrl}/health/ready`);

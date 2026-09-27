@@ -116,7 +116,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
     } catch (err: unknown) {
       set({
-        error: (err as Error)?.message || 'Failed to sync with OpenVyapar backend on port 3001',
+        error: (err as Error)?.message || 'Failed to sync with OpenVyapar backend on port 3000',
         isSyncing: false,
       });
     }

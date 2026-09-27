@@ -45,7 +45,7 @@
 
 ### **Slide 5: Architectural Feasibility & Future Roadmap**
 - **Built Today**:
-  - Working Express + SQLite relational identity layer on Port 3001.
+  - Working Express + MongoDB relational identity layer on Port 3000.
   - HMAC-SHA256 cryptographic verification & tamper detection.
   - Unified responsive React SPA (Owner Wallet, Verifier Portal, CSC Onboarding) on Port 5173.
   - 4 AI agent engines for extraction, consent, least-privilege scoping, and anomaly flags.

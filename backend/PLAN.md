@@ -1,7 +1,7 @@
 # 🛠️ OpenVyapar Backend Roadmap & Engineering Plan (`backend/PLAN.md`)
 
 > **Service:** `@openvyapar/backend`  
-> **Default Port:** `3001`  
+> **Default Port:** `3000`  
 > **Runtime:** Node.js 24 (Native ESM), TypeScript 5.8+  
 > **Single Source of Truth:** [`PRD.md`](file:///home/shamblonaut/dev/openvyapar/PRD.md) & [`AGENTS.md`](file:///home/shamblonaut/dev/openvyapar/AGENTS.md)
 

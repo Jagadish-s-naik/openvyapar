@@ -27,7 +27,7 @@ export interface AgentAssistantResponse {
   };
 }
 
-export const BACKEND_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_BACKEND_URL || 'http://localhost:3001';
+export const BACKEND_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_BACKEND_URL || 'http://localhost:3000';
 export const AGENT_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_AGENT_URL || BACKEND_URL;
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -48,7 +48,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // ----------------------------------------------------------------------------
-// Core Backend API Calls (Port 3001)
+// Core Backend API Calls (Port 3000)
 // ----------------------------------------------------------------------------
 
 export async function getBusiness(businessId: string): Promise<{ success: boolean; business: Business }> {
@@ -248,7 +248,7 @@ export async function createBusiness(params: {
 }
 
 // ----------------------------------------------------------------------------
-// Agent API Calls (Port 3001 /agent/*)
+// Agent API Calls (Port 3000 /agent/*)
 // ----------------------------------------------------------------------------
 
 export async function explainConsent(params: {

@@ -4,6 +4,22 @@ import { config } from '../config.js';
 
 const localhostRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
+function isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
+  for (const pattern of allowedOrigins) {
+    if (pattern === '*' || pattern === origin) {
+      return true;
+    }
+    if (pattern.includes('*')) {
+      const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+      const regex = new RegExp(`^${escaped}$`, 'i');
+      if (regex.test(origin)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser requests (e.g. curl, server-to-server, tests)
@@ -11,12 +27,17 @@ export const corsOptions: CorsOptions = {
       return callback(null, true);
     }
 
-    // Check against configured allowed origins
-    if (config.allowedOrigins.includes(origin)) {
+    // Check against configured allowed origins (supports exact matches and wildcards like *.vercel.app)
+    if (isOriginAllowed(origin, config.allowedOrigins)) {
       return callback(null, true);
     }
 
-    // Check if origin is any localhost / 127.0.0.1 port in development mode
+    // Allow Vercel preview and production domains by default (e.g. https://*.vercel.app)
+    if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    // Check if origin is any localhost / 127.0.0.1 port
     if (localhostRegex.test(origin)) {
       return callback(null, true);
     }

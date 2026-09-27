@@ -27,8 +27,30 @@ npm run test
 ### 2. Launch Services
 | Service | Port | Command | Purpose |
 |---|---|---|---|
-| **Backend API & AI Agents** | `3001` | `npm run start:backend` | Core state, SQLite DB, HMAC signing, Mock issuers, and AI Agents (`/agent/*`) |
+| **Backend API & AI Agents** | `3000` | `npm run start:backend` | Core state, MongoDB persistence, HMAC signing, Mock issuers, and AI Agents (`/agent/*`) |
 | **Unified Frontend App** | `5173` | `npm run start:frontend` | Owner Wallet (`/`), Verifier Portal (`/verifier`), and CSC Onboarding (`/onboarding`) |
+
+---
+
+### 🐳 Docker Compose (Backend + Internal MongoDB)
+
+You can launch the containerized backend and internal database stack with a single command:
+
+```bash
+# Start Backend (Port 3000) and Internal MongoDB
+npm run docker:up
+
+# View real-time container logs
+npm run docker:logs
+
+# Stop services
+npm run docker:down
+```
+
+| Container | Host Port | Internal Network Address | Description |
+|---|---|---|---|
+| **`openvyapar-backend`** | `3000` | `http://localhost:3000/health` | Publicly exposed API & AI Agents |
+| **`openvyapar-mongodb`** | *(Internal only)* | `mongodb://mongodb:27017/openvyapar` | Isolated database instance |
 
 ---
 
@@ -47,7 +69,7 @@ See [`demo/script.md`](file:///home/shamblonaut/dev/openvyapar/demo/script.md) f
 ```
 openvyapar/
 ├── shared/            # Single source of truth TypeScript types, constants & mock fixtures
-├── backend/           # Express API, SQLite persistence, HMAC crypto engine, Mock Issuers & AI Agents (Port 3001)
+├── backend/           # Express API, MongoDB persistence, HMAC crypto engine, Mock Issuers & AI Agents (Port 3000)
 ├── frontend/          # Unified React SPA: Wallet, Verifier & Onboarding (Port 5173)
 ├── demo/              # 5-Beat demo rehearsal script & database seeders
 └── PRD.md             # Core product requirements & schema specification

@@ -22,7 +22,7 @@ const envAllowedOrigins = process.env.ALLOWED_ORIGINS
   : [];
 
 export const config = {
-  port: Number(process.env.PORT) || 3001,
+  port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   isDev: (process.env.NODE_ENV || 'development') !== 'production',
   allowedOrigins: Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins])),
