@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, CheckCircle2, Globe, Shield, Menu, Zap, RefreshCw, Smartphone, Monitor } from 'lucide-react';
+import { Bell, CheckCircle2, Globe, Shield, Menu, Zap, RefreshCw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -17,8 +17,6 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
     issueBatchCredentials,
     loadAllData,
     isSyncing,
-    isMobileSimulator,
-    toggleMobileSimulator,
   } = useAppStore();
   const { language, setLanguage } = useTranslation();
   const [isIssuingBatch, setIsIssuingBatch] = useState(false);
@@ -52,9 +50,9 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
   const isOwnerWallet = !isOnboarding && !isVerifier;
 
   return (
-    <header className="h-14 sm:h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none">
-      {/* LEFT: Mobile Menu + Enterprise Identity Pill + Live Node */}
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
+    <header className="h-14 sm:h-16 bg-white border-b border-slate-200/90 px-2.5 sm:px-6 flex items-center justify-between gap-1.5 sm:gap-3 shrink-0 sticky top-0 z-30 shadow-xs select-none w-full max-w-full min-w-0">
+      {/* LEFT: Mobile Menu + Enterprise Identity Pill */}
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink min-w-0">
         {onToggleMobileMenu && (
           <button
             onClick={onToggleMobileMenu}
@@ -66,21 +64,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
         )}
 
         {/* Enterprise Identity Badge */}
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 text-white px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs shrink-0 max-w-[150px] xs:max-w-[190px] sm:max-w-[240px]">
+        <div className="flex items-center gap-1 sm:gap-2 bg-slate-900 text-white px-2 sm:px-3 py-1.5 rounded-xl border border-slate-800 shadow-xs shrink min-w-0 max-w-[120px] xs:max-w-[160px] sm:max-w-[240px]">
           <Shield className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span className="text-[11px] sm:text-xs font-bold text-slate-100 truncate">
             {businessName}
           </span>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        </div>
-
-        {/* Live Node Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg shrink-0 whitespace-nowrap">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span>DPI Live Node</span>
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 hidden xs:block" />
         </div>
       </div>
 
@@ -137,12 +126,12 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
       </div>
 
       {/* RIGHT: Quick Actions & Controls */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Time-Skip Button */}
         <button
           onClick={handleTimeSkip}
           disabled={isIssuingBatch}
-          className={`h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs border whitespace-nowrap shrink-0 ${
+          className={`h-8 sm:h-9 flex items-center gap-1 px-2 sm:px-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs border whitespace-nowrap shrink-0 ${
             batchSuccess
               ? 'bg-emerald-600 text-white border-emerald-700'
               : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500/50'
@@ -150,7 +139,7 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           title="Simulate 1 year of verified GST, Bank & ONDC credentials"
         >
           <Zap className={`w-3.5 h-3.5 ${isIssuingBatch ? 'animate-spin' : ''}`} />
-          <span className="hidden xs:inline">
+          <span className="hidden sm:inline">
             {batchSuccess ? '✓ Issued' : isIssuingBatch ? 'Issuing...' : 'Time-Skip'}
           </span>
           <span className="hidden md:inline">
@@ -169,38 +158,15 @@ export const TopBar = ({ onToggleMobileMenu }: TopBarProps) => {
           <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
         </button>
 
-        {/* Mobile Device Simulator Toggle */}
-        <button
-          onClick={toggleMobileSimulator}
-          className={`h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-            isMobileSimulator
-              ? 'bg-slate-900 text-amber-400 border-slate-800 shadow-xs'
-              : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80'
-          }`}
-          title={isMobileSimulator ? 'Switch to Desktop Full View' : 'Simulate ₹7,000 Android Phone View'}
-        >
-          {isMobileSimulator ? (
-            <>
-              <Monitor className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Desktop</span>
-            </>
-          ) : (
-            <>
-              <Smartphone className="w-3.5 h-3.5 text-slate-600" />
-              <span className="hidden sm:inline">Phone Frame</span>
-            </>
-          )}
-        </button>
-
         {/* Language Selector */}
         <div className="h-8 sm:h-9 flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200 shrink-0">
-          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1 sm:ml-1.5 mr-0.5 hidden xs:block" />
+          <Globe className="w-3.5 h-3.5 text-slate-500 ml-1 mr-0.5 hidden sm:block" />
           <div className="flex gap-0.5">
             {languages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setLanguage(lang.code)}
-                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
                   language === lang.code
                     ? 'bg-white text-slate-950 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'

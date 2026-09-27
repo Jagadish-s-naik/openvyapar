@@ -54,10 +54,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoading: false,
   isSyncing: false,
   error: null,
-  isMobileSimulator: false,
 
   setLanguage: (lang: Language) => set({ language: lang }),
-  toggleMobileSimulator: () => set((state) => ({ isMobileSimulator: !state.isMobileSimulator })),
 
   setBusinessId: async (id: string) => {
     set({ businessId: id });

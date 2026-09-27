@@ -56,11 +56,9 @@ export type AppState = {
   isLoading: boolean;
   isSyncing: boolean;
   error: string | null;
-  isMobileSimulator: boolean;
 
   // Actions
   setLanguage: (lang: Language) => void;
-  toggleMobileSimulator: () => void;
   setBusinessId: (id: string) => Promise<void>;
   loadAllData: (businessId?: string) => Promise<void>;
   
