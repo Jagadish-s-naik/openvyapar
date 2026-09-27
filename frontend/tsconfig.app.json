@@ -12,10 +12,9 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@openvyapar/shared": ["../shared/src/index.ts"],
       "@openvyapar/shared/*": ["../shared/src/*"]
