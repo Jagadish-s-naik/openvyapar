@@ -21,7 +21,7 @@ interface SovereignPassModalProps {
 }
 
 export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps) => {
-  const { businessId, businessName, ownerPersonId, credentials } = useAppStore();
+  const { businessId, businessName, business, ownerPersonId, credentials } = useAppStore();
   const [passFormat, setPassFormat] = useState<'standee' | 'pvc'>('standee');
   const [copiedLink, setCopiedLink] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -29,7 +29,25 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
   if (!isOpen) return null;
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-  const verifierUrl = `${origin}/verifier?proof_id=proof-loan-001&did=${encodeURIComponent(businessId)}`;
+  const getProofIdForBusiness = (bId: string) => {
+    if (bId === 'did:biz:sharma001') return 'proof-loan-001';
+    if (bId === 'OV-4471' || bId === 'did:biz:lakshmi002') return 'proof-gst-002';
+    if (bId === 'did:biz:anand002' || bId === 'did:biz:anand003') return 'proof-mkt-003';
+    return 'proof-loan-001';
+  };
+  const defaultProofId = getProofIdForBusiness(businessId);
+  const verifierUrl = `${origin}/verifier?did=${encodeURIComponent(businessId)}&proof_id=${defaultProofId}`;
+
+  const proprietorName = ownerPersonId === 'did:person:ramesh001'
+    ? 'Ramesh Sharma'
+    : (ownerPersonId === 'did:person:priya001'
+      ? 'Priya Sharma'
+      : (businessName.includes('Lakshmi') ? 'Smt. Lakshmi Narayan' : 'Shri Anand Kumar'));
+
+  const gstinNumber = (business?.metadata?.gstin as string) || '09AABCS1429B1Z5';
+  const udyamNumber = (business?.metadata?.udyam_reg_no as string) || 'UDYAM-UP-54-0098214';
+  const locationStr = (business?.metadata?.location as string) || 'Varanasi, UP';
+  const sectorStr = (business?.metadata?.sector as string) || 'Retail Grocery & Essentials';
 
   const handlePrint = () => {
     window.print();
@@ -233,7 +251,7 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
                         {businessName}
                       </h1>
                       <p className="text-xs font-medium text-slate-600 mt-0.5">
-                        Proprietor: <strong className="text-slate-900">{ownerPersonId === 'did:person:ramesh001' ? 'Ramesh Sharma' : 'Priya Sharma'}</strong> · Micro Retail Enterprise
+                        Proprietor: <strong className="text-slate-900">{proprietorName}</strong> · {sectorStr}
                       </p>
                     </div>
 
@@ -250,11 +268,11 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
                       <div className="grid grid-cols-2 gap-2 text-[11px]">
                         <div className="bg-white p-2 rounded-lg border border-slate-200">
                           <span className="text-slate-400 block text-[9px] font-sans font-bold">UDYAM REGISTRATION</span>
-                          <span className="font-bold text-slate-800">UDYAM-UP-54-0098214</span>
+                          <span className="font-bold text-slate-800">{udyamNumber}</span>
                         </div>
                         <div className="bg-white p-2 rounded-lg border border-slate-200">
                           <span className="text-slate-400 block text-[9px] font-sans font-bold">GSTIN ID</span>
-                          <span className="font-bold text-slate-800">09AABCS1429B1Z5</span>
+                          <span className="font-bold text-slate-800">{gstinNumber}</span>
                         </div>
                       </div>
                     </div>
@@ -341,13 +359,14 @@ export const SovereignPassModal = ({ isOpen, onClose }: SovereignPassModalProps)
                           {businessName}
                         </h2>
                         <p className="text-xs text-slate-300">
-                          Prop. Ramesh Sharma · Varanasi, UP
+                          Prop. {proprietorName} · {locationStr}
                         </p>
                       </div>
 
                       <div className="space-y-1 font-mono text-[11px]">
                         <div className="text-slate-400">DID: <span className="text-amber-300 font-bold">{businessId}</span></div>
-                        <div className="text-slate-400">UDYAM: <span className="text-white">UDYAM-UP-54-0098214</span></div>
+                        <div className="text-slate-400">UDYAM: <span className="text-white">{udyamNumber}</span></div>
+                        <div className="text-slate-400">GSTIN: <span className="text-white">{gstinNumber}</span></div>
                       </div>
                     </div>
 

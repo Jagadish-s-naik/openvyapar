@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../i18n/useTranslation';
 import { CheckCircle2, QrCode, ArrowRight, ShieldCheck, KeyRound, History, ArrowUpRight, Award, Clock } from 'lucide-react';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
+import { SovereignPassModal } from '../components/identity/SovereignPassModal';
 
 export const DashboardPage = () => {
   const {
@@ -14,6 +16,7 @@ export const DashboardPage = () => {
     timeline,
   } = useAppStore();
   const { t } = useTranslation();
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
 
   const activeDelegations = delegations.filter((d) => d.status === 'active');
   const recentEvents = timeline.slice(0, 3);
@@ -48,24 +51,26 @@ export const DashboardPage = () => {
           </div>
 
           {/* QR Thumbnail & Direct Action */}
-          <Link
-            to="/identity"
-            className="flex items-center gap-3.5 sm:gap-4 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 p-3 sm:p-3.5 rounded-xl text-slate-200 transition-all group shrink-0 w-full md:w-auto shadow-inner"
-            title={t.dashboard.businessQrPass}
-          >
-            <div className="bg-white p-2 rounded-lg shrink-0 shadow-sm flex items-center justify-center">
-              <QrCode className="w-6 h-6 sm:w-7 sm:h-7 text-slate-950" />
-            </div>
-            <div className="text-left flex-1 min-w-0">
-              <div className="text-xs font-semibold text-slate-100 group-hover:text-amber-300 flex items-center gap-1">
-                <span>{t.dashboard.businessQrPass}</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-amber-400 shrink-0" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <button
+              onClick={() => setIsPassModalOpen(true)}
+              className="flex items-center gap-3.5 sm:gap-4 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 p-3 sm:p-3.5 rounded-xl text-slate-200 transition-all group shrink-0 shadow-inner cursor-pointer"
+              title={t.dashboard.businessQrPass}
+            >
+              <div className="bg-white p-2 rounded-lg shrink-0 shadow-sm flex items-center justify-center">
+                <QrCode className="w-6 h-6 sm:w-7 sm:h-7 text-slate-950" />
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
-                {t.dashboard.scanForProof}
+              <div className="text-left flex-1 min-w-0">
+                <div className="text-xs font-semibold text-slate-100 group-hover:text-amber-300 flex items-center gap-1">
+                  <span>{t.dashboard.businessQrPass}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-amber-400 shrink-0" />
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
+                  {t.dashboard.scanForProof} (Open Pass)
+                </div>
               </div>
-            </div>
-          </Link>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -236,7 +241,12 @@ export const DashboardPage = () => {
           )}
         </div>
       </section>
-    </div>
 
+      {/* Sovereign Pass Modal */}
+      <SovereignPassModal
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+      />
+    </div>
   );
 };

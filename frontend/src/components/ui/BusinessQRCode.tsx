@@ -9,14 +9,15 @@ interface BusinessQRCodeProps {
 }
 
 export const BusinessQRCode: React.FC<BusinessQRCodeProps> = ({
-  value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  value,
   size = 180,
   className = '',
   showLogo = true,
 }) => {
+  const resolvedValue = value || (typeof window !== 'undefined' ? `${window.location.origin}/verifier?proof_id=proof-loan-001&did=did:biz:sharma001` : 'https://openvyapar.in/verifier');
   const qrData = useMemo(() => {
     try {
-      const qr = QRCode.create(value, {
+      const qr = QRCode.create(resolvedValue, {
         errorCorrectionLevel: showLogo ? 'H' : 'M',
       });
       const moduleCount = qr.modules.size;
@@ -37,7 +38,7 @@ export const BusinessQRCode: React.FC<BusinessQRCodeProps> = ({
     } catch {
       return null;
     }
-  }, [value, showLogo]);
+  }, [resolvedValue, showLogo]);
 
   if (!qrData) {
     return (

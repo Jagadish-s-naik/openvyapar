@@ -10,6 +10,9 @@ import {
   Users,
   Printer,
   Shield,
+  ExternalLink,
+  Smartphone,
+  QrCode,
 } from 'lucide-react';
 import { BusinessQRCode } from '../components/ui/BusinessQRCode';
 import { SovereignPassModal } from '../components/identity/SovereignPassModal';
@@ -35,10 +38,28 @@ export const IdentityPage = () => {
   const [isTransferring, setIsTransferring] = useState(false);
   const [successionSuccess, setSuccessionSuccess] = useState<string | null>(null);
 
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+  const getProofIdForBusiness = (bId: string) => {
+    if (bId === 'did:biz:sharma001') return 'proof-loan-001';
+    if (bId === 'OV-4471' || bId === 'did:biz:lakshmi002') return 'proof-gst-002';
+    if (bId === 'did:biz:anand002' || bId === 'did:biz:anand003') return 'proof-mkt-003';
+    return 'proof-loan-001';
+  };
+  const defaultProofId = getProofIdForBusiness(businessId);
+  const qrVerifierUrl = `${origin}/verifier?did=${encodeURIComponent(businessId)}&proof_id=${defaultProofId}`;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(businessId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyQrLink = () => {
+    navigator.clipboard.writeText(qrVerifierUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const handleTransferSuccession = async () => {
@@ -184,16 +205,54 @@ export const IdentityPage = () => {
             </div>
           </div>
 
-          {/* QR Code Anchor */}
-          <div className="flex flex-col items-center p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center shrink-0 w-full sm:w-64 max-w-xs mx-auto lg:mx-0 shadow-md">
-            <div className="p-1 rounded-2xl bg-white/5 border border-white/10 shadow-inner max-w-full">
-              <BusinessQRCode size={180} showLogo={true} />
+          {/* QR Code Anchor & Mobile Scan Launcher */}
+          <div className="flex flex-col items-center p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center shrink-0 w-full sm:w-72 max-w-xs mx-auto lg:mx-0 shadow-md">
+            <div
+              onClick={() => setIsPassModalOpen(true)}
+              className="p-1.5 rounded-2xl bg-white/5 border border-white/10 shadow-inner max-w-full cursor-pointer hover:border-amber-400/50 transition-colors group"
+              title="Click to enlarge Sovereign QR Pass"
+            >
+              <BusinessQRCode value={qrVerifierUrl} size={170} showLogo={true} />
             </div>
-            <div className="mt-3.5 sm:mt-4 text-xs font-mono font-bold text-amber-400 tracking-wider">
-              {t.identity.scanForProof}
+            
+            <div className="mt-3 text-xs font-mono font-bold text-amber-400 tracking-wider flex items-center justify-center gap-1.5">
+              <QrCode className="w-3.5 h-3.5" />
+              <span>{t.identity.scanForProof}</span>
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5 font-mono truncate max-w-full">
+            <div className="text-[10px] text-slate-400 mt-0.5 font-mono truncate max-w-full px-2">
               {businessId}
+            </div>
+
+            {/* Quick Actions for Scan / Test Experience */}
+            <div className="w-full mt-3.5 pt-3 border-t border-slate-800 space-y-1.5">
+              <a
+                href={qrVerifierUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                title="Simulate scanning this QR code to view public verified card"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Test Mobile Scan Card</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </a>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleCopyQrLink}
+                  className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-mono transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  {copiedLink ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedLink ? 'Link Copied!' : 'Copy QR Link'}</span>
+                </button>
+                <button
+                  onClick={() => setIsPassModalOpen(true)}
+                  className="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-mono transition-colors cursor-pointer"
+                  title="Enlarge Pass"
+                >
+                  Enlarge
+                </button>
+              </div>
             </div>
           </div>
         </div>
