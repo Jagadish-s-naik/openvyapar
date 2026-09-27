@@ -21,6 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@openvyapar/shared": "*",
+    "@scalar/express-api-reference": "^0.10.23",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
