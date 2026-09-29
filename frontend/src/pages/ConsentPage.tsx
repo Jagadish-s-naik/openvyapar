@@ -26,7 +26,7 @@ export const ConsentPage = () => {
     revokeDelegationToken,
     businessId,
   } = useAppStore();
-  const { language } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<'active' | 'inbound' | 'grant' | 'history'>('active');
   const [inboundSelectedTask, setInboundSelectedTask] = useState<'gstr3b' | 'gstr1' | 'itc'>('gstr3b');
@@ -117,7 +117,7 @@ export const ConsentPage = () => {
         agentActionId: scopeSuggestion?.agent_action_id,
       });
 
-      setGrantSuccessMsg(`Successfully granted scoped access to ${delegateName}!`);
+      setGrantSuccessMsg(`${t.consent.grantSuccess} (${delegateName})`);
       setTimeout(() => {
         setGrantSuccessMsg(null);
         setActiveTab('active');
@@ -149,9 +149,9 @@ export const ConsentPage = () => {
       setIsInboundExecuting(false);
       const txHash = '0x' + Math.random().toString(16).substring(2, 10) + '...' + Math.random().toString(16).substring(2, 6);
       const taskNames = {
-        gstr3b: 'GSTR-3B Monthly Tax Return (₹42,380)',
-        gstr1: 'GSTR-1 Outward Supplies Statement',
-        itc: 'Input Tax Credit (ITC) Auto-Reconciliation',
+        gstr3b: t.consent.taskGstr3b,
+        gstr1: t.consent.taskGstr1,
+        itc: t.consent.taskItc,
       };
       setInboundExecutionLog({
         success: true,
@@ -168,10 +168,10 @@ export const ConsentPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Scoped Access & Delegations
+            {t.consent.title}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Grant least-privilege, revocable cryptographic permissions to accountants and staff without sharing passwords.
+            {t.consent.subtitle}
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export const ConsentPage = () => {
           className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>New Scoped Delegation (Beat 4)</span>
+          <span>{t.consent.grantTab}</span>
         </button>
       </div>
 
@@ -194,7 +194,7 @@ export const ConsentPage = () => {
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <span>Granted Delegations</span>
+          <span>{t.consent.activeTab}</span>
           <span className="px-2 py-0.5 text-xs bg-amber-400 text-slate-950 font-bold rounded-full font-mono">
             {activeList.length}
           </span>
@@ -208,7 +208,7 @@ export const ConsentPage = () => {
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <span>📩 Inbound Work Desk (Employee View)</span>
+          <span>{t.consent.inboundTab}</span>
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </button>
 
@@ -221,7 +221,7 @@ export const ConsentPage = () => {
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>AI Delegation Builder</span>
+          <span>{t.consent.grantTab}</span>
         </button>
 
         <button
@@ -232,7 +232,7 @@ export const ConsentPage = () => {
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <span>Revoked History ({historyList.length})</span>
+          <span>{t.consent.historyTab} ({historyList.length})</span>
         </button>
       </div>
 
@@ -245,15 +245,15 @@ export const ConsentPage = () => {
             {activeList.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3 shadow-xs">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <h3 className="font-semibold text-slate-900 text-base">No Active Delegations</h3>
+                <h3 className="font-semibold text-slate-900 text-base">{t.consent.noActive}</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  All systems operating under direct owner control. Use the AI builder to delegate tasks.
+                  {t.consent.noActiveDesc}
                 </p>
                 <button
                   onClick={() => setActiveTab('grant')}
                   className="mt-2 px-4 py-2 bg-amber-400 font-bold text-slate-950 text-xs rounded-xl hover:bg-amber-300 transition-all cursor-pointer"
                 >
-                  Create CA Delegation
+                  {t.consent.grantTab}
                 </button>
               </div>
             ) : (
@@ -266,26 +266,26 @@ export const ConsentPage = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-amber-900 font-semibold bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                          SCOPED DELEGATION TOKEN
+                          {t.consent.statusActive}
                         </span>
                         <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1 font-mono">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {t.common.active}
                         </span>
                       </div>
                       <h2 className="text-lg font-bold text-slate-900 mt-1 font-display">
-                        Delegate: {token.delegate_person_id}
+                        {t.consent.delegateTo}: {token.delegate_person_id}
                       </h2>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
                       <Clock className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Issued: {new Date(token.created_at).toLocaleDateString()}</span>
+                      <span>{t.consent.createdDate}: {new Date(token.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
 
                   <div className="space-y-2 text-xs">
                     <span className="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
-                      Authorized Scopes
+                      {t.consent.scopesGranted}
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {token.scopes.map((scope: string, idx: number) => (
@@ -312,7 +312,7 @@ export const ConsentPage = () => {
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>
-                        {revokingId === token.token_id ? 'Revoking Access...' : 'Revoke Delegation Instantly'}
+                        {revokingId === token.token_id ? t.consent.revoking : t.consent.revokeBtn}
                       </span>
                     </button>
                   </div>
@@ -335,7 +335,7 @@ export const ConsentPage = () => {
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                        DELEGATED WORK DESK
+                        {t.consent.inboundDeskTitle}
                       </span>
                       <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1 font-mono">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -384,7 +384,7 @@ export const ConsentPage = () => {
               <div className="bg-white rounded-2xl border-2 border-emerald-500/30 p-4 sm:p-5 shadow-xs space-y-3">
                 <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
                   <UserCheck className="w-4 h-4" />
-                  <span>Permitted Scopes</span>
+                  <span>{t.consent.proposedScopesHeader}</span>
                 </div>
                 <div className="space-y-2 text-xs">
                   <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 font-medium">
@@ -406,7 +406,7 @@ export const ConsentPage = () => {
               <div className="bg-white rounded-2xl border-2 border-red-500/30 p-4 sm:p-5 shadow-xs space-y-3">
                 <div className="flex items-center gap-2 text-red-700 font-bold text-sm">
                   <ShieldAlert className="w-4 h-4" />
-                  <span>Strict Guardrails (Blocked)</span>
+                  <span>{t.consent.excludedScopesHeader}</span>
                 </div>
                 <div className="space-y-2 text-xs">
                   <div className="p-2.5 bg-red-50 rounded-xl border border-red-200 text-red-900 font-medium">
@@ -456,10 +456,10 @@ export const ConsentPage = () => {
                   <span>Authorized Execution Console</span>
                 </div>
                 <h3 className="text-base sm:text-lg font-bold font-display text-slate-900">
-                  Perform Delegated Task on Behalf of Enterprise
+                  {t.consent.selectDelegatedTask}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Choose an authorized action. The OpenVyapar cryptographic engine will execute it under your scoped delegation token.
+                  {t.consent.inboundDeskSubtitle}
                 </p>
               </div>
 
@@ -475,8 +475,7 @@ export const ConsentPage = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">File GSTR-3B Return</span>
-                    <span className="text-xs font-mono text-emerald-600 font-bold">₹42,380</span>
+                    <span className="font-bold text-xs text-slate-900">{t.consent.taskGstr3b}</span>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
                     Monthly tax return liability for Q3 FY2025-26.
@@ -493,8 +492,7 @@ export const ConsentPage = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">Export GSTR-1</span>
-                    <span className="text-xs font-mono text-indigo-600 font-bold">48 Invoices</span>
+                    <span className="font-bold text-xs text-slate-900">{t.consent.taskGstr1}</span>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
                     Outward B2B and B2C supply statement.
@@ -511,8 +509,7 @@ export const ConsentPage = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">ITC Reconciliation</span>
-                    <span className="text-xs font-mono text-amber-600 font-bold">₹18,450</span>
+                    <span className="font-bold text-xs text-slate-900">{t.consent.taskItc}</span>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
                     Auto-reconcile supplier input credits.
@@ -525,7 +522,7 @@ export const ConsentPage = () => {
                 <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1.5 animate-in fade-in">
                   <div className="flex flex-wrap items-center gap-2 font-bold text-xs">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Cryptographic Delegated Execution Completed</span>
+                    <span>{t.consent.executionSuccessTitle}</span>
                     <span className="ml-auto text-[10px] font-mono text-emerald-700">{inboundExecutionLog.timestamp}</span>
                   </div>
                   <p className="text-xs text-emerald-800 leading-relaxed">
@@ -541,7 +538,7 @@ export const ConsentPage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                   <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span>Delegation token signed by business private key. Password sharing eliminated.</span>
+                  <span>{t.common.guardrail1Notice}</span>
                 </div>
 
                 <button
@@ -551,7 +548,7 @@ export const ConsentPage = () => {
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
                 >
                   <Sparkles className="w-4 h-4 text-slate-950" />
-                  <span>{isInboundExecuting ? 'Executing Signed Task...' : '⚡ Execute Delegated Task'}</span>
+                  <span>{isInboundExecuting ? t.consent.executingTask : t.consent.executeTaskBtn}</span>
                 </button>
               </div>
             </div>
@@ -564,13 +561,13 @@ export const ConsentPage = () => {
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-900 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Beat 4: Scoped AI Delegation with Least-Privilege</span>
+                <span>{t.consent.aiBuilderTitle}</span>
               </div>
               <h2 className="text-lg sm:text-xl font-bold font-display text-slate-900">
-                Grant Task-Specific Permissions
+                {t.consent.aiBuilderTitle}
               </h2>
               <p className="text-xs text-slate-500">
-                Describe the role or task in plain language. The AI agent will propose minimal scopes and block banking/loan access.
+                {t.consent.aiBuilderSubtitle}
               </p>
             </div>
 
@@ -584,7 +581,7 @@ export const ConsentPage = () => {
             {/* Sample Chips */}
             <div className="space-y-2">
               <span className="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
-                Quick Demo Presets
+                {t.consent.sampleIntentsLabel}
               </span>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {samplePrompts.map((p, idx) => (
@@ -608,7 +605,7 @@ export const ConsentPage = () => {
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">Delegate Name / Role</label>
+                  <label className="font-semibold text-slate-700">{t.consent.delegateNameLabel}</label>
                   <input
                     type="text"
                     value={delegateName}
@@ -617,7 +614,7 @@ export const ConsentPage = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">Delegate Person DID</label>
+                  <label className="font-semibold text-slate-700">{t.consent.delegateIdLabel}</label>
                   <input
                     type="text"
                     value={delegatePersonId}
@@ -629,12 +626,13 @@ export const ConsentPage = () => {
 
               <div className="space-y-1.5">
                 <label className="font-semibold text-slate-700">
-                  Natural Language Intent (Hindi, Kannada, or English)
+                  {t.consent.naturalIntentLabel}
                 </label>
                 <textarea
                   rows={2}
                   value={naturalPrompt}
                   onChange={(e) => setNaturalPrompt(e.target.value)}
+                  placeholder={t.consent.naturalIntentPlaceholder}
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 text-xs text-slate-900"
                 />
               </div>
@@ -645,7 +643,7 @@ export const ConsentPage = () => {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>{isSuggesting ? 'Analyzing Intent...' : '🤖 AI: Propose Minimal Scopes'}</span>
+                <span>{isSuggesting ? t.consent.analyzingScopes : t.consent.suggestScopesBtn}</span>
               </button>
             </div>
 
@@ -657,7 +655,7 @@ export const ConsentPage = () => {
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 shrink-0" />
-                      <span>Least-Privilege Scoping Recommendation</span>
+                      <span>{t.consent.proposedScopesHeader}</span>
                     </div>
                     <p className="text-xs text-slate-200 leading-relaxed">
                       {scopeSuggestion.explanation}
@@ -668,7 +666,7 @@ export const ConsentPage = () => {
                 {/* Scopes checklist */}
                 <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
                   <span className="text-[11px] uppercase font-semibold text-slate-400 tracking-wider">
-                    Proposed Minimal Scopes
+                    {t.consent.proposedScopesHeader}
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {['file_returns', 'view_compliance', 'manage_catalogue', 'view_bank_statements', 'apply_loans'].map((scope) => {
@@ -707,7 +705,7 @@ export const ConsentPage = () => {
                 <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start sm:items-center gap-2 text-[11px] text-amber-300">
                   <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
                   <span>
-                    <strong>Least-Privilege Protection:</strong> Bank account statements and loan permissions are excluded.
+                    {t.consent.guardrailNotice}
                   </span>
                 </div>
 
@@ -719,7 +717,7 @@ export const ConsentPage = () => {
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
-                    <span>{isGranting ? 'Signing Token...' : 'Confirm & Grant Delegation'}</span>
+                    <span>{isGranting ? t.consent.grantingDelegation : t.consent.confirmGrantBtn}</span>
                   </button>
                 </div>
               </div>
@@ -732,7 +730,7 @@ export const ConsentPage = () => {
           <div className="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-200 shadow-xs">
             {historyList.length === 0 ? (
               <div className="p-8 sm:p-12 text-center text-xs text-slate-500">
-                No revoked or expired delegation records.
+                {t.consent.noHistory}
               </div>
             ) : (
               historyList.map((token) => (
@@ -753,7 +751,7 @@ export const ConsentPage = () => {
                       Scopes: {token.scopes.join(', ')}
                     </div>
                     <div className="text-[11px] text-slate-400 font-mono truncate">
-                      Token ID: {token.token_id} · Revoked
+                      Token ID: {token.token_id} · {t.common.revoked}
                     </div>
                   </div>
 
@@ -769,4 +767,3 @@ export const ConsentPage = () => {
     </div>
   );
 };
-

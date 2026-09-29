@@ -798,19 +798,19 @@ export const VerifierPage = () => {
                     isValid ? 'bg-emerald-200 text-emerald-900' : 'bg-rose-200 text-rose-900'
                   }`}
                 >
-                  {isValid ? 'VALID' : 'TAMPERED / CORRUPT'}
+                  {isValid ? t.common.verified : t.common.tampered}
                 </span>
               </div>
               <p className="text-xs mt-1 opacity-90 leading-relaxed">
                 {isValid
-                  ? 'The proof token was verified against canonical issuer public keys. Claims match the zero-knowledge commitment.'
-                  : 'Tampering simulation active! The underlying data was modified in-flight, invalidating the HMAC-SHA256 cryptographic digest.'}
+                  ? t.verifier.validDesc
+                  : t.verifier.tamperedDesc}
               </p>
             </div>
           </div>
 
           <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/50 shrink-0">
-            <span className="text-[11px] font-medium text-slate-500">Trust Score</span>
+            <span className="text-[11px] font-medium text-slate-500">{t.verifier.trustScore}</span>
             <span
               className={`text-xl sm:text-2xl font-black font-mono ${
                 isValid ? 'text-emerald-700' : 'text-rose-700'
@@ -839,7 +839,7 @@ export const VerifierPage = () => {
 
             <div className="space-y-3">
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-xs font-semibold text-slate-500 block mb-1">AI Underwriter Verdict</span>
+                <span className="text-xs font-semibold text-slate-500 block mb-1">{t.verifier.aiVerdict}</span>
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
@@ -883,10 +883,10 @@ export const VerifierPage = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Lock className="w-4 h-4 text-indigo-500" />
-                <h3 className="text-sm font-bold text-slate-900">Privacy & Redaction Policy</h3>
+                <h3 className="text-sm font-bold text-slate-900">{t.verifier.privacyPolicy}</h3>
               </div>
               <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                Zero Custody
+                {t.common.zeroCustody}
               </span>
             </div>
 
@@ -894,7 +894,7 @@ export const VerifierPage = () => {
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-1.5">
                   <Eye className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Shared / Disclosed Attributes ({displayedCredentials.length} Credentials)</span>
+                  <span>{t.verifier.disclosedAttributes} ({displayedCredentials.length})</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-950 space-y-1 font-mono break-all">
                   {displayedCredentials.map((c, idx) => (
@@ -908,7 +908,7 @@ export const VerifierPage = () => {
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800 mb-1.5">
                   <EyeOff className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                  <span>Strictly Withheld / Redacted Attributes</span>
+                  <span>{t.verifier.withheldAttributes}</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-rose-50/60 border border-rose-100 text-xs text-rose-950 space-y-1 font-mono">
                   <div>• [REDACTED] Raw Bank Account Number & IFSC</div>
@@ -1030,7 +1030,7 @@ export const VerifierPage = () => {
                   className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 shadow-xs flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Approve Underwriting Decision</span>
+                  <span>{t.verifier.approveLoan}</span>
                 </button>
               </div>
             </div>

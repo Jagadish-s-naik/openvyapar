@@ -18,28 +18,28 @@ export const AIAssistantModal = () => {
 
   const suggestedPrompts = [
     {
-      label: 'Grant Scoped CA Access (Beat 4)',
+      label: t.ai.prompt1Label,
       targetPath: '/consents',
       targetName: 'Delegation Builder',
-      description: 'Propose minimal scopes for CA Vikas Mehta without banking access',
+      description: t.ai.prompt1Desc,
     },
     {
-      label: 'Generate Selective Loan Proof (Beat 3)',
+      label: t.ai.prompt2Label,
       targetPath: '/credentials',
       targetName: 'Verifiable Credentials',
-      description: 'Disclose GST & ONDC track record while withholding bank statements',
+      description: t.ai.prompt2Desc,
     },
     {
-      label: 'Inspect Generational Succession (Beat 5)',
+      label: t.ai.prompt3Label,
       targetPath: '/identity',
       targetName: 'Business Identity & QR',
-      description: 'Transfer ownership to Priya Sharma with unbroken DID continuity',
+      description: t.ai.prompt3Desc,
     },
     {
-      label: 'View Immutable Audit Timeline',
+      label: t.ai.prompt4Label,
       targetPath: '/audit',
       targetName: 'Audit Trail',
-      description: 'Cryptographic ledger of all verified actions and agent proposals',
+      description: t.ai.prompt4Desc,
     },
   ];
 
@@ -109,7 +109,7 @@ export const AIAssistantModal = () => {
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <span className="text-xs font-semibold tracking-wide text-slate-100 hidden sm:inline">
-            OpenVyapar AI Assistant
+            {t.ai.buttonLabel}
           </span>
         </button>
       </div>
@@ -125,8 +125,8 @@ export const AIAssistantModal = () => {
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-100">OpenVyapar AI Assistant</h2>
-                  <p className="text-[11px] text-slate-400">DPI Navigation & Plain Language Explanations</p>
+                  <h2 className="text-sm font-semibold text-slate-100">{t.ai.panelTitle}</h2>
+                  <p className="text-[11px] text-slate-400">{t.ai.panelSubtitle}</p>
                 </div>
               </div>
               <button
@@ -151,7 +151,7 @@ export const AIAssistantModal = () => {
               <form onSubmit={handleCustomSubmit} className="relative">
                 <input
                   type="text"
-                  placeholder="Ask anything (e.g. How do I delegate tax filing?)..."
+                  placeholder={t.ai.placeholder}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   className="w-full pl-3.5 pr-10 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 placeholder:text-slate-400 transition-colors"
@@ -179,7 +179,7 @@ export const AIAssistantModal = () => {
               {/* Suggested Handoff Prompts */}
               <div className="space-y-2">
                 <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  Quick Demo Flows
+                  {t.ai.quickDemoFlows}
                 </div>
                 <div className="space-y-1.5">
                   {suggestedPrompts.map((p, idx) => (
@@ -203,8 +203,8 @@ export const AIAssistantModal = () => {
 
             {/* Architectural Discipline Note Footer */}
             <div className="px-5 py-3 bg-slate-50 border-t border-slate-200/80 text-[11px] text-slate-500 flex items-center justify-between">
-              <span>Guardrail 1: Propose only; human confirms</span>
-              <span className="font-mono text-slate-600 font-semibold">Zero Custody</span>
+              <span>{t.ai.thinAgentFooter}</span>
+              <span className="font-mono text-slate-600 font-semibold">{t.ai.zeroCustodyBadge}</span>
             </div>
           </div>
         </div>

@@ -100,7 +100,7 @@ export const ConsentModal = ({
             <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div className="text-[11px] text-amber-900 space-y-0.5">
               <div className="font-semibold">
-                {t.consent.duration}: {consent.expiresAt || '30 days'}
+                {t.consent.expiresDate}: {consent.expiresAt || '30 days'}
               </div>
               <p className="text-amber-800/90">{t.consent.modalGuarantee}</p>
             </div>
